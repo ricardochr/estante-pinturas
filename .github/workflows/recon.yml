@@ -1,0 +1,20 @@
+name: Recon tiendas
+on:
+  push:
+    branches: [recon]
+permissions:
+  contents: write
+jobs:
+  recon:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tools/recon.py
+      - name: Guardar resultados
+        run: |
+          git config user.name "recon-bot"
+          git config user.email "recon-bot@users.noreply.github.com"
+          git checkout -b recon-out
+          git add raw
+          git commit -m "raw recon" -q
+          git push -f origin recon-out
