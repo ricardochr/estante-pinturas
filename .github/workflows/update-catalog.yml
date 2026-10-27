@@ -41,7 +41,7 @@ jobs:
         run: |
           git config user.name "catalogo-bot"
           git config user.email "catalogo-bot@users.noreply.github.com"
-          git add app/src/main/assets/catalog.json tools/catalog-report.md tools/color-cache.json
+          git add app/src/main/assets/catalog.json tools/catalog-report.md tools/color-cache-v2.json
           if git diff --cached --quiet; then
             echo "Sin cambios en el catálogo"
           else

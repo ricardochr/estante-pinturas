@@ -26,7 +26,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 OUT = os.path.join(ROOT, "app", "src", "main", "assets", "catalog.json")
 REPORT = os.path.join(ROOT, "tools", "catalog-report.md")
-CACHE = os.path.join(HERE, "color-cache.json")
+CACHE = os.path.join(HERE, "color-cache-v2.json")  # v2: zonas calibradas por marca
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
 
 TYPES = ["Opaca", "Metálica", "Wash", "Contraste", "Tinta", "Aerógrafo", "Imprimación", "Barniz", "Médium", "Otro"]
@@ -535,7 +535,7 @@ def build(args):
             if img in cache:
                 r["hex"] = cache[img]; continue
             data = get(img, tries=2)
-            hx = color_from_image(data, r["name"]) if data else None
+            hx = color_from_image(data, r["name"], r["brand"]) if data else None
             if hx:
                 cache[img] = hx
                 r["hex"] = hx
