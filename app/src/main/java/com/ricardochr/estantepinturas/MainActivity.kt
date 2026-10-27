@@ -9,7 +9,14 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -81,6 +88,7 @@ private fun App(vm: MainViewModel = viewModel()) {
     var createForBarcode by remember { mutableStateOf<String?>(null) }
     var menuOpen by remember { mutableStateOf(false) }
     var showAbout by remember { mutableStateOf(false) }
+    var confirmClearCatalog by remember { mutableStateOf(false) }
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     fun say(msg: String) {
@@ -96,6 +104,14 @@ private fun App(vm: MainViewModel = viewModel()) {
     val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) vm.importCsv(uri) { say(it) }
     }
+
+    val catalogImportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) vm.importCatalogCsv(uri) { say(it) }
+    }
+    val catalogExportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri ->
+        if (uri != null) vm.exportCatalogCsv(uri) { say(it) }
+    }
+    val csvTypes = arrayOf("text/*", "application/csv", "application/vnd.ms-excel", "application/octet-stream")
 
     BackHandler(enabled = tab != Tab.Inventario) { tab = Tab.Inventario }
 
@@ -115,10 +131,26 @@ private fun App(vm: MainViewModel = viewModel()) {
                             val stamp = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
                             exportLauncher.launch("inventario-pinturas-$stamp.csv")
                         })
-                        DropdownMenuItem(text = { Text("Importar CSV") }, onClick = {
+                        DropdownMenuItem(text = { Text("Importar inventario (CSV)") }, onClick = {
                             menuOpen = false
-                            importLauncher.launch(arrayOf("text/*", "application/csv", "application/vnd.ms-excel", "application/octet-stream"))
+                            importLauncher.launch(csvTypes)
                         })
+                        HorizontalDivider()
+                        DropdownMenuItem(text = { Text("Agregar pinturas al catálogo (CSV)") }, onClick = {
+                            menuOpen = false
+                            catalogImportLauncher.launch(csvTypes)
+                        })
+                        DropdownMenuItem(text = { Text("Exportar catálogo completo (CSV)") }, onClick = {
+                            menuOpen = false
+                            catalogExportLauncher.launch("catalogo-pinturas.csv")
+                        })
+                        if (vm.extra.isNotEmpty()) {
+                            DropdownMenuItem(text = { Text("Quitar pinturas importadas (${vm.extra.size})") }, onClick = {
+                                menuOpen = false
+                                confirmClearCatalog = true
+                            })
+                        }
+                        HorizontalDivider()
                         DropdownMenuItem(text = { Text("Acerca de") }, onClick = { menuOpen = false; showAbout = true })
                     }
                 },
@@ -248,14 +280,35 @@ private fun App(vm: MainViewModel = viewModel()) {
             confirmButton = { TextButton(onClick = { showAbout = false }) { Text("Cerrar") } },
             title = { Text("Estante de Pinturas") },
             text = {
-                Text(
-                    "Versión ${BuildConfig.VERSION_NAME}\n\n" +
-                        "Catálogo de ${vm.catalog.size} pinturas de miniaturas tomado del proyecto miniature-paints de Rick Fleuren (licencia MIT). " +
-                        "Los colores son aproximados.\n\n" +
-                        "El reconocimiento de etiquetas y códigos de barras usa ML Kit de Google y funciona sin internet. " +
-                        "Tu inventario se guarda solo en este teléfono; usa Exportar para respaldarlo."
-                )
+                Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        "Versión ${BuildConfig.VERSION_NAME}\n\n" +
+                            "Catálogo incluido: ${vm.catalog.size} pinturas del proyecto miniature-paints de Rick Fleuren (licencia MIT), actualizado a marzo de 2025. " +
+                            "Importadas por ti: ${vm.extra.size}. Los colores son aproximados.\n\n" +
+                            "El reconocimiento de etiquetas y códigos de barras usa ML Kit de Google y funciona sin internet. " +
+                            "Tu inventario se guarda solo en este teléfono; usa Exportar para respaldarlo."
+                    )
+                    Text("Pinturas por marca", style = MaterialTheme.typography.titleSmall)
+                    vm.brandCounts.forEach { (b, n) ->
+                        Row(Modifier.fillMaxWidth()) {
+                            Text(b, Modifier.weight(1f))
+                            Text(n.toString(), fontFamily = FontFamily.Monospace)
+                        }
+                    }
+                }
             },
+        )
+    }
+
+    if (confirmClearCatalog) {
+        AlertDialog(
+            onDismissRequest = { confirmClearCatalog = false },
+            title = { Text("¿Quitar las pinturas importadas?") },
+            text = { Text("Se quitan del catálogo las ${vm.extra.size} pinturas que importaste. Las que tengas en tu inventario se conservan.") },
+            confirmButton = {
+                TextButton(onClick = { confirmClearCatalog = false; vm.clearExtraCatalog { say(it) } }) { Text("Quitar") }
+            },
+            dismissButton = { TextButton(onClick = { confirmClearCatalog = false }) { Text("Cancelar") } },
         )
     }
 }

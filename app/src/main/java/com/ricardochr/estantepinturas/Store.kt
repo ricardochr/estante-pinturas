@@ -41,6 +41,49 @@ class Store(private val context: Context) {
         return out
     }
 
+    private val extraFile: File get() = File(context.filesDir, "catalogo-extra.json")
+
+    /** Pinturas que el usuario importó al catálogo (además del catálogo incluido). */
+    fun loadExtraCatalog(): List<Paint> {
+        val f = extraFile
+        if (!f.exists()) return emptyList()
+        return try {
+            val arr = JSONArray(f.readText(Charsets.UTF_8))
+            val out = ArrayList<Paint>(arr.length())
+            for (i in 0 until arr.length()) {
+                val r = arr.getJSONArray(i)
+                out.add(
+                    Paint(
+                        id = r.getString(0),
+                        brand = r.getString(1),
+                        line = r.getString(2),
+                        name = r.getString(3),
+                        code = r.getString(4),
+                        hex = r.getString(5),
+                        type = r.getString(6),
+                    )
+                )
+            }
+            out
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    @Synchronized
+    fun saveExtraCatalog(paints: List<Paint>) {
+        val arr = JSONArray()
+        paints.forEach { p ->
+            arr.put(JSONArray().put(p.id).put(p.brand).put(p.line).put(p.name).put(p.code).put(p.hex).put(p.type))
+        }
+        val tmp = File(context.filesDir, "catalogo-extra.json.tmp")
+        tmp.writeText(arr.toString(), Charsets.UTF_8)
+        if (!tmp.renameTo(extraFile)) {
+            extraFile.writeText(arr.toString(), Charsets.UTF_8)
+            tmp.delete()
+        }
+    }
+
     fun loadState(): SavedState {
         val f = file
         if (!f.exists()) return SavedState(emptyMap(), emptyList(), emptyMap())
@@ -136,10 +179,12 @@ class Store(private val context: Context) {
 object Csv {
     val HEADER = listOf("Marca", "Línea", "Nombre", "Código", "Tipo", "Color", "Botes", "Notas")
 
-    fun write(rows: List<List<String>>): String {
+    val CATALOG_HEADER = listOf("Marca", "Línea", "Nombre", "Código", "Tipo", "Color")
+
+    fun write(rows: List<List<String>>, header: List<String> = HEADER): String {
         fun q(v: String) = "\"" + v.replace("\"", "\"\"") + "\""
         val sb = StringBuilder("﻿")
-        sb.append(HEADER.joinToString(",") { q(it) }).append("\r\n")
+        sb.append(header.joinToString(",") { q(it) }).append("\r\n")
         rows.forEach { r -> sb.append(r.joinToString(",") { q(it) }).append("\r\n") }
         return sb.toString()
     }

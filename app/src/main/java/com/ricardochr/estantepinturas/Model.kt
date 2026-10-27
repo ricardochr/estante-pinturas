@@ -117,6 +117,31 @@ fun colorWords(hex: String): String {
     return w.joinToString(" ")
 }
 
+/** Deduce el tipo de pintura por el nombre y la línea (misma regla que tools/build_catalog.py). */
+fun guessType(name: String, line: String): String {
+    val s = norm("$name $line")
+    return when {
+        "primer" in s || "imprim" in s -> "Imprimación"
+        "varnish" in s || "barniz" in s || "'ardcoat" in s || "lahmian medium" in s -> "Barniz"
+        "medium" in s || "thinner" in s -> "Médium"
+        "contrast" in s || "speedpaint" in s || "xpress" in s -> "Contraste"
+        "wash" in s || "shade" in s -> "Wash"
+        Regex("\\bink\\b|tinta").containsMatchIn(s) -> "Tinta"
+        listOf("metal", "gold", "silver", "bronze", "copper", "brass", "steel", "iron", "chrome", "oro", "plata").any { it in s } -> "Metálica"
+        Regex("\\bair\\b").containsMatchIn(s) -> "Aerógrafo"
+        else -> "Opaca"
+    }
+}
+
+/** Convierte lo que venga en una columna de color ("#E09959", "e09959", "224,153,89") a #RRGGBB, o null. */
+fun parseColorCell(s: String): String? {
+    val t = s.trim()
+    Regex("#?([0-9A-Fa-f]{6})\\b").find(t)?.let { return "#" + it.groupValues[1].uppercase() }
+    val nums = Regex("\\d{1,3}").findAll(t).map { it.value.toInt() }.toList()
+    if (nums.size == 3 && nums.all { it in 0..255 }) return String.format("#%02X%02X%02X", nums[0], nums[1], nums[2])
+    return null
+}
+
 /** True si todas las palabras de la búsqueda aparecen en el texto. */
 fun matchesQuery(hay: String, query: String): Boolean {
     val words = norm(query).split(' ').filter { it.isNotBlank() }
