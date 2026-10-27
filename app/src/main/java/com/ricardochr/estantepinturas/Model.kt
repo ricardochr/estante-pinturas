@@ -55,7 +55,7 @@ fun brandKey(s: String): String {
         k.contains("monument") || k.contains("proacryl") -> "proacryl"
         k.contains("armypainter") -> "armypainter"
         k.contains("citadel") || k.contains("gamesworkshop") -> "citadel"
-        k.contains("akrealcolor") -> "akrealcolors"
+        k.contains("akrealcolor") -> "akinteractive"
         k == "ak" || k.contains("akinteractive") -> "akinteractive"
         k.contains("mig") || k.contains("ammo") -> "ammobymig"
         k.contains("greenstuff") -> "greenstuffworld"

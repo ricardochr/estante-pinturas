@@ -3,6 +3,12 @@ name: Compilar APK
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - "tools/**"
+      - "README.md"
+  workflow_run:
+    workflows: ["Actualizar catálogo"]
+    types: [completed]
   workflow_dispatch:
 
 permissions:
@@ -10,9 +16,12 @@ permissions:
 
 jobs:
   build:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
 
       - uses: actions/setup-java@v4
         with:

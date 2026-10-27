@@ -1,0 +1,50 @@
+name: Actualizar catálogo
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 9 1 * *"   # día 1 de cada mes
+  push:
+    branches: [main]
+    paths:
+      - tools/update_catalog.py
+      - tools/imgcolor.py
+
+permissions:
+  contents: write
+
+concurrency:
+  group: catalogo
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Dependencias y datos abiertos
+        run: |
+          pip install pillow
+          git clone --depth 1 https://github.com/s10-steve/paintdex /tmp/paintdex
+          git clone --depth 1 https://github.com/Arcturus5404/miniature-paints /tmp/miniature-paints
+
+      - name: Descargar tiendas y armar catálogo
+        run: python3 tools/update_catalog.py --fetch --paintdex /tmp/paintdex/data --miniature-paints /tmp/miniature-paints
+
+      - name: Guardar cambios
+        run: |
+          git config user.name "catalogo-bot"
+          git config user.email "catalogo-bot@users.noreply.github.com"
+          git add app/src/main/assets/catalog.json tools/catalog-report.md tools/color-cache.json
+          if git diff --cached --quiet; then
+            echo "Sin cambios en el catálogo"
+          else
+            git commit -m "Catálogo actualizado $(date +%Y-%m-%d)"
+            git push
+          fi

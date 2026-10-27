@@ -59,8 +59,53 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             owned = saved.owned
             barcodes = saved.barcodes
             rebuildIndexes()
+            migrateOrphans()
             loading = false
         }
+    }
+
+    /**
+     * Cuando el catálogo se actualiza, algunas pinturas cambian de línea o de nombre y su id
+     * cambia. Aquí se reasigna el inventario (y los códigos de barras) a la pintura equivalente
+     * del catálogo nuevo; si no existe, se conserva como pintura propia para no perder nada.
+     */
+    private fun migrateOrphans() {
+        val orphanIds = (owned.keys + barcodes.values).filter { !byId.containsKey(it) }.toSet()
+        if (orphanIds.isEmpty()) return
+        val remap = HashMap<String, String>()
+        val newCustom = ArrayList<Paint>()
+        for (oldId in orphanIds) {
+            val parts = oldId.removePrefix("x|").split("|")
+            if (parts.size < 4) continue
+            val (brand, line, name, code) = parts
+            val found = findPaint(brand, line, name, code)
+            if (found != null) {
+                remap[oldId] = found.id
+            } else {
+                val p = Paint(
+                    id = "custom:" + UUID.randomUUID().toString(),
+                    brand = brand, line = line, name = name, code = code,
+                    hex = "#888888", type = guessType(name, line), custom = true,
+                )
+                newCustom.add(p)
+                remap[oldId] = p.id
+            }
+        }
+        if (remap.isEmpty()) return
+        val newOwned = LinkedHashMap<String, OwnedEntry>()
+        owned.values.forEach { e ->
+            val id = remap[e.paintId] ?: e.paintId
+            val prev = newOwned[id]
+            newOwned[id] = if (prev == null) e.copy(paintId = id)
+            else prev.copy(qty = prev.qty + e.qty, notes = listOf(prev.notes, e.notes).filter { it.isNotBlank() }.distinct().joinToString(" · "))
+        }
+        owned = newOwned
+        barcodes = barcodes.mapValues { (_, v) -> remap[v] ?: v }
+        if (newCustom.isNotEmpty()) {
+            custom = custom + newCustom
+            rebuildIndexes()
+        }
+        persist()
     }
 
     private fun rebuildIndexes() {
