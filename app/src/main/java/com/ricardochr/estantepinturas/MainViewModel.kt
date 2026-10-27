@@ -196,6 +196,28 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         return byName.firstOrNull { lk.isNotEmpty() && nameKey(it.line) == lk } ?: byName.first()
     }
 
+    // ---------- colores parecidos ----------
+
+    /**
+     * Pinturas de tu inventario con el color más cercano a [target] (CIEDE2000).
+     * Primero las de la misma familia (opaca, metálica, transparente); si no hay suficientes,
+     * completa con otras familias. Barnices y médiums no cuentan.
+     */
+    fun similarOwned(target: Paint, limit: Int = 5, maxDistance: Double = 25.0): List<SimilarPaint> {
+        if (target.hex.equals(UNKNOWN_HEX, true)) return emptyList()
+        val lab = hexToLab(target.hex)
+        val group = typeGroup(target.type)
+        val candidates = owned.values
+            .filter { it.qty > 0 && it.paintId != target.id }
+            .mapNotNull { byId[it.paintId] }
+            .filter { !it.hex.equals(UNKNOWN_HEX, true) && typeGroup(it.type) != "auxiliar" }
+            .map { SimilarPaint(it, deltaE2000(lab, hexToLab(it.hex)), typeGroup(it.type) == group) }
+            .filter { it.distance <= maxDistance }
+        val same = candidates.filter { it.sameFamily }.sortedBy { it.distance }
+        val other = candidates.filter { !it.sameFamily }.sortedBy { it.distance }
+        return (same.take(limit) + other.take((limit - same.size).coerceAtLeast(0).coerceAtMost(2)))
+    }
+
     // ---------- escaneo ----------
 
     /**

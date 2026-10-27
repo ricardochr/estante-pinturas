@@ -43,6 +43,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -206,7 +207,7 @@ private fun App(vm: MainViewModel = viewModel()) {
         }
     }
 
-    editing?.let { p ->
+    editing?.let { p -> key(p.id) {
         EntrySheet(
             paint = p,
             entry = vm.owned[p.id],
@@ -221,8 +222,10 @@ private fun App(vm: MainViewModel = viewModel()) {
                 editing = null
                 say("Quitada del inventario: ${p.name}")
             },
+            similar = remember(p.id, vm.owned) { vm.similarOwned(p) },
+            onOpenSimilar = { editing = it },
         )
-    }
+    } }
 
     linking?.let { code ->
         Dialog(onDismissRequest = { linking = null }, properties = DialogProperties(usePlatformDefaultWidth = false)) {

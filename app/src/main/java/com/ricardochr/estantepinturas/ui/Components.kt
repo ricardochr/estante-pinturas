@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -65,6 +67,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ricardochr.estantepinturas.OwnedEntry
 import com.ricardochr.estantepinturas.PAINT_TYPES
+import com.ricardochr.estantepinturas.SimilarPaint
+import com.ricardochr.estantepinturas.UNKNOWN_HEX
+import com.ricardochr.estantepinturas.similarityLabel
 import com.ricardochr.estantepinturas.Paint
 import com.ricardochr.estantepinturas.parseHex
 import com.ricardochr.estantepinturas.validHex
@@ -229,6 +234,8 @@ fun EntrySheet(
     onDismiss: () -> Unit,
     onSave: (qty: Int, notes: String) -> Unit,
     onDelete: () -> Unit,
+    similar: List<SimilarPaint> = emptyList(),
+    onOpenSimilar: (Paint) -> Unit = {},
 ) {
     val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var qty by remember { mutableIntStateOf(entry?.qty ?: 1) }
@@ -238,6 +245,7 @@ fun EntrySheet(
         Column(
             Modifier
                 .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp)
                 .padding(bottom = 28.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -251,6 +259,9 @@ fun EntrySheet(
                         Spacer(Modifier.height(4.dp)); CodeTag(paint.code)
                     }
                 }
+            }
+            if (entry == null || entry.qty == 0) {
+                SimilarSection(paint, similar, onOpenSimilar)
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("Botes", Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
@@ -271,6 +282,9 @@ fun EntrySheet(
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
                     ) { Text("Eliminar") }
                 }
+            }
+            if (entry != null && entry.qty > 0 && similar.isNotEmpty()) {
+                SimilarSection(paint, similar, onOpenSimilar, title = "Parecidas en tu estante")
             }
             if (confirmDelete) {
                 Surface(
@@ -358,5 +372,66 @@ fun EmptyState(title: String, body: String, modifier: Modifier = Modifier) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
         )
+    }
+}
+
+/** Lista de pinturas del inventario con color cercano a [paint]. */
+@Composable
+fun SimilarSection(
+    paint: Paint,
+    similar: List<SimilarPaint>,
+    onOpen: (Paint) -> Unit,
+    title: String = "No la tienes. Parecidas que sí tienes:",
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(title, style = MaterialTheme.typography.titleSmall)
+        when {
+            paint.hex.equals(UNKNOWN_HEX, true) -> Text(
+                "Esta pintura no tiene color registrado, así que no puedo compararla.",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodySmall,
+            )
+            similar.isEmpty() -> Text(
+                "Ninguna pintura de tu inventario se le parece lo suficiente.",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodySmall,
+            )
+            else -> Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = RoundedCornerShape(12.dp)) {
+                Column {
+                    similar.forEach { s ->
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .clickable { onOpen(s.paint) }
+                                .padding(horizontal = 12.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        ) {
+                            // Las dos muestras juntas para comparar a simple vista
+                            Row {
+                                Swatch(paint.hex, size = 26.dp, metallic = paint.type == "Metálica")
+                                Swatch(s.paint.hex, size = 26.dp, metallic = s.paint.type == "Metálica")
+                            }
+                            Column(Modifier.weight(1f)) {
+                                Text(s.paint.name, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text(
+                                    listOf(s.paint.brand, s.paint.code.ifBlank { s.paint.line }).filter { it.isNotBlank() }.joinToString(" · ") +
+                                        if (s.sameFamily) "" else " · ${s.paint.type.lowercase()}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                            Text(
+                                similarityLabel(s.distance),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }
