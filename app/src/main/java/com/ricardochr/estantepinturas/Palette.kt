@@ -74,7 +74,8 @@ fun labToArgb(l: Double, a: Double, b: Double): Int {
 fun loadBitmapForAnalysis(context: Context, uri: Uri, maxSide: Int = 400): Bitmap? {
     val cr = context.contentResolver
     val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-    cr.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds) } ?: return null
+    // Con inJustDecodeBounds, decodeStream siempre devuelve null: solo llena outWidth/outHeight
+    (cr.openInputStream(uri) ?: return null).use { BitmapFactory.decodeStream(it, null, bounds) }
     if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
     var sample = 1
     while (max(bounds.outWidth, bounds.outHeight) / (sample * 2) >= maxSide) sample *= 2
@@ -187,6 +188,10 @@ fun analyzeImage(bmp: Bitmap, k: Int): ImagePalette {
                 if (y > 0) { val j = i - w; if (!isBg[j] && !transparent[j] && distBg(j) < t) { isBg[j] = true; queue[tail++] = j } }
                 if (y < h - 1) { val j = i + w; if (!isBg[j] && !transparent[j] && distBg(j) < t) { isBg[j] = true; queue[tail++] = j } }
             }
+            // Huecos de fondo encerrados por la figura (entre brazos, cables…): no tocan el borde,
+            // pero son del mismo color que el fondo
+            val tHole = t * 0.7f
+            for (i in 0 until n) if (!isBg[i] && !transparent[i] && distBg(i) < tHole) isBg[i] = true
         }
     }
 

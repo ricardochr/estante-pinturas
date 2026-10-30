@@ -251,20 +251,28 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val cat = extra + catalog
         val reuse = palette?.takeIf { it.uri == uri }?.source
         viewModelScope.launch {
+            var error: String? = null
             val result = withContext(Dispatchers.Default) {
-                try {
-                    val bmp = reuse ?: loadBitmapForAnalysis(getApplication(), uri)
-                    if (bmp == null) null
-                    else {
+                val bmp = try {
+                    reuse ?: loadBitmapForAnalysis(getApplication(), uri)
+                } catch (e: Throwable) {
+                    null
+                }
+                if (bmp == null) {
+                    error = "No pude abrir esa imagen. Prueba con otra (JPG o PNG)."
+                    null
+                } else {
+                    try {
                         val ip = analyzeImage(bmp, detail)
                         val matches = matchPalette(ip, inv, cat)
                         PaletteView(uri, detail, bmp, ip, matches, renderPreview(ip, matches))
+                    } catch (e: Throwable) {
+                        error = "Abrí la imagen pero falló el análisis (${e.javaClass.simpleName}: ${e.message}). Envíame este mensaje."
+                        null
                     }
-                } catch (e: Exception) {
-                    null
                 }
             }
-            if (result == null) paletteError = "No pude abrir esa imagen. Prueba con otra (JPG o PNG)."
+            if (result == null) paletteError = error ?: "No pude analizar la imagen."
             else palette = result
             paletteBusy = false
         }
