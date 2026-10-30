@@ -16,6 +16,10 @@ android {
         targetSdk = 35
         versionCode = buildNumber
         versionName = "1.0.$buildNumber"
+        // Solo procesadores ARM (todos los teléfonos actuales): el APK pesa mucho menos
+        ndk {
+            abiFilters += listOf("arm64-v8a", "armeabi-v7a")
+        }
     }
 
     // Llave fija dentro del repo: así cada APK nuevo se instala encima del anterior
@@ -34,7 +38,10 @@ android {
             signingConfig = signingConfigs.getByName("estante")
         }
         getByName("release") {
-            isMinifyEnabled = false
+            // R8 optimiza Compose: listas y búsquedas mucho más fluidas, APK más chico
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.getByName("estante")
         }
     }
@@ -71,4 +78,5 @@ dependencies {
 
     implementation("com.google.mlkit:barcode-scanning:17.3.0")
     implementation("com.google.mlkit:text-recognition:16.0.1")
+    implementation("androidx.exifinterface:exifinterface:1.3.7")
 }

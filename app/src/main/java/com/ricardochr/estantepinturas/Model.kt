@@ -25,8 +25,12 @@ data class Paint(
         norm(listOf(brand, line, name, code, type, codeKey(code).lowercase(), colorWords(hex)).joinToString(" "))
     }
 
-    val subtitle: String
-        get() = listOf(brand, line, type).filter { it.isNotBlank() }.joinToString(" · ")
+    /** Color en CIELAB, para comparar colores. */
+    val lab: Lab by lazy { hexToLab(hex) }
+
+    val hasColor: Boolean get() = !hex.equals(UNKNOWN_HEX, true)
+
+    val subtitle: String by lazy { listOf(brand, line, type).filter { it.isNotBlank() }.joinToString(" · ") }
 }
 
 data class OwnedEntry(
@@ -143,8 +147,12 @@ fun parseColorCell(s: String): String? {
 }
 
 /** True si todas las palabras de la búsqueda aparecen en el texto. */
-fun matchesQuery(hay: String, query: String): Boolean {
-    val words = norm(query).split(' ').filter { it.isNotBlank() }
-    if (words.isEmpty()) return true
-    return words.all { hay.contains(it) }
+fun matchesQuery(hay: String, query: String): Boolean = matchesWords(hay, queryWords(query))
+
+/** Palabras normalizadas de una búsqueda; se calcula una sola vez por búsqueda. */
+fun queryWords(query: String): List<String> = norm(query).split(' ').filter { it.isNotBlank() }
+
+fun matchesWords(hay: String, words: List<String>): Boolean {
+    for (w in words) if (!hay.contains(w)) return false
+    return true
 }

@@ -59,6 +59,8 @@ import com.ricardochr.estantepinturas.ui.CustomPaintDialog
 import com.ricardochr.estantepinturas.ui.EntrySheet
 import com.ricardochr.estantepinturas.ui.EstanteTheme
 import com.ricardochr.estantepinturas.ui.InventoryScreen
+import com.ricardochr.estantepinturas.ui.PaletteIcon
+import com.ricardochr.estantepinturas.ui.PaletteScreen
 import com.ricardochr.estantepinturas.ui.ScanIcon
 import com.ricardochr.estantepinturas.ui.ScanScreen
 import kotlinx.coroutines.launch
@@ -78,7 +80,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private enum class Tab(val label: String) { Inventario("Mis pinturas"), Catalogo("Catálogo"), Escanear("Escanear") }
+private enum class Tab(val label: String) { Inventario("Mis pinturas"), Catalogo("Catálogo"), Escanear("Escanear"), Paleta("Paleta") }
 
 @Composable
 private fun App(vm: MainViewModel = viewModel()) {
@@ -171,6 +173,10 @@ private fun App(vm: MainViewModel = viewModel()) {
                     selected = tab == Tab.Escanear, onClick = { tab = Tab.Escanear },
                     icon = { Icon(ScanIcon, contentDescription = null) }, label = { Text("Escanear") },
                 )
+                NavigationBarItem(
+                    selected = tab == Tab.Paleta, onClick = { tab = Tab.Paleta },
+                    icon = { Icon(PaletteIcon, contentDescription = null) }, label = { Text("Paleta") },
+                )
             }
         },
         snackbarHost = { SnackbarHost(snackbar) },
@@ -199,10 +205,12 @@ private fun App(vm: MainViewModel = viewModel()) {
                 )
                 Tab.Escanear -> ScanScreen(
                     vm,
+                    active = linking == null && editing == null && !creating,
                     onLinkBarcode = { linking = it },
                     onNotFound = { tab = Tab.Catalogo },
                     onAdded = { say(it) },
                 )
+                Tab.Paleta -> PaletteScreen(vm, onOpenPaint = { editing = it })
             }
         }
     }

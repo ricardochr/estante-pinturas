@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -21,8 +22,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -32,29 +35,53 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ricardochr.estantepinturas.MainViewModel
+import com.ricardochr.estantepinturas.OwnedEntry
 import com.ricardochr.estantepinturas.Paint
-import com.ricardochr.estantepinturas.matchesQuery
+import com.ricardochr.estantepinturas.matchesWords
 import com.ricardochr.estantepinturas.norm
+import com.ricardochr.estantepinturas.queryWords
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 
 private val paintOrder = compareBy<Paint>({ it.brand }, { it.line }, { it.code.ifBlank { it.name } }, { it.name })
+
+/**
+ * Filtra fuera del hilo principal y espera un momento mientras se escribe, para que el teclado
+ * no se trabe con miles de pinturas. Mientras calcula, sigue mostrando el resultado anterior.
+ */
+@Composable
+private fun <T> rememberFiltered(
+    query: String,
+    brand: String?,
+    source: Any?,
+    compute: (words: List<String>, brand: String?) -> List<T>,
+): List<T>? {
+    val result by produceState<List<T>?>(initialValue = null, query, brand, source) {
+        if (value != null) delay(120)
+        val words = queryWords(query)
+        value = withContext(Dispatchers.Default) { compute(words, brand) }
+    }
+    return result
+}
 
 @Composable
 fun InventoryScreen(vm: MainViewModel, onEdit: (Paint) -> Unit, onGoCatalog: () -> Unit, onGoScan: () -> Unit) {
     var query by rememberSaveable { mutableStateOf("") }
     var brand by rememberSaveable { mutableStateOf<String?>(null) }
 
-    val ownedPaints = remember(vm.owned, vm.byId) {
-        vm.owned.values.mapNotNull { e -> vm.byId[e.paintId]?.let { it to e } }
+    val ownedPaints: List<Pair<Paint, OwnedEntry>> = remember(vm.owned, vm.byId) {
+        vm.owned.values.mapNotNull { e -> vm.byId[e.paintId]?.let { it to e } }.sortedWith(compareBy(paintOrder) { it.first })
     }
     val brands = remember(ownedPaints) {
         ownedPaints.groupingBy { it.first.brand }.eachCount().toList().sortedBy { it.first }
     }
     val effectiveBrand = brand?.takeIf { b -> brands.any { it.first == b } }
-    val shown = remember(ownedPaints, query, effectiveBrand) {
-        ownedPaints
-            .filter { effectiveBrand == null || it.first.brand == effectiveBrand }
-            .filter { (p, e) -> matchesQuery(p.searchText + " " + norm(e.notes), query) }
-            .sortedWith(compareBy(paintOrder) { it.first })
+    val shown = rememberFiltered(query, effectiveBrand, ownedPaints) { words, b ->
+        ownedPaints.filter { (p, e) ->
+            (b == null || p.brand == b) &&
+                (words.isEmpty() || matchesWords(p.searchText + " " + norm(e.notes), words))
+        }
     }
     val totalBottles = ownedPaints.sumOf { it.second.qty }
 
@@ -72,7 +99,7 @@ fun InventoryScreen(vm: MainViewModel, onEdit: (Paint) -> Unit, onGoCatalog: () 
         Spacer(Modifier.height(4.dp))
 
         when {
-            vm.loading -> EmptyState("Cargando…", "Abriendo el catálogo de pinturas.")
+            vm.loading || shown == null -> EmptyState("Cargando…", "Abriendo el catálogo de pinturas.")
             ownedPaints.isEmpty() -> Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
                 EmptyState(
                     "Tu estante está vacío",
@@ -88,7 +115,7 @@ fun InventoryScreen(vm: MainViewModel, onEdit: (Paint) -> Unit, onGoCatalog: () 
                 TextButton(onClick = onGoCatalog) { Text("Buscar en el catálogo") }
             }
             else -> LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 24.dp)) {
-                items(shown, key = { it.first.id }) { (p, e) ->
+                items(shown, key = { it.first.id }, contentType = { 0 }) { (p, e) ->
                     PaintRow(p, extra = e.notes, onClick = { onEdit(p) }) {
                         QtyStepper(
                             e.qty,
@@ -113,17 +140,20 @@ fun CatalogList(
 ) {
     var query by rememberSaveable { mutableStateOf(initialQuery) }
     var brand by rememberSaveable { mutableStateOf<String?>(null) }
-    val all = remember(vm.catalog, vm.custom) { vm.allPaints }
+    val all = remember(vm.catalog, vm.custom, vm.extra) { vm.allPaints }
     val brands = remember(all) { all.groupingBy { it.brand }.eachCount().toList().sortedBy { it.first } }
-    val shown = remember(all, query, brand) {
-        all.filter { (brand == null || it.brand == brand) && matchesQuery(it.searchText, query) }
+    val shown = rememberFiltered(query, brand, all) { words, b ->
+        if (words.isEmpty() && b == null) all
+        else all.filter { (b == null || it.brand == b) && (words.isEmpty() || matchesWords(it.searchText, words)) }
     }
+    val listState = rememberLazyListState()
+    LaunchedEffect(query, brand) { listState.scrollToItem(0) }
 
     Column(Modifier.fillMaxSize()) {
         Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             SearchField(query, { query = it }, "Buscar en ${all.size} pinturas…")
             Text(
-                "${shown.size} resultados",
+                if (shown == null) "Buscando…" else "${shown.size} resultados",
                 style = MaterialTheme.typography.labelMedium,
                 fontFamily = FontFamily.Monospace,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -131,8 +161,12 @@ fun CatalogList(
         }
         BrandChips(brands, brand) { brand = it }
         Spacer(Modifier.height(4.dp))
-        LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 24.dp)) {
-            items(shown, key = { it.id }) { p ->
+        if (shown == null) {
+            EmptyState("Cargando…", "Preparando el catálogo.")
+            return@Column
+        }
+        LazyColumn(Modifier.fillMaxSize(), state = listState, contentPadding = PaddingValues(bottom = 24.dp)) {
+            items(shown, key = { it.id }, contentType = { 0 }) { p ->
                 val qty = vm.qtyOf(p.id)
                 PaintRow(p, onClick = { onRowClick(p) }) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {

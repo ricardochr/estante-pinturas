@@ -87,13 +87,36 @@ val ScanIcon: ImageVector by lazy {
     }.build()
 }
 
+/** Ícono de paleta para la pestaña Paleta. */
+val PaletteIcon: ImageVector by lazy {
+    ImageVector.Builder("palette", 24.dp, 24.dp, 24f, 24f).apply {
+        path(fill = null, stroke = SolidColor(Color.Black), strokeLineWidth = 2f, strokeLineCap = StrokeCap.Round) {
+            moveTo(12f, 3f)
+            arcTo(9f, 9f, 0f, false, false, 12f, 21f)
+            curveTo(13.5f, 21f, 14f, 20f, 13.5f, 18.8f)
+            curveTo(13f, 17.5f, 13.8f, 16f, 15.5f, 16f)
+            lineTo(17f, 16f)
+            curveTo(19.2f, 16f, 21f, 14.2f, 21f, 12f)
+            arcTo(9f, 9f, 0f, false, false, 12f, 3f)
+            close()
+        }
+        path(fill = SolidColor(Color.Black)) {
+            moveTo(7.5f, 11f); arcTo(1.5f, 1.5f, 0f, true, true, 7.5f, 11.01f); close()
+            moveTo(10f, 7f); arcTo(1.5f, 1.5f, 0f, true, true, 10f, 7.01f); close()
+            moveTo(15f, 7f); arcTo(1.5f, 1.5f, 0f, true, true, 15f, 7.01f); close()
+        }
+    }.build()
+}
+
 @Composable
 fun Swatch(hex: String, size: Dp = 40.dp, metallic: Boolean = false) {
-    val base = Color(parseHex(hex))
-    val brush = if (metallic) {
-        Brush.linearGradient(listOf(Color.White.copy(alpha = 0.55f).compositeOver(base), base, Color.Black.copy(alpha = 0.3f).compositeOver(base)))
-    } else {
-        Brush.radialGradient(listOf(Color.White.copy(alpha = 0.18f).compositeOver(base), base, Color.Black.copy(alpha = 0.15f).compositeOver(base)))
+    val brush = remember(hex, metallic) {
+        val base = Color(parseHex(hex))
+        if (metallic) {
+            Brush.linearGradient(listOf(Color.White.copy(alpha = 0.55f).compositeOver(base), base, Color.Black.copy(alpha = 0.3f).compositeOver(base)))
+        } else {
+            Brush.radialGradient(listOf(Color.White.copy(alpha = 0.18f).compositeOver(base), base, Color.Black.copy(alpha = 0.15f).compositeOver(base)))
+        }
     }
     Box(
         Modifier
@@ -193,6 +216,7 @@ fun PaintRow(
                 Text(
                     paint.name,
                     fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f, fill = false),

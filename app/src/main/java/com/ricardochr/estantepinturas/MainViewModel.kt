@@ -1,6 +1,7 @@
 package com.ricardochr.estantepinturas
 
 import android.app.Application
+import android.graphics.Bitmap
 import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -58,6 +59,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             custom = saved.custom
             owned = saved.owned
             barcodes = saved.barcodes
+            // Prepara texto de búsqueda y color Lab de todas las pinturas antes de usarlas
+            withContext(Dispatchers.Default) { (ext + cat).forEach { it.searchText; it.lab } }
             rebuildIndexes()
             migrateOrphans()
             loading = false
@@ -205,17 +208,85 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
      */
     fun similarOwned(target: Paint, limit: Int = 5, maxDistance: Double = 25.0): List<SimilarPaint> {
         if (target.hex.equals(UNKNOWN_HEX, true)) return emptyList()
-        val lab = hexToLab(target.hex)
+        val lab = target.lab
         val group = typeGroup(target.type)
         val candidates = owned.values
             .filter { it.qty > 0 && it.paintId != target.id }
             .mapNotNull { byId[it.paintId] }
             .filter { !it.hex.equals(UNKNOWN_HEX, true) && typeGroup(it.type) != "auxiliar" }
-            .map { SimilarPaint(it, deltaE2000(lab, hexToLab(it.hex)), typeGroup(it.type) == group) }
+            .map { SimilarPaint(it, deltaE2000(lab, it.lab), typeGroup(it.type) == group) }
             .filter { it.distance <= maxDistance }
         val same = candidates.filter { it.sameFamily }.sortedBy { it.distance }
         val other = candidates.filter { !it.sameFamily }.sortedBy { it.distance }
         return (same.take(limit) + other.take((limit - same.size).coerceAtLeast(0).coerceAtMost(2)))
+    }
+
+    // ---------- paleta desde una imagen ----------
+
+    class PaletteView(
+        val uri: Uri,
+        val detail: Int,
+        val source: Bitmap,
+        val palette: ImagePalette,
+        val matches: List<PaletteMatch>,
+        val preview: Bitmap,
+    )
+
+    var palette by mutableStateOf<PaletteView?>(null)
+        private set
+    var paletteBusy by mutableStateOf(false)
+        private set
+    var paletteError by mutableStateOf<String?>(null)
+        private set
+
+    private fun inventoryPaints(): List<Paint> =
+        owned.values.filter { it.qty > 0 }.mapNotNull { byId[it.paintId] }
+
+    /** Analiza la imagen y sugiere pinturas del inventario. [detail]: 5 pocos, 8 normal, 12 detallado. */
+    fun analyzePalette(uri: Uri, detail: Int) {
+        if (paletteBusy) return
+        paletteBusy = true
+        paletteError = null
+        val inv = inventoryPaints()
+        val cat = extra + catalog
+        val reuse = palette?.takeIf { it.uri == uri }?.source
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.Default) {
+                try {
+                    val bmp = reuse ?: loadBitmapForAnalysis(getApplication(), uri)
+                    if (bmp == null) null
+                    else {
+                        val ip = analyzeImage(bmp, detail)
+                        val matches = matchPalette(ip, inv, cat)
+                        PaletteView(uri, detail, bmp, ip, matches, renderPreview(ip, matches))
+                    }
+                } catch (e: Exception) {
+                    null
+                }
+            }
+            if (result == null) paletteError = "No pude abrir esa imagen. Prueba con otra (JPG o PNG)."
+            else palette = result
+            paletteBusy = false
+        }
+    }
+
+    /** Recalcula las sugerencias cuando cambia el inventario, sin volver a analizar la imagen. */
+    fun refreshPaletteMatches() {
+        val current = palette ?: return
+        val inv = inventoryPaints()
+        val cat = extra + catalog
+        viewModelScope.launch {
+            val updated = withContext(Dispatchers.Default) {
+                val matches = matchPalette(current.palette, inv, cat)
+                PaletteView(current.uri, current.detail, current.source, current.palette, matches, renderPreview(current.palette, matches))
+            }
+            if (palette === current) palette = updated
+        }
+    }
+
+    fun clearPalette() {
+        palette = null
+        paletteError = null
     }
 
     // ---------- escaneo ----------
