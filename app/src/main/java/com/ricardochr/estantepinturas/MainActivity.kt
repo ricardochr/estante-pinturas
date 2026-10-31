@@ -44,6 +44,8 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.produceState
+import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -59,6 +61,8 @@ import com.ricardochr.estantepinturas.ui.CustomPaintDialog
 import com.ricardochr.estantepinturas.ui.EntrySheet
 import com.ricardochr.estantepinturas.ui.EstanteTheme
 import com.ricardochr.estantepinturas.ui.InventoryScreen
+import com.ricardochr.estantepinturas.ui.GuideIcon
+import com.ricardochr.estantepinturas.ui.GuideScreen
 import com.ricardochr.estantepinturas.ui.PaletteIcon
 import com.ricardochr.estantepinturas.ui.PaletteScreen
 import com.ricardochr.estantepinturas.ui.ScanIcon
@@ -80,7 +84,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private enum class Tab(val label: String) { Inventario("Mis pinturas"), Catalogo("Catálogo"), Escanear("Escanear"), Paleta("Paleta") }
+private enum class Tab(val label: String) { Inventario("Mis pinturas"), Catalogo("Catálogo"), Escanear("Escanear"), Paleta("Paleta"), Guia("Guía") }
 
 @Composable
 private fun App(vm: MainViewModel = viewModel()) {
@@ -121,7 +125,17 @@ private fun App(vm: MainViewModel = viewModel()) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(tab.label.uppercase(), style = MaterialTheme.typography.headlineSmall) },
+                title = {
+                    Column {
+                        Text(
+                            "GOTARIO",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.tertiary,
+                            letterSpacing = 2.sp,
+                        )
+                        Text(tab.label, style = MaterialTheme.typography.headlineMedium)
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
                 actions = {
                     IconButton(onClick = { menuOpen = true }) { Icon(Icons.Default.MoreVert, contentDescription = "Más opciones") }
@@ -160,7 +174,7 @@ private fun App(vm: MainViewModel = viewModel()) {
             )
         },
         bottomBar = {
-            NavigationBar {
+            NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh, tonalElevation = 0.dp) {
                 NavigationBarItem(
                     selected = tab == Tab.Inventario, onClick = { tab = Tab.Inventario },
                     icon = { Icon(Icons.Default.Home, contentDescription = null) }, label = { Text("Mis pinturas") },
@@ -176,6 +190,10 @@ private fun App(vm: MainViewModel = viewModel()) {
                 NavigationBarItem(
                     selected = tab == Tab.Paleta, onClick = { tab = Tab.Paleta },
                     icon = { Icon(PaletteIcon, contentDescription = null) }, label = { Text("Paleta") },
+                )
+                NavigationBarItem(
+                    selected = tab == Tab.Guia, onClick = { tab = Tab.Guia },
+                    icon = { Icon(GuideIcon, contentDescription = null) }, label = { Text("Guía") },
                 )
             }
         },
@@ -211,6 +229,7 @@ private fun App(vm: MainViewModel = viewModel()) {
                     onAdded = { say(it) },
                 )
                 Tab.Paleta -> PaletteScreen(vm, onOpenPaint = { editing = it })
+                Tab.Guia -> GuideScreen()
             }
         }
     }
@@ -232,6 +251,10 @@ private fun App(vm: MainViewModel = viewModel()) {
             },
             similar = remember(p.id, vm.owned) { vm.similarOwned(p) },
             onOpenSimilar = { editing = it },
+            mixes = produceState<List<MixRecipe>?>(null, p.id, vm.owned) {
+                val ownedQty = vm.owned[p.id]?.qty ?: 0
+                value = if (ownedQty == 0 && p.hasColor) vm.mixesFor(p.lab, p.id) else emptyList()
+            }.value,
         )
     } }
 

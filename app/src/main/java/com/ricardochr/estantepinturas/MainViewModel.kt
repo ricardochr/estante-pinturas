@@ -221,6 +221,14 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         return (same.take(limit) + other.take((limit - same.size).coerceAtLeast(0).coerceAtMost(2)))
     }
 
+    // ---------- mezclas ----------
+
+    /** Recetas para acercarse a [target] con las pinturas del inventario (sin contar [excludeId]). */
+    suspend fun mixesFor(target: Lab, excludeId: String? = null): List<MixRecipe> {
+        val inv = inventoryPaints().filter { it.id != excludeId }
+        return withContext(Dispatchers.Default) { findMixes(target, inv) }
+    }
+
     // ---------- paleta desde una imagen ----------
 
     class PaletteView(

@@ -31,6 +31,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -86,14 +87,11 @@ fun InventoryScreen(vm: MainViewModel, onEdit: (Paint) -> Unit, onGoCatalog: () 
     val totalBottles = ownedPaints.sumOf { it.second.qty }
 
     Column(Modifier.fillMaxSize()) {
-        Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            if (ownedPaints.isNotEmpty() && query.isEmpty()) {
+                SummaryCard(ownedPaints.map { it.first }, totalBottles, brands.size)
+            }
             SearchField(query, { query = it }, "Buscar: nombre, código, marca, color…")
-            Text(
-                "${ownedPaints.size} colores · $totalBottles botes",
-                style = MaterialTheme.typography.labelMedium,
-                fontFamily = FontFamily.Monospace,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
         }
         BrandChips(brands, effectiveBrand) { brand = it }
         Spacer(Modifier.height(4.dp))
@@ -194,5 +192,58 @@ fun OwnedBadge(qty: Int) {
             color = MaterialTheme.colorScheme.onPrimaryContainer,
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
         )
+    }
+}
+
+/** Resumen del estante: cifras y una franja con todos tus colores ordenados por tono. */
+@Composable
+private fun SummaryCard(paints: List<Paint>, bottles: Int, brands: Int) {
+    val strip = remember(paints) {
+        paints.filter { it.hasColor }
+            .sortedWith(compareBy<Paint>({
+                val c = kotlin.math.sqrt(it.lab.a * it.lab.a + it.lab.b * it.lab.b)
+                if (c < 10) 1 else 0
+            }, {
+                val c = kotlin.math.sqrt(it.lab.a * it.lab.a + it.lab.b * it.lab.b)
+                if (c < 10) -it.lab.l else {
+                    val h = Math.toDegrees(kotlin.math.atan2(it.lab.b, it.lab.a))
+                    if (h < 0) h + 360 else h
+                }
+            }))
+            .map { androidx.compose.ui.graphics.Color(it.argb) }
+    }
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        shape = MaterialTheme.shapes.medium,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+                Stat(paints.size.toString(), "colores")
+                Stat(bottles.toString(), "botes")
+                Stat(brands.toString(), "marcas")
+            }
+            if (strip.isNotEmpty()) {
+                androidx.compose.foundation.Canvas(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(14.dp)
+                        .clip(RoundedCornerShape(7.dp))
+                ) {
+                    val w = size.width / strip.size
+                    strip.forEachIndexed { i, c ->
+                        drawRect(c, topLeft = androidx.compose.ui.geometry.Offset(i * w, 0f), size = androidx.compose.ui.geometry.Size(w + 1f, size.height))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun Stat(value: String, label: String) {
+    Column {
+        Text(value, style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onSurface)
+        Text(label.uppercase(), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

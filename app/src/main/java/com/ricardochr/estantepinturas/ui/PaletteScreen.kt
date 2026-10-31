@@ -34,6 +34,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -58,6 +59,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.ricardochr.estantepinturas.MainViewModel
 import com.ricardochr.estantepinturas.Paint
+import com.ricardochr.estantepinturas.Lab
+import com.ricardochr.estantepinturas.MixRecipe
 import com.ricardochr.estantepinturas.PaletteMatch
 import com.ricardochr.estantepinturas.ZoneAdvice
 import com.ricardochr.estantepinturas.renderHighlight
@@ -273,6 +276,7 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit) {
                 selected = sel == i,
                 onSelect = { selected = if (sel == i) null else i },
                 onOpen = onOpenPaint,
+                mixFor = { lab -> vm.mixesFor(lab) },
             )
         }
         item {
@@ -342,8 +346,13 @@ private fun MatchCard(
     selected: Boolean,
     onSelect: () -> Unit,
     onOpen: (Paint) -> Unit,
+    mixFor: suspend (Lab) -> List<MixRecipe>,
 ) {
     var showTips by remember { mutableStateOf(false) }
+    var showMix by remember { mutableStateOf(false) }
+    val mixes by produceState<List<MixRecipe>?>(null, showMix, m) {
+        value = if (showMix) mixFor(m.cluster.lab) else null
+    }
     Surface(
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
         contentColor = MaterialTheme.colorScheme.onSurface,
@@ -452,6 +461,14 @@ private fun MatchCard(
                             }
                         }
                     }
+                }
+            }
+            // Mezcla: útil cuando nada del inventario se parece lo suficiente
+            if (m.best == null || m.best.distance > 6) {
+                if (!showMix) {
+                    TextButton(onClick = { showMix = true }) { Text("Cómo lograrlo mezclando lo que tienes") }
+                } else {
+                    MixSection(m.cluster.argb, mixes, onOpen, title = "Mezcla para este color")
                 }
             }
             val buy = m.toBuy

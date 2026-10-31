@@ -39,6 +39,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -66,6 +67,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ricardochr.estantepinturas.OwnedEntry
+import com.ricardochr.estantepinturas.MixRecipe
 import com.ricardochr.estantepinturas.PAINT_TYPES
 import com.ricardochr.estantepinturas.SimilarPaint
 import com.ricardochr.estantepinturas.UNKNOWN_HEX
@@ -83,6 +85,24 @@ val ScanIcon: ImageVector by lazy {
             moveTo(20f, 16f); lineTo(20f, 19f); lineTo(17f, 19f)
             moveTo(7f, 19f); lineTo(4f, 19f); lineTo(4f, 16f)
             moveTo(8f, 12f); lineTo(16f, 12f)
+        }
+    }.build()
+}
+
+/** Ícono de libro abierto para la pestaña Guía. */
+val GuideIcon: ImageVector by lazy {
+    ImageVector.Builder("guide", 24.dp, 24.dp, 24f, 24f).apply {
+        path(fill = null, stroke = SolidColor(Color.Black), strokeLineWidth = 2f, strokeLineCap = StrokeCap.Round) {
+            moveTo(12f, 6.5f)
+            curveTo(10f, 5f, 7f, 4.5f, 3f, 5f)
+            lineTo(3f, 18.5f)
+            curveTo(7f, 18f, 10f, 18.5f, 12f, 20f)
+            curveTo(14f, 18.5f, 17f, 18f, 21f, 18.5f)
+            lineTo(21f, 5f)
+            curveTo(17f, 4.5f, 14f, 5f, 12f, 6.5f)
+            close()
+            moveTo(12f, 6.5f)
+            lineTo(12f, 20f)
         }
     }.build()
 }
@@ -151,7 +171,12 @@ fun SearchField(value: String, onChange: (String) -> Unit, placeholder: String, 
                 IconButton(onClick = { onChange("") }) { Icon(Icons.Default.Clear, contentDescription = "Borrar búsqueda") }
             }
         },
-        shape = RoundedCornerShape(14.dp),
+        shape = RoundedCornerShape(28.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+        ),
     )
 }
 
@@ -260,6 +285,7 @@ fun EntrySheet(
     onDelete: () -> Unit,
     similar: List<SimilarPaint> = emptyList(),
     onOpenSimilar: (Paint) -> Unit = {},
+    mixes: List<MixRecipe>? = null,
 ) {
     val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var qty by remember { mutableIntStateOf(entry?.qty ?: 1) }
@@ -286,6 +312,10 @@ fun EntrySheet(
             }
             if (entry == null || entry.qty == 0) {
                 SimilarSection(paint, similar, onOpenSimilar)
+                // Mezcla solo si no hay una casi idéntica en el estante
+                if (paint.hasColor && (similar.firstOrNull()?.distance ?: 99.0) > 3.0) {
+                    MixSection(paint.argb.toInt(), mixes, onOpenSimilar)
+                }
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("Botes", Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
@@ -307,6 +337,7 @@ fun EntrySheet(
                     ) { Text("Eliminar") }
                 }
             }
+            DilutionSection(paint)
             if (entry != null && entry.qty > 0 && similar.isNotEmpty()) {
                 SimilarSection(paint, similar, onOpenSimilar, title = "Parecidas en tu estante")
             }
