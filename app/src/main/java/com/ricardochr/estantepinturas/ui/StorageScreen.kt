@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -162,7 +163,8 @@ fun StorageScreen(
 
     Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-            Column(Modifier.fillMaxSize()) {
+            // La ventana del diálogo ocupa toda la pantalla: dejar libre la barra de estado y la de navegación
+            Column(Modifier.fillMaxSize().systemBarsPadding()) {
                 TopAppBar(
                     title = {
                         Column {
@@ -502,7 +504,7 @@ fun PaintPickerDialog(vm: MainViewModel, title: String, onDismiss: () -> Unit, o
     val shown = remember(q, inv) { if (words.isEmpty()) inv else inv.filter { matchesWords(it.searchText, words) } }
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-            Column {
+            Column(Modifier.systemBarsPadding()) {
                 TopAppBar(
                     title = { Text(title) },
                     navigationIcon = { IconButton(onClick = onDismiss) { Icon(Icons.Default.ArrowBack, contentDescription = "Volver") } },

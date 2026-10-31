@@ -18,6 +18,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -271,7 +272,7 @@ private fun App(vm: MainViewModel = viewModel()) {
     linking?.let { code ->
         Dialog(onDismissRequest = { linking = null }, properties = DialogProperties(usePlatformDefaultWidth = false)) {
             Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                Column {
+                Column(Modifier.systemBarsPadding()) {
                     TopAppBar(
                         title = { Text("¿Qué pintura es?") },
                         navigationIcon = {
