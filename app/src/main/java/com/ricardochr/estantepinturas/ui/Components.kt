@@ -324,12 +324,12 @@ fun EntrySheet(
                         Column(Modifier.weight(1f)) {
                             Text("Dónde está", style = MaterialTheme.typography.titleSmall)
                             Text(
-                                locationName?.let { "En $it" } ?: "Sin ubicar",
+                                locationName?.let { "En $it" } ?: "Te ayudo a encontrarla por su etiqueta y su color",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
-                        if (locationName != null) TextButton(onClick = onShowLocation) { Text("Ver en la foto") }
+                        TextButton(onClick = onShowLocation) { Text("Buscar") }
                         TextButton(onClick = onPlaceLocation) { Text(if (locationName != null) "Mover" else "Marcar") }
                     }
                 }

@@ -10,6 +10,15 @@ import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 /** Pintura reconocida en la foto de una gaveta, con su posición relativa (0–1). */
 data class DetectedPaint(val paint: Paint, val x: Float, val y: Float, val owned: Boolean)
 
+enum class LocateKind(val label: String) {
+    SAVED("Ubicación que confirmaste"),
+    LABEL("Etiqueta leída"),
+    COLOR("Color parecido"),
+}
+
+/** Posible lugar de una pintura en una foto (x, y relativos 0–1). */
+data class LocateHit(val spot: StorageSpot, val x: Float, val y: Float, val kind: LocateKind, val confidence: Float)
+
 /** Bloque de texto leído en la foto y su centro en píxeles de la imagen original. */
 class TextBlockAt(val lines: List<String>, val x: Float, val y: Float)
 

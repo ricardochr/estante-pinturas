@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -37,6 +38,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
@@ -46,7 +48,9 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -62,6 +66,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -84,15 +89,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import com.ricardochr.estantepinturas.DetectedPaint
+import com.ricardochr.estantepinturas.LocateHit
+import com.ricardochr.estantepinturas.LocateKind
 import com.ricardochr.estantepinturas.MainViewModel
 import com.ricardochr.estantepinturas.Paint
 import com.ricardochr.estantepinturas.StorageSpot
 import com.ricardochr.estantepinturas.matchesWords
-import com.ricardochr.estantepinturas.norm
 import com.ricardochr.estantepinturas.parseHex
 import com.ricardochr.estantepinturas.queryWords
 import kotlinx.coroutines.Dispatchers
@@ -104,15 +109,17 @@ import kotlin.math.roundToInt
 /** Qué abrir en la pantalla de gavetas. */
 data class StorageRequest(
     val spotId: String? = null,
-    val focusPaintId: String? = null,
+    val findPaintId: String? = null,
     val placingPaintId: String? = null,
 )
 
+private val MARKER = Color(0xFFFFE600)
+
 /**
- * Fotos de tus gavetas con marcas donde está cada pintura.
- * - Detectar etiquetas: lee los botes con la etiqueta visible y los ubica solos.
- * - Toca la foto para marcar a mano dónde está una pintura (útil para botes parados).
- * - Busca una pintura y la marca parpadea en la foto.
+ * Encontrar una pintura en tus gavetas.
+ * Eliges qué pintura buscas y la app señala en tus fotos dónde puede estar, usando la etiqueta
+ * (si se lee), el color visible del bote y dónde guardas otras de la misma marca. Al confirmar
+ * "Es aquí" lo recuerda para la próxima vez. También puedes buscar en vivo con la cámara.
  */
 @Composable
 fun StorageScreen(
@@ -120,14 +127,18 @@ fun StorageScreen(
     request: StorageRequest,
     onClose: () -> Unit,
     onOpenPaint: (Paint) -> Unit,
+    onLiveFind: (Paint) -> Unit,
     say: (String) -> Unit,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    var spotId by remember { mutableStateOf(request.spotId ?: request.focusPaintId?.let { vm.locations[it]?.spotId } ?: vm.spots.firstOrNull()?.id) }
+    var spotId by remember { mutableStateOf(request.spotId ?: request.findPaintId?.let { vm.locations[it]?.spotId } ?: vm.spots.firstOrNull()?.id) }
     var placing by remember { mutableStateOf(request.placingPaintId?.let { vm.byId[it] }) }
-    var focus by remember { mutableStateOf(request.focusPaintId) }
     var query by remember { mutableStateOf("") }
+    var target by remember { mutableStateOf(request.findPaintId?.let { vm.byId[it] }) }
+    var hits by remember { mutableStateOf<List<LocateHit>?>(null) }
+    var hitIdx by remember { mutableIntStateOf(0) }
+    var searching by remember { mutableStateOf(false) }
     var selectedPin by remember { mutableStateOf<String?>(null) }
     var pickAt by remember { mutableStateOf<Offset?>(null) }
     var detecting by remember { mutableStateOf(false) }
@@ -139,10 +150,25 @@ fun StorageScreen(
 
     val spot = vm.spots.firstOrNull { it.id == spotId }
 
+    // Buscar la pintura elegida en todas las fotos
+    LaunchedEffect(target, vm.spots.size) {
+        val t = target ?: return@LaunchedEffect
+        if (vm.spots.isEmpty()) { hits = emptyList(); return@LaunchedEffect }
+        searching = true
+        hits = null
+        val res = try { vm.locatePaint(t) } catch (e: Exception) { emptyList() }
+        hits = res
+        hitIdx = 0
+        searching = false
+        res.firstOrNull()?.let { spotId = it.spot.id }
+    }
+    val currentHit = hits?.getOrNull(hitIdx)
+    LaunchedEffect(currentHit) { currentHit?.let { spotId = it.spot.id } }
+
     fun added(s: StorageSpot?) {
         if (s == null) say("No pude guardar la foto.") else {
             spotId = s.id
-            say("Foto guardada: ${s.name}. Toca \"Detectar etiquetas\" o marca a mano.")
+            say("Foto guardada: ${s.name}")
         }
     }
 
@@ -170,7 +196,7 @@ fun StorageScreen(
                 TopAppBar(
                     title = {
                         Column {
-                            Text("DÓNDE ESTÁN", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.tertiary)
+                            Text("ENCONTRAR PINTURA", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.tertiary)
                             Text(spot?.name ?: "Mis gavetas", style = MaterialTheme.typography.headlineSmall)
                         }
                     },
@@ -179,6 +205,15 @@ fun StorageScreen(
                         if (spot != null) {
                             IconButton(onClick = { menuOpen = true }) { Icon(Icons.Default.MoreVert, contentDescription = "Opciones") }
                             DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                                DropdownMenuItem(text = { Text("Leer todas las etiquetas de esta foto") }, onClick = {
+                                    menuOpen = false
+                                    detecting = true
+                                    scope.launch {
+                                        val res = try { vm.detectInSpot(spot) } catch (e: Exception) { emptyList() }
+                                        detecting = false
+                                        if (res.isEmpty()) say("No pude leer etiquetas en esta foto.") else detected = res
+                                    }
+                                })
                                 DropdownMenuItem(text = { Text("Cambiar nombre") }, onClick = { menuOpen = false; newName = spot.name; renaming = true })
                                 DropdownMenuItem(text = { Text("Eliminar esta foto") }, onClick = { menuOpen = false; confirmDelete = true })
                             }
@@ -187,13 +222,102 @@ fun StorageScreen(
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
                 )
 
-                // Lugares guardados + agregar
+                // ---- ¿Qué buscas?
+                Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    val t = target
+                    if (t == null) {
+                        SearchField(query, { query = it }, "¿Qué pintura buscas?")
+                        val words = queryWords(query)
+                        if (words.isNotEmpty()) {
+                            val options = remember(query, vm.owned) {
+                                vm.owned.values.filter { it.qty > 0 }.mapNotNull { vm.byId[it.paintId] }
+                                    .filter { matchesWords(it.searchText, words) }.take(6)
+                            }
+                            Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = MaterialTheme.shapes.medium) {
+                                Column(Modifier.heightIn(max = 280.dp)) {
+                                    if (options.isEmpty()) {
+                                        Text("No está en tu inventario.", Modifier.padding(14.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                    options.forEachIndexed { i, p ->
+                                        if (i > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                                        Row(
+                                            Modifier
+                                                .fillMaxWidth()
+                                                .clickable { target = p; query = ""; placing = null; selectedPin = null }
+                                                .padding(horizontal = 12.dp, vertical = 8.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                        ) {
+                                            Swatch(p.hex, size = 28.dp, metallic = p.type == "Metálica")
+                                            Column(Modifier.weight(1f)) {
+                                                Text(p.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+                                                Text(listOf(p.brand, p.code).filter { it.isNotBlank() }.joinToString(" · "), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                            }
+                                            Text("Buscar", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        TargetCard(
+                            paint = t,
+                            searching = searching,
+                            hits = hits,
+                            hitIdx = hitIdx,
+                            readingFirstTime = spot != null && !vm.isSpotRead(spot),
+                            hasSpots = vm.spots.isNotEmpty(),
+                            onPrev = { if (hitIdx > 0) hitIdx-- },
+                            onNext = { if (hitIdx < (hits?.size ?: 1) - 1) hitIdx++ },
+                            onConfirm = {
+                                currentHit?.let { h ->
+                                    vm.setLocation(t.id, h.spot.id, h.x, h.y)
+                                    say("Guardado: ${t.name} está en ${h.spot.name}")
+                                    hits = listOf(h.copy(kind = LocateKind.SAVED, confidence = 1f))
+                                    hitIdx = 0
+                                }
+                            },
+                            onMarkManually = { placing = t; say("Toca en la foto dónde está ${t.name}") },
+                            onLive = { onLiveFind(t) },
+                            onClear = { target = null; hits = null },
+                        )
+                    }
+                    val p = placing
+                    if (p != null) {
+                        Surface(color = MaterialTheme.colorScheme.tertiaryContainer, contentColor = MaterialTheme.colorScheme.onTertiaryContainer, shape = MaterialTheme.shapes.small) {
+                            Row(Modifier.padding(start = 12.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Text("Toca en la foto dónde está ${p.name}", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+                                TextButton(onClick = { placing = null }) { Text("Cancelar") }
+                            }
+                        }
+                    }
+                    // Pin tocado
+                    val sel = selectedPin?.let { vm.byId[it] }
+                    if (sel != null && target == null) {
+                        Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = MaterialTheme.shapes.small) {
+                            Row(Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Swatch(sel.hex, size = 30.dp, metallic = sel.type == "Metálica")
+                                Text(sel.name, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                                TextButton(onClick = { onOpenPaint(sel) }) { Text("Ficha") }
+                                TextButton(onClick = { placing = sel; selectedPin = null }) { Text("Mover") }
+                                TextButton(onClick = { vm.clearLocation(sel.id); selectedPin = null }) { Text("Quitar") }
+                            }
+                        }
+                    }
+                }
+
+                // ---- Fotos
                 LazyRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                 ) {
                     items(vm.spots, key = { it.id }) { s ->
-                        FilterChip(selected = s.id == spotId, onClick = { spotId = s.id; selectedPin = null }, label = { Text(s.name) })
+                        val n = hits?.count { it.spot.id == s.id } ?: 0
+                        FilterChip(
+                            selected = s.id == spotId,
+                            onClick = { spotId = s.id; selectedPin = null },
+                            label = { Text(if (target != null && n > 0) "${s.name} · $n" else s.name) },
+                        )
                     }
                     item { AssistChip(onClick = { takePhoto() }, label = { Text("+ Tomar foto") }) }
                     item {
@@ -207,100 +331,15 @@ fun StorageScreen(
                 if (spot == null) {
                     EmptyState(
                         "Fotografía tu gaveta",
-                        "Toma una foto de donde guardas tus pinturas, desde arriba y con buena luz. " +
-                            "La app lee las etiquetas que se vean y marca dónde está cada pintura; las que no se lean (botes parados) las marcas tocando la foto.",
+                        "Toma una foto desde arriba, con buena luz, de donde guardas tus pinturas. Después busca una pintura y la app te señala dónde puede estar, por su etiqueta y por su color.",
                     )
                     return@Column
                 }
 
-                val pinsHere = vm.locations.values.filter { it.spotId == spot.id }
-                val words = queryWords(query)
-                val matching = remember(query, pinsHere, vm.byId) {
-                    if (words.isEmpty()) emptySet()
-                    else pinsHere.mapNotNull { l -> vm.byId[l.paintId]?.takeIf { matchesWords(it.searchText, words) }?.id }.toSet()
-                }
-                val elsewhere = remember(query, vm.locations, spot.id) {
-                    if (words.isEmpty()) emptyList()
-                    else vm.locations.values.filter { it.spotId != spot.id }
-                        .mapNotNull { l -> vm.byId[l.paintId]?.takeIf { matchesWords(it.searchText, words) }?.let { it to l } }
-                }
-
-                Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    SearchField(query, { query = it; focus = null }, "¿Qué pintura buscas?")
-                    val p = placing
-                    when {
-                        p != null -> Surface(color = MaterialTheme.colorScheme.tertiaryContainer, contentColor = MaterialTheme.colorScheme.onTertiaryContainer, shape = MaterialTheme.shapes.small) {
-                            Row(Modifier.padding(start = 12.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Text("Toca en la foto dónde está ${p.name}", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
-                                TextButton(onClick = { placing = null }) { Text("Cancelar") }
-                            }
-                        }
-                        words.isNotEmpty() -> Text(
-                            when {
-                                matching.isNotEmpty() -> "${matching.size} en esta foto (parpadeando)"
-                                elsewhere.isNotEmpty() -> "No está en esta foto"
-                                else -> "No la tienes ubicada. Búscala en Mis pinturas y usa \"Marcar dónde está\"."
-                            },
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        else -> Text(
-                            "${pinsHere.size} pinturas ubicadas · toca la foto para marcar una · pellizca para acercar",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    if (elsewhere.isNotEmpty() && matching.isEmpty()) {
-                        LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            items(elsewhere) { (paint, loc) ->
-                                val other = vm.spots.firstOrNull { it.id == loc.spotId }
-                                AssistChip(onClick = { spotId = loc.spotId; focus = paint.id; query = "" }, label = { Text("${paint.name} → ${other?.name}") })
-                            }
-                        }
-                    }
-                }
-
-                // Pin seleccionado o acciones
-                val sel = selectedPin?.let { vm.byId[it] }
-                Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, tonalElevation = 0.dp) {
-                    if (sel != null) {
-                        Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Swatch(sel.hex, size = 36.dp, metallic = sel.type == "Metálica")
-                            Column(Modifier.weight(1f)) {
-                                Text(sel.name, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                Text(listOf(sel.brand, sel.code).filter { it.isNotBlank() }.joinToString(" · "), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                            TextButton(onClick = { onOpenPaint(sel) }) { Text("Ficha") }
-                            TextButton(onClick = { placing = sel; selectedPin = null }) { Text("Mover") }
-                            TextButton(onClick = { vm.clearLocation(sel.id); selectedPin = null }) { Text("Quitar") }
-                        }
-                    } else {
-                        Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Button(
-                                onClick = {
-                                    detecting = true
-                                    scope.launch {
-                                        val res = try { vm.detectInSpot(spot) } catch (e: Exception) { emptyList() }
-                                        detecting = false
-                                        if (res.isEmpty()) say("No pude leer etiquetas en esta foto. Marca las pinturas tocando la foto.")
-                                        else detected = res
-                                    }
-                                },
-                                enabled = !detecting,
-                                modifier = Modifier.weight(1f),
-                            ) { Text("Detectar etiquetas") }
-                        }
-                    }
-                }
-                // Foto con marcas
                 val photo by produceState<ImageBitmap?>(null, spot.id) {
-                    value = withContext(Dispatchers.IO) {
-                        val f = vm.spotFile(spot)
-                        val opts = BitmapFactory.Options().apply { inSampleSize = 1 }
-                        BitmapFactory.decodeFile(f.absolutePath, opts)?.asImageBitmap()
-                    }
+                    value = withContext(Dispatchers.IO) { BitmapFactory.decodeFile(vm.spotFile(spot).absolutePath)?.asImageBitmap() }
                 }
-                val img = photo
+                val candidatesHere = hits.orEmpty().withIndex().filter { it.value.spot.id == spot.id }
                 Box(
                     Modifier
                         .fillMaxWidth()
@@ -309,12 +348,15 @@ fun StorageScreen(
                         .background(Color(0xFF0E0F12)),
                     contentAlignment = Alignment.Center,
                 ) {
+                    val img = photo
                     if (img == null) CircularProgressIndicator()
                     else PhotoWithPins(
                         vm = vm,
                         img = img,
                         spot = spot,
-                        highlight = if (focus != null) setOf(focus!!) else matching,
+                        showPins = target == null,
+                        candidates = candidatesHere.map { Offset(it.value.x, it.value.y) to (it.index + 1) },
+                        activeCandidate = candidatesHere.indexOfFirst { it.index == hitIdx }.takeIf { it >= 0 },
                         selected = selectedPin,
                         onTapEmpty = { pos ->
                             val p = placing
@@ -322,13 +364,16 @@ fun StorageScreen(
                                 vm.setLocation(p.id, spot.id, pos.x, pos.y)
                                 say("Ubicada: ${p.name}")
                                 placing = null
-                                focus = p.id
-                            } else {
+                                if (target?.id == p.id) {
+                                    hits = listOf(LocateHit(spot, pos.x, pos.y, LocateKind.SAVED, 1f)); hitIdx = 0
+                                }
+                            } else if (target == null) {
                                 selectedPin = null
                                 pickAt = pos
                             }
                         },
-                        onTapPin = { id -> selectedPin = id; focus = null },
+                        onTapPin = { id -> selectedPin = id },
+                        onTapCandidate = { n -> candidatesHere.getOrNull(n)?.let { hitIdx = it.index } },
                     )
                     if (detecting) {
                         Surface(color = Color.Black.copy(alpha = 0.7f), contentColor = Color.White, shape = MaterialTheme.shapes.small) {
@@ -339,11 +384,9 @@ fun StorageScreen(
                         }
                     }
                 }
-
             }
         }
 
-        // Elegir qué pintura está en el punto tocado
         pickAt?.let { pos ->
             PaintPickerDialog(
                 vm = vm,
@@ -353,7 +396,6 @@ fun StorageScreen(
                     spot?.let { vm.setLocation(p.id, it.id, pos.x, pos.y) }
                     say("Ubicada: ${p.name}")
                     pickAt = null
-                    focus = p.id
                 },
             )
         }
@@ -385,7 +427,7 @@ fun StorageScreen(
             AlertDialog(
                 onDismissRequest = { confirmDelete = false },
                 title = { Text("¿Eliminar “${spot.name}”?") },
-                text = { Text("Se borra la foto y las ubicaciones marcadas en ella. Tus pinturas siguen en el inventario.") },
+                text = { Text("Se borra la foto y las ubicaciones guardadas en ella. Tus pinturas siguen en el inventario.") },
                 confirmButton = {
                     TextButton(onClick = {
                         vm.deleteSpot(spot.id)
@@ -400,22 +442,101 @@ fun StorageScreen(
 }
 
 @Composable
+private fun TargetCard(
+    paint: Paint,
+    searching: Boolean,
+    hits: List<LocateHit>?,
+    hitIdx: Int,
+    readingFirstTime: Boolean,
+    hasSpots: Boolean,
+    onPrev: () -> Unit,
+    onNext: () -> Unit,
+    onConfirm: () -> Unit,
+    onMarkManually: () -> Unit,
+    onLive: () -> Unit,
+    onClear: () -> Unit,
+) {
+    Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = MaterialTheme.shapes.medium) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Swatch(paint.hex, size = 36.dp, metallic = paint.type == "Metálica")
+                Column(Modifier.weight(1f)) {
+                    Text(paint.name, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(listOf(paint.brand, paint.code).filter { it.isNotBlank() }.joinToString(" · "), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                IconButton(onClick = onClear) { Icon(Icons.Default.Close, contentDescription = "Buscar otra") }
+            }
+            val h = hits?.getOrNull(hitIdx)
+            when {
+                !hasSpots -> Text("Primero toma una foto de tu gaveta (botón “+ Tomar foto”), o busca en vivo con la cámara.", style = MaterialTheme.typography.bodySmall)
+                searching || hits == null -> Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                    Text(
+                        if (readingFirstTime) "Buscando… la primera vez leo todas las etiquetas de la foto (unos segundos)." else "Buscando…",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+                h == null -> Text(
+                    if (paint.hasColor && kotlin.math.sqrt(paint.lab.a * paint.lab.a + paint.lab.b * paint.lab.b) < 12)
+                        "No la encontré. Es un color neutro (blanco, negro, gris): por color no se distingue, y su etiqueta no se ve en la foto."
+                    else "No la encontré en tus fotos. Prueba con la cámara o márcala a mano.",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                else -> {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                "Opción ${hitIdx + 1} de ${hits.size} · ${h.spot.name}",
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                            Text(
+                                h.kind.label + when (h.kind) {
+                                    LocateKind.COLOR -> " · ${(h.confidence * 100).roundToInt()}% probable"
+                                    else -> ""
+                                },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        TextButton(onClick = onPrev, enabled = hitIdx > 0) { Text("◀") }
+                        TextButton(onClick = onNext, enabled = hitIdx < hits.size - 1) { Text("▶") }
+                    }
+                }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (h != null && h.kind != LocateKind.SAVED) {
+                    Button(onClick = onConfirm) { Text("Es aquí ✓") }
+                }
+                FilledTonalButton(onClick = onLive) { Text("Buscar con cámara") }
+                if (h == null && hasSpots && !searching) {
+                    OutlinedButton(onClick = onMarkManually) { Text("Marcar") }
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun PhotoWithPins(
     vm: MainViewModel,
     img: ImageBitmap,
     spot: StorageSpot,
-    highlight: Set<String>,
+    showPins: Boolean,
+    candidates: List<Pair<Offset, Int>>,
+    activeCandidate: Int?,
     selected: String?,
     onTapEmpty: (Offset) -> Unit,
     onTapPin: (String) -> Unit,
+    onTapCandidate: (Int) -> Unit,
 ) {
     var zoom by remember(spot.id) { mutableStateOf(1f) }
     var pan by remember(spot.id) { mutableStateOf(Offset.Zero) }
     val density = LocalDensity.current
-    val pins = vm.locations.values.filter { it.spotId == spot.id }
+    val pins = if (showPins) vm.locations.values.filter { it.spotId == spot.id } else emptyList()
     val pulse by rememberInfiniteTransition(label = "pulse").animateFloat(
-        initialValue = 0.6f, targetValue = 1.6f,
-        animationSpec = infiniteRepeatable(tween(700), RepeatMode.Reverse), label = "pulse",
+        initialValue = 0.75f, targetValue = 1.35f,
+        animationSpec = infiniteRepeatable(tween(650), RepeatMode.Reverse), label = "pulse",
     )
 
     BoxWithConstraints(
@@ -434,13 +555,12 @@ private fun PhotoWithPins(
         val ratio = img.width.toFloat() / img.height
         val (w, h) = if (boxW / boxH > ratio) (boxH * ratio) to boxH else boxW to (boxW / ratio)
 
-        // Al enfocar una pintura: acercar y centrar su marca
-        val focusId = highlight.singleOrNull()
-        LaunchedEffect(focusId, spot.id) {
-            val l = focusId?.let { vm.locations[it] }
-            if (l != null && l.spotId == spot.id) {
-                zoom = 3f
-                pan = Offset(-zoom * (l.x * w - w / 2), -zoom * (l.y * h - h / 2))
+        // Acercar y centrar la opción activa
+        val focus = activeCandidate?.let { candidates.getOrNull(it)?.first }
+        LaunchedEffect(focus, spot.id) {
+            if (focus != null) {
+                zoom = 2.6f
+                pan = Offset(-zoom * (focus.x * w - w / 2), -zoom * (focus.y * h - h / 2))
             }
         }
 
@@ -453,44 +573,68 @@ private fun PhotoWithPins(
                     translationX = pan.x
                     translationY = pan.y
                 }
-                .pointerInput(spot.id, pins) {
+                .pointerInput(spot.id, pins, candidates) {
                     detectTapGestures { pos ->
-                        val fx = pos.x / size.width
-                        val fy = pos.y / size.height
-                        // ¿Tocó una marca? (radio de 18 dp en pantalla)
-                        val r = 18.dp.toPx() / zoom
-                        val hit = pins.minByOrNull { (it.x * size.width - pos.x).let { dx -> dx * dx } + (it.y * size.height - pos.y).let { dy -> dy * dy } }
-                        if (hit != null) {
-                            val dx = hit.x * size.width - pos.x
-                            val dy = hit.y * size.height - pos.y
-                            if (dx * dx + dy * dy <= r * r) { onTapPin(hit.paintId); return@detectTapGestures }
+                        val r = 22.dp.toPx() / zoom
+                        fun near(x: Float, y: Float): Float {
+                            val dx = x * size.width - pos.x
+                            val dy = y * size.height - pos.y
+                            return dx * dx + dy * dy
                         }
-                        onTapEmpty(Offset(fx, fy))
+                        val c = candidates.withIndex().minByOrNull { near(it.value.first.x, it.value.first.y) }
+                        if (c != null && near(c.value.first.x, c.value.first.y) <= r * r) { onTapCandidate(c.index); return@detectTapGestures }
+                        val hit = pins.minByOrNull { near(it.x, it.y) }
+                        if (hit != null && near(hit.x, hit.y) <= r * r) { onTapPin(hit.paintId); return@detectTapGestures }
+                        onTapEmpty(Offset(pos.x / size.width, pos.y / size.height))
                     }
                 },
         ) {
             Image(img, contentDescription = "Foto de ${spot.name}", contentScale = ContentScale.FillBounds, modifier = Modifier.fillMaxSize())
-            val dim = highlight.isNotEmpty()
             pins.forEach { l ->
                 val paint = vm.byId[l.paintId] ?: return@forEach
-                val isHi = l.paintId in highlight
                 val isSel = l.paintId == selected
                 val base = 14.dp
-                val sizePx = with(density) { base.toPx() }
+                val half = with(density) { base.toPx() / 2 }
                 Box(
                     Modifier
-                        .offset { IntOffset((l.x * w - sizePx / 2).roundToInt(), (l.y * h - sizePx / 2).roundToInt()) }
+                        .offset { IntOffset((l.x * w - half).roundToInt(), (l.y * h - half).roundToInt()) }
                         .size(base)
                         .graphicsLayer {
-                            val s = (if (isHi) pulse else 1f) * (if (isSel) 1.4f else 1f) / zoom
-                            scaleX = s
-                            scaleY = s
-                            alpha = if (dim && !isHi) 0.3f else 1f
+                            val s = (if (isSel) 1.5f else 1f) / zoom
+                            scaleX = s; scaleY = s
                         }
                         .background(Color(parseHex(paint.hex)), CircleShape)
-                        .border(2.dp, if (isHi || isSel) Color(0xFFFFE600) else Color.White, CircleShape)
-                        .border(3.dp, Color.Black.copy(alpha = 0.5f), CircleShape)
+                        .border(2.dp, if (isSel) MARKER else Color.White, CircleShape)
                 )
+            }
+            candidates.forEachIndexed { i, (pos, number) ->
+                val active = i == activeCandidate
+                val base = 30.dp
+                val half = with(density) { base.toPx() / 2 }
+                Box(
+                    Modifier
+                        .offset { IntOffset((pos.x * w - half).roundToInt(), (pos.y * h - half).roundToInt()) }
+                        .size(base)
+                        .graphicsLayer {
+                            val s = (if (active) pulse else 0.8f) / zoom
+                            scaleX = s; scaleY = s
+                            alpha = if (active) 1f else 0.75f
+                        }
+                        .border(3.dp, if (active) MARKER else Color.White, CircleShape)
+                        .border(5.dp, Color.Black.copy(alpha = 0.45f), CircleShape),
+                    contentAlignment = Alignment.TopEnd,
+                ) {
+                    Text(
+                        "$number",
+                        color = Color.Black,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .offset(x = 6.dp, y = (-6).dp)
+                            .background(if (active) MARKER else Color.White, CircleShape)
+                            .padding(horizontal = 5.dp),
+                    )
+                }
             }
         }
     }

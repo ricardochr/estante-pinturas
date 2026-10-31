@@ -269,9 +269,9 @@ private fun StorageCard(spots: Int, located: Int, onOpen: () -> Unit) {
     ) {
         Row(Modifier.padding(horizontal = 14.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text("Dónde están", style = MaterialTheme.typography.titleMedium)
+                Text("Encontrar una pintura", style = MaterialTheme.typography.titleMedium)
                 Text(
-                    if (spots == 0) "Fotografía tu gaveta para encontrar cada pintura"
+                    if (spots == 0) "Fotografía tu gaveta y te señalo dónde está cada pintura"
                     else "$spots ${if (spots == 1) "foto" else "fotos"} · $located pinturas ubicadas",
                     style = MaterialTheme.typography.bodySmall,
                 )

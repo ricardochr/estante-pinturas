@@ -416,6 +416,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun deleteSpot(id: String) {
+        ocrCache.remove(id)
         val s = spots.firstOrNull { it.id == id } ?: return
         spots = spots - s
         locations = locations.filterValues { it.spotId != id }
@@ -444,6 +445,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         return withContext(Dispatchers.Default) {
             val bmp = android.graphics.BitmapFactory.decodeFile(file.absolutePath) ?: return@withContext emptyList()
             val blocks = readTextBlocks(bmp)
+            ocrCache[spot.id] = blocks.map { TextBlockAt(it.lines, it.x / bmp.width, it.y / bmp.height) }
             val found = LinkedHashMap<String, DetectedPaint>()
             for (b in blocks) {
                 val hits = matchBlock(b.lines)
@@ -461,6 +463,58 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 }
             }
             found.values.toList()
+        }
+    }
+
+    // ---------- localizar una pintura ----------
+
+    /** Texto leído por foto (posiciones relativas 0–1), para no repetir el OCR en cada búsqueda. */
+    private val ocrCache = HashMap<String, List<TextBlockAt>>()
+
+    private fun loadSpotBitmap(spot: StorageSpot): android.graphics.Bitmap? =
+        android.graphics.BitmapFactory.decodeFile(spotFile(spot).absolutePath)
+
+    fun isSpotRead(spot: StorageSpot) = ocrCache.containsKey(spot.id)
+
+    /**
+     * Dónde podría estar [paint] en tus fotos, de más a menos probable:
+     * 1. la ubicación que confirmaste antes;
+     * 2. su etiqueta leída en la foto;
+     * 3. zonas del color de la pintura, con más peso si están cerca de otras pinturas de la misma marca.
+     */
+    suspend fun locatePaint(paint: Paint): List<LocateHit> {
+        val saved = locations[paint.id]
+        val allSpots = spots
+        val sameBrand = locations.values.filter { l -> l.paintId != paint.id && byId[l.paintId]?.brand == paint.brand }
+        return withContext(Dispatchers.Default) {
+            val hits = ArrayList<LocateHit>()
+            for (spot in allSpots) {
+                if (saved != null && saved.spotId == spot.id) {
+                    hits.add(LocateHit(spot, saved.x, saved.y, LocateKind.SAVED, 1f))
+                }
+                val bmp = loadSpotBitmap(spot) ?: continue
+                val blocks = ocrCache.getOrPut(spot.id) {
+                    readTextBlocks(bmp).map { TextBlockAt(it.lines, it.x / bmp.width, it.y / bmp.height) }
+                }
+                for (b in blocks) {
+                    if (matchBlock(b.lines).any { it.paint.id == paint.id }) {
+                        hits.add(LocateHit(spot, b.x, b.y, LocateKind.LABEL, 0.95f))
+                    }
+                }
+                val brandHere = sameBrand.filter { it.spotId == spot.id }
+                for (c in findColorCandidates(bmp, paint.lab)) {
+                    var conf = 0.25f + 0.45f * c.score * (1f - c.distance / 30f).coerceIn(0f, 1f)
+                    if (brandHere.any { (it.x - c.x) * (it.x - c.x) + (it.y - c.y) * (it.y - c.y) < 0.12f * 0.12f }) conf += 0.15f
+                    hits.add(LocateHit(spot, c.x, c.y, LocateKind.COLOR, conf.coerceAtMost(0.89f)))
+                }
+                bmp.recycle()
+            }
+            // Un solo marcador por bote: quitar los que caen sobre uno mejor
+            val out = ArrayList<LocateHit>()
+            for (h in hits.sortedByDescending { it.confidence }) {
+                if (out.none { o -> o.spot.id == h.spot.id && (o.x - h.x) * (o.x - h.x) + (o.y - h.y) * (o.y - h.y) < 0.03f * 0.03f }) out.add(h)
+            }
+            out.take(8)
         }
     }
 

@@ -70,6 +70,7 @@ import com.ricardochr.estantepinturas.ui.ScanIcon
 import com.ricardochr.estantepinturas.ui.ScanScreen
 import com.ricardochr.estantepinturas.ui.StorageRequest
 import com.ricardochr.estantepinturas.ui.StorageScreen
+import com.ricardochr.estantepinturas.ui.LiveFindScreen
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -100,6 +101,7 @@ private fun App(vm: MainViewModel = viewModel()) {
     var showAbout by remember { mutableStateOf(false) }
     var confirmClearCatalog by remember { mutableStateOf(false) }
     var storage by remember { mutableStateOf<StorageRequest?>(null) }
+    var liveFind by remember { mutableStateOf<Paint?>(null) }
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     fun say(msg: String) {
@@ -231,7 +233,7 @@ private fun App(vm: MainViewModel = viewModel()) {
                 )
                 Tab.Escanear -> ScanScreen(
                     vm,
-                    active = linking == null && editing == null && !creating && storage == null,
+                    active = linking == null && editing == null && !creating && storage == null && liveFind == null,
                     onLinkBarcode = { linking = it },
                     onNotFound = { tab = Tab.Catalogo },
                     onAdded = { say(it) },
@@ -260,7 +262,7 @@ private fun App(vm: MainViewModel = viewModel()) {
             similar = remember(p.id, vm.owned) { vm.similarOwned(p) },
             onOpenSimilar = { editing = it },
             locationName = vm.spotOf(p.id)?.name,
-            onShowLocation = { editing = null; storage = StorageRequest(focusPaintId = p.id) },
+            onShowLocation = { editing = null; storage = StorageRequest(findPaintId = p.id) },
             onPlaceLocation = { editing = null; storage = StorageRequest(placingPaintId = p.id) },
             mixes = produceState<List<MixRecipe>?>(null, p.id, vm.owned) {
                 val ownedQty = vm.owned[p.id]?.qty ?: 0
@@ -325,8 +327,13 @@ private fun App(vm: MainViewModel = viewModel()) {
             request = req,
             onClose = { storage = null },
             onOpenPaint = { editing = it },
+            onLiveFind = { liveFind = it },
             say = { say(it) },
         )
+    }
+
+    liveFind?.let { p ->
+        LiveFindScreen(vm, p, onClose = { liveFind = null })
     }
 
     if (showAbout) {
