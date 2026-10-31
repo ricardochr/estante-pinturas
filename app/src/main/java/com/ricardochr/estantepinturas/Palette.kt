@@ -81,7 +81,7 @@ fun labToArgb(l: Double, a: Double, b: Double): Int {
 // ---------------------------------------------------------------- carga de imagen
 
 /** Abre la imagen reducida a [maxSide] px por lado y con la orientación de la foto corregida. */
-fun loadBitmapForAnalysis(context: Context, uri: Uri, maxSide: Int = 400): Bitmap? {
+fun loadBitmapForAnalysis(context: Context, uri: Uri, maxSide: Int = 560): Bitmap? {
     val cr = context.contentResolver
     val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
     // Con inJustDecodeBounds, decodeStream siempre devuelve null: solo llena outWidth/outHeight
@@ -431,23 +431,60 @@ fun renderPreview(palette: ImagePalette, matches: List<PaletteMatch>): Bitmap {
     return Bitmap.createBitmap(out, palette.width, palette.height, Bitmap.Config.ARGB_8888)
 }
 
-/** Imagen original resaltando solo el color [selected]; el resto queda tenue y en gris. */
-fun renderHighlight(palette: ImagePalette, source: Bitmap, selected: Int): Bitmap {
+/** Color de marcador que más contrasta con el color seleccionado: amarillo, cian o magenta. */
+fun markerFor(c: ColorCluster): Int {
+    val options = intArrayOf(0xFFFFE600.toInt(), 0xFF00E5FF.toInt(), 0xFFFF2BD6.toInt())
+    return options.maxByOrNull { o ->
+        val r = SRGB_TO_LINEAR[(o shr 16) and 0xFF]
+        val g = SRGB_TO_LINEAR[(o shr 8) and 0xFF]
+        val b = SRGB_TO_LINEAR[o and 0xFF]
+        val fx = labF((r * 0.4124 + g * 0.3576 + b * 0.1805) / 0.95047)
+        val fy = labF(r * 0.2126 + g * 0.7152 + b * 0.0722)
+        val fz = labF((r * 0.0193 + g * 0.1192 + b * 0.9505) / 1.08883)
+        deltaE2000(c.lab, Lab(116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz)))
+    } ?: options[0]
+}
+
+/**
+ * Imagen para ver dónde va el color [selected]: el resto de la figura queda oscuro y en gris,
+ * la zona elegida conserva su color y lleva un contorno de color marcador alrededor.
+ * Con [fill] = true la zona se pinta entera del color marcador (para que destaquen zonas pequeñas).
+ */
+fun renderHighlight(palette: ImagePalette, source: Bitmap, selected: Int, fill: Boolean = false): Bitmap {
     val w = palette.width
     val h = palette.height
-    val src = IntArray(w * h)
+    val n = w * h
+    val src = IntArray(n)
     val scaled = if (source.width == w && source.height == h) source else Bitmap.createScaledBitmap(source, w, h, true)
     scaled.getPixels(src, 0, w, 0, 0, w, h)
-    val out = IntArray(w * h)
-    for (i in out.indices) {
-        val lbl = palette.labels[i]
+    val marker = palette.clusters.getOrNull(selected)?.let { markerFor(it) } ?: 0xFFFFE600.toInt()
+    val lbl = palette.labels
+
+    // Contorno: píxeles a 1–2 px de la zona elegida que no son de la zona
+    val near = BooleanArray(n)
+    for (i in 0 until n) {
+        if (lbl[i] != selected) continue
+        val x = i % w
+        val y = i / w
+        for (dy in -2..2) for (dx in -2..2) {
+            val xx = x + dx
+            val yy = y + dy
+            if (xx < 0 || yy < 0 || xx >= w || yy >= h) continue
+            val j = yy * w + xx
+            if (lbl[j] != selected) near[j] = true
+        }
+    }
+    val out = IntArray(n)
+    for (i in 0 until n) {
+        val l = lbl[i]
         out[i] = when {
-            lbl == selected -> src[i] or (0xFF shl 24)
-            lbl < 0 -> 0
+            l == selected -> if (fill) marker else src[i] or (0xFF shl 24)
+            near[i] -> marker
+            l < 0 -> 0
             else -> {
                 val c = src[i]
-                val g = (((c shr 16) and 0xFF) * 30 + ((c shr 8) and 0xFF) * 59 + (c and 0xFF) * 11) / 100
-                (0x40 shl 24) or (g shl 16) or (g shl 8) or g
+                val g = (((c shr 16) and 0xFF) * 30 + ((c shr 8) and 0xFF) * 59 + (c and 0xFF) * 11) / 100 * 35 / 100
+                (0xFF shl 24) or (g shl 16) or (g shl 8) or g
             }
         }
     }

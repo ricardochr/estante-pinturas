@@ -41,7 +41,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectTransformGestures
+import kotlinx.coroutines.delay
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -127,6 +134,20 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit) {
     val highlightImg = remember(view, sel) {
         if (sel == null) null else renderHighlight(view.palette, view.source, sel).asImageBitmap()
     }
+    val highlightFill = remember(view, sel) {
+        if (sel == null) null else renderHighlight(view.palette, view.source, sel, fill = true).asImageBitmap()
+    }
+    // Parpadeo entre el color real y el color marcador para que se noten hasta las zonas pequeñas
+    var blinkOn by remember { mutableStateOf(false) }
+    LaunchedEffect(sel) {
+        blinkOn = false
+        if (sel != null) while (true) {
+            delay(650)
+            blinkOn = !blinkOn
+        }
+    }
+    var zoom by remember(view) { mutableStateOf(1f) }
+    var pan by remember(view) { mutableStateOf(Offset.Zero) }
     var showPlan by rememberSaveable { mutableStateOf(true) }
 
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 24.dp)) {
@@ -142,22 +163,51 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit) {
                 Box(
                     Modifier
                         .fillMaxWidth()
-                        .height(220.dp)
+                        .height(260.dp)
                         .clip(RoundedCornerShape(14.dp))
                         .background(if (sel != null) Color(0xFF15171B) else MaterialTheme.colorScheme.surfaceContainer),
                     contentAlignment = Alignment.Center,
                 ) {
                     Image(
-                        bitmap = highlightImg ?: if (showPreview) previewImg else sourceImg,
+                        bitmap = (if (blinkOn) highlightFill else highlightImg) ?: if (showPreview) previewImg else sourceImg,
                         contentDescription = when {
                             sel != null -> "Dónde va el color seleccionado"
                             showPreview -> "Figura con tus pinturas"
                             else -> "Imagen original"
                         },
                         contentScale = ContentScale.Fit,
-                        modifier = Modifier.fillMaxSize(),
+                        filterQuality = if (sel != null) FilterQuality.None else FilterQuality.Low,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .pointerInput(view) {
+                                detectTransformGestures { _, p, z, _ ->
+                                    zoom = (zoom * z).coerceIn(1f, 6f)
+                                    pan = if (zoom == 1f) Offset.Zero else pan + p
+                                }
+                            }
+                            .pointerInput(view) {
+                                detectTapGestures(onDoubleTap = { zoom = 1f; pan = Offset.Zero })
+                            }
+                            .graphicsLayer {
+                                scaleX = zoom
+                                scaleY = zoom
+                                translationX = pan.x
+                                translationY = pan.y
+                            },
                     )
                     if (vm.paletteBusy) CircularProgressIndicator()
+                    if (zoom == 1f) {
+                        Text(
+                            "Pellizca para acercar",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White,
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(6.dp)
+                                .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(6.dp))
+                                .padding(horizontal = 6.dp, vertical = 2.dp),
+                        )
+                    }
                 }
                 if (sel != null) {
                     val m = view.matches.getOrNull(sel)

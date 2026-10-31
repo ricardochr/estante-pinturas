@@ -289,7 +289,7 @@ private fun App(vm: MainViewModel = viewModel()) {
         AlertDialog(
             onDismissRequest = { showAbout = false },
             confirmButton = { TextButton(onClick = { showAbout = false }) { Text("Cerrar") } },
-            title = { Text("Estante de Pinturas") },
+            title = { Text("Gotario") },
             text = {
                 Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(

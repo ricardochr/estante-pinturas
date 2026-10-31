@@ -1,8 +1,8 @@
-# Estante de Pinturas
+# Gotario
 
 App Android para llevar el inventario de pinturas de miniaturas.
 
-- **Catálogo incluido** con 7,400 pinturas: Vallejo, Pro Acryl, Citadel, The Army Painter, AK, Scale75, Reaper, Green Stuff World y más. Cada una trae su código y un color aproximado.
+- **Catálogo incluido** con más de 8,400 pinturas: Vallejo, Pro Acryl, Citadel, The Army Painter, AK, Scale75, Reaper, Green Stuff World y más. Cada una trae su código y un color aproximado.
 - **Escáner sin internet** con ML Kit. Reconoce códigos impresos (70.955, MPA-040, WP1401), nombres y códigos de barras. Los de Vallejo se reconocen solos. Un código de barras de otra marca se asocia una vez y desde ahí queda guardado.
 - **Búsqueda** por nombre, código, marca, tipo o familia de color ("piel", "rojo", "metálica").
 - **Importar y exportar CSV**, compatible con la versión web.
