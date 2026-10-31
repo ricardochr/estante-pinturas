@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.ricardochr.estantepinturas.MixRecipe
 import com.ricardochr.estantepinturas.Paint
+import com.ricardochr.estantepinturas.chemistryOf
 import com.ricardochr.estantepinturas.dilutionFor
 import com.ricardochr.estantepinturas.similarityLabel
 
@@ -86,6 +87,9 @@ fun MixSection(
                                     color = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.weight(1f),
                                 )
+                            }
+                            r.warning?.let { w ->
+                                Text(w, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.tertiary)
                             }
                             r.parts.forEach { part ->
                                 Row(
@@ -148,12 +152,13 @@ fun DilutionSection(paint: Paint) {
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text("Dilución", style = MaterialTheme.typography.titleSmall)
+                    Text("Dilución y compatibilidad", style = MaterialTheme.typography.titleSmall)
                     Text(guide.summary, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Text(if (expanded) "▲" else "▼", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             if (expanded) {
+                Text("Diluyente: ${guide.thinner}", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
                 guide.uses.forEach { u ->
                     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -168,8 +173,15 @@ fun DilutionSection(paint: Paint) {
                 guide.notes.forEach { n ->
                     Text("• $n", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
+                val chem = chemistryOf(paint)
+                Surface(color = MaterialTheme.colorScheme.secondaryContainer, contentColor = MaterialTheme.colorScheme.onSecondaryContainer, shape = MaterialTheme.shapes.small) {
+                    Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text("Base: ${chem.label}", style = MaterialTheme.typography.labelLarge)
+                        Text(chem.mixesWith, style = MaterialTheme.typography.bodySmall)
+                    }
+                }
                 Text(
-                    "Proporción pintura : diluyente, en gotas. Es un punto de partida; ajusta a ojo.",
+                    "Proporción pintura : diluyente, en gotas. ${guide.source.label}. Ajusta a ojo: el bote viejo o espeso necesita más.",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

@@ -286,6 +286,9 @@ fun EntrySheet(
     similar: List<SimilarPaint> = emptyList(),
     onOpenSimilar: (Paint) -> Unit = {},
     mixes: List<MixRecipe>? = null,
+    locationName: String? = null,
+    onShowLocation: () -> Unit = {},
+    onPlaceLocation: () -> Unit = {},
 ) {
     val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var qty by remember { mutableIntStateOf(entry?.qty ?: 1) }
@@ -335,6 +338,27 @@ fun EntrySheet(
                         onClick = { confirmDelete = true },
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
                     ) { Text("Eliminar") }
+                }
+            }
+            if (entry != null && entry.qty > 0) {
+                Surface(
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                    shape = MaterialTheme.shapes.small,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Row(Modifier.padding(start = 12.dp, end = 4.dp, top = 4.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text("Dónde está", style = MaterialTheme.typography.titleSmall)
+                            Text(
+                                locationName?.let { "En $it" } ?: "Sin ubicar",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        if (locationName != null) TextButton(onClick = onShowLocation) { Text("Ver en la foto") }
+                        TextButton(onClick = onPlaceLocation) { Text(if (locationName != null) "Mover" else "Marcar") }
+                    }
                 }
             }
             DilutionSection(paint)

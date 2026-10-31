@@ -1,5 +1,6 @@
 package com.ricardochr.estantepinturas.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -67,7 +68,13 @@ private fun <T> rememberFiltered(
 }
 
 @Composable
-fun InventoryScreen(vm: MainViewModel, onEdit: (Paint) -> Unit, onGoCatalog: () -> Unit, onGoScan: () -> Unit) {
+fun InventoryScreen(
+    vm: MainViewModel,
+    onOpenStorage: () -> Unit,
+    onEdit: (Paint) -> Unit,
+    onGoCatalog: () -> Unit,
+    onGoScan: () -> Unit,
+) {
     var query by rememberSaveable { mutableStateOf("") }
     var brand by rememberSaveable { mutableStateOf<String?>(null) }
 
@@ -90,6 +97,7 @@ fun InventoryScreen(vm: MainViewModel, onEdit: (Paint) -> Unit, onGoCatalog: () 
         Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             if (ownedPaints.isNotEmpty() && query.isEmpty()) {
                 SummaryCard(ownedPaints.map { it.first }, totalBottles, brands.size)
+                StorageCard(vm.spots.size, vm.locations.keys.count { it in vm.owned }, onOpenStorage)
             }
             SearchField(query, { query = it }, "Buscar: nombre, código, marca, color…")
         }
@@ -114,7 +122,8 @@ fun InventoryScreen(vm: MainViewModel, onEdit: (Paint) -> Unit, onGoCatalog: () 
             }
             else -> LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 24.dp)) {
                 items(shown, key = { it.first.id }, contentType = { 0 }) { (p, e) ->
-                    PaintRow(p, extra = e.notes, onClick = { onEdit(p) }) {
+                    val where = vm.spotOf(p.id)?.name
+                    PaintRow(p, extra = listOfNotNull(where?.let { "📍 $it" }, e.notes.ifBlank { null }).joinToString(" · "), onClick = { onEdit(p) }) {
                         QtyStepper(
                             e.qty,
                             onMinus = { vm.add(p.id, -1) },
@@ -245,5 +254,29 @@ private fun Stat(value: String, label: String) {
     Column {
         Text(value, style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onSurface)
         Text(label.uppercase(), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+@Composable
+private fun StorageCard(spots: Int, located: Int, onOpen: () -> Unit) {
+    Surface(
+        color = MaterialTheme.colorScheme.tertiaryContainer,
+        contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+        shape = MaterialTheme.shapes.medium,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onOpen),
+    ) {
+        Row(Modifier.padding(horizontal = 14.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text("Dónde están", style = MaterialTheme.typography.titleMedium)
+                Text(
+                    if (spots == 0) "Fotografía tu gaveta para encontrar cada pintura"
+                    else "$spots ${if (spots == 1) "foto" else "fotos"} · $located pinturas ubicadas",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+            Text("Abrir", style = MaterialTheme.typography.labelLarge)
+        }
     }
 }

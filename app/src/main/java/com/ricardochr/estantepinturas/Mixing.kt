@@ -17,6 +17,9 @@ data class MixPart(val paint: Paint, val drops: Int)
 data class MixRecipe(val parts: List<MixPart>, val resultArgb: Int, val distance: Double) {
     val description: String
         get() = parts.joinToString(" + ") { "${it.drops} ${if (it.drops == 1) "gota" else "gotas"} de ${it.paint.name}" }
+
+    /** Aviso de compatibilidad (marcas distintas, bases distintas…) o null. */
+    val warning: String? by lazy { mixWarning(parts.map { it.paint }) }
 }
 
 private fun srgbToLinear(c: Int): Double {
@@ -70,7 +73,11 @@ private val PAIR_RATIOS = listOf(1 to 1, 2 to 1, 1 to 2, 3 to 1, 1 to 3, 4 to 1,
  * Solo usa pinturas opacas (las metálicas, tintas y contrastes no se mezclan igual).
  */
 fun findMixes(target: Lab, inventory: List<Paint>, limit: Int = 3): List<MixRecipe> {
-    val paints = inventory.filter { it.hasColor && typeGroup(it.type) == "opaca" && it.type != "Imprimación" }.distinctBy { it.id }
+    // Solo acrílicos al agua opacos: las bases con alcohol, laca, esmalte u óleo no se mezclan con ellos,
+    // y las gamas con diluyente propio cambian su acabado si se mezclan con otras
+    val paints = inventory.filter {
+        it.hasColor && typeGroup(it.type) == "opaca" && it.type != "Imprimación" && chemistryOf(it) == Chemistry.WATER_ACRYLIC
+    }.distinctBy { it.id }
     if (paints.size < 2) return emptyList()
 
     // Candidatas: las más cercanas al objetivo y los neutros (sirven para aclarar u oscurecer)

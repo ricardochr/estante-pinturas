@@ -136,7 +136,7 @@ private fun DilutionTableCard() {
                 Text(if (expanded) "▲" else "▼", style = MaterialTheme.typography.labelLarge)
             }
             Text(
-                "Pintura : diluyente, en gotas. Cada pintura de tu inventario tiene además su propia guía.",
+                "Pintura : diluyente, por marca. ★ = indicación del fabricante; el resto es práctica habitual. Cada pintura de tu inventario tiene su propia guía.",
                 style = MaterialTheme.typography.bodySmall,
             )
             if (expanded) {

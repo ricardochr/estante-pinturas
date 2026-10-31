@@ -22,6 +22,17 @@
             </intent-filter>
         </activity>
 
+        <!-- Fotos de gavetas tomadas con la cámara -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.files"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
         <!-- Modelos de ML Kit incluidos en el APK: funcionan sin internet -->
         <meta-data
             android:name="com.google.mlkit.vision.DEPENDENCIES"

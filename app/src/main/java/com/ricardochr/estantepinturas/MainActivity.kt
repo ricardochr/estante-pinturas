@@ -67,6 +67,8 @@ import com.ricardochr.estantepinturas.ui.PaletteIcon
 import com.ricardochr.estantepinturas.ui.PaletteScreen
 import com.ricardochr.estantepinturas.ui.ScanIcon
 import com.ricardochr.estantepinturas.ui.ScanScreen
+import com.ricardochr.estantepinturas.ui.StorageRequest
+import com.ricardochr.estantepinturas.ui.StorageScreen
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -96,6 +98,7 @@ private fun App(vm: MainViewModel = viewModel()) {
     var menuOpen by remember { mutableStateOf(false) }
     var showAbout by remember { mutableStateOf(false) }
     var confirmClearCatalog by remember { mutableStateOf(false) }
+    var storage by remember { mutableStateOf<StorageRequest?>(null) }
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     fun say(msg: String) {
@@ -142,6 +145,9 @@ private fun App(vm: MainViewModel = viewModel()) {
                     DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
                         DropdownMenuItem(text = { Text("Agregar pintura fuera del catálogo") }, onClick = {
                             menuOpen = false; createForBarcode = null; creating = true
+                        })
+                        DropdownMenuItem(text = { Text("Dónde están mis pinturas (gavetas)") }, onClick = {
+                            menuOpen = false; storage = StorageRequest()
                         })
                         DropdownMenuItem(text = { Text("Exportar inventario (CSV)") }, onClick = {
                             menuOpen = false
@@ -203,6 +209,7 @@ private fun App(vm: MainViewModel = viewModel()) {
             when (tab) {
                 Tab.Inventario -> InventoryScreen(
                     vm,
+                    onOpenStorage = { storage = StorageRequest() },
                     onEdit = { editing = it },
                     onGoCatalog = { tab = Tab.Catalogo },
                     onGoScan = { tab = Tab.Escanear },
@@ -223,7 +230,7 @@ private fun App(vm: MainViewModel = viewModel()) {
                 )
                 Tab.Escanear -> ScanScreen(
                     vm,
-                    active = linking == null && editing == null && !creating,
+                    active = linking == null && editing == null && !creating && storage == null,
                     onLinkBarcode = { linking = it },
                     onNotFound = { tab = Tab.Catalogo },
                     onAdded = { say(it) },
@@ -251,6 +258,9 @@ private fun App(vm: MainViewModel = viewModel()) {
             },
             similar = remember(p.id, vm.owned) { vm.similarOwned(p) },
             onOpenSimilar = { editing = it },
+            locationName = vm.spotOf(p.id)?.name,
+            onShowLocation = { editing = null; storage = StorageRequest(focusPaintId = p.id) },
+            onPlaceLocation = { editing = null; storage = StorageRequest(placingPaintId = p.id) },
             mixes = produceState<List<MixRecipe>?>(null, p.id, vm.owned) {
                 val ownedQty = vm.owned[p.id]?.qty ?: 0
                 value = if (ownedQty == 0 && p.hasColor) vm.mixesFor(p.lab, p.id) else emptyList()
@@ -305,6 +315,16 @@ private fun App(vm: MainViewModel = viewModel()) {
                 createForBarcode = null
                 say("Agregada: $name")
             },
+        )
+    }
+
+    storage?.let { req ->
+        StorageScreen(
+            vm = vm,
+            request = req,
+            onClose = { storage = null },
+            onOpenPaint = { editing = it },
+            say = { say(it) },
         )
     }
 

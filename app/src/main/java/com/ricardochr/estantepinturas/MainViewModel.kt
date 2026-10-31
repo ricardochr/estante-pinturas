@@ -11,6 +11,7 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.util.UUID
 
 /** Una pintura reconocida por la cámara. */
@@ -59,6 +60,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             custom = saved.custom
             owned = saved.owned
             barcodes = saved.barcodes
+            spots = saved.spots
+            locations = saved.locations
             // Prepara texto de búsqueda y color Lab de todas las pinturas antes de usarlas
             withContext(Dispatchers.Default) { (ext + cat).forEach { it.searchText; it.lab } }
             rebuildIndexes()
@@ -127,7 +130,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private fun persist() {
-        val snapshot = SavedState(owned, custom, barcodes)
+        val snapshot = SavedState(owned, custom, barcodes, spots, locations)
         viewModelScope.launch(Dispatchers.IO) { store.saveState(snapshot) }
     }
 
@@ -149,6 +152,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun remove(paintId: String) {
         owned = owned - paintId
+        locations = locations - paintId
         val p = byId[paintId]
         if (p != null && p.custom) {
             custom = custom.filterNot { it.id == paintId }
@@ -339,30 +343,139 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }
 
         for (lines in blocks) {
-            val candidates = LinkedHashSet<String>()
-            lines.forEachIndexed { i, line ->
-                val tokens = line.split(Regex("\\s+")).filter { it.isNotBlank() }
-                tokens.forEachIndexed { j, t ->
-                    candidates.add("C:" + codeKey(t))
-                    if (j + 1 < tokens.size) candidates.add("C:" + codeKey(t + tokens[j + 1]))
-                }
-                candidates.add("C:" + codeKey(line))
-                candidates.add("N:" + nameKey(line))
-                if (i + 1 < lines.size) candidates.add("N:" + nameKey(line + " " + lines[i + 1]))
-            }
-            for (c in candidates) {
-                val key = c.substring(2)
-                if (c.startsWith("C:")) {
-                    if (key.length < 4 || key.length > 10) continue
-                    if (key.all { it.isDigit() } && key.length < 5) continue
-                    codeIndex[key]?.forEach { if (!hits.containsKey(it.id)) hits[it.id] = ScanHit(it, "código ${it.code}") }
-                } else {
-                    if (key.length < 5) continue
-                    nameIndex[key]?.forEach { if (!hits.containsKey(it.id)) hits[it.id] = ScanHit(it, "nombre") }
-                }
-            }
+            for (h in matchBlock(lines)) if (!hits.containsKey(h.paint.id)) hits[h.paint.id] = h
         }
         return ScanResult(hits.values.toList(), unknown)
+    }
+
+    /** Pinturas que coinciden con un bloque de texto (código impreso o nombre). */
+    fun matchBlock(lines: List<String>): List<ScanHit> {
+        val hits = LinkedHashMap<String, ScanHit>()
+        val candidates = LinkedHashSet<String>()
+        lines.forEachIndexed { i, line ->
+            val tokens = line.split(Regex("\\s+")).filter { it.isNotBlank() }
+            tokens.forEachIndexed { j, t ->
+                candidates.add("C:" + codeKey(t))
+                if (j + 1 < tokens.size) candidates.add("C:" + codeKey(t + tokens[j + 1]))
+            }
+            candidates.add("C:" + codeKey(line))
+            candidates.add("N:" + nameKey(line))
+            if (i + 1 < lines.size) candidates.add("N:" + nameKey(line + " " + lines[i + 1]))
+        }
+        for (c in candidates) {
+            val key = c.substring(2)
+            if (c.startsWith("C:")) {
+                if (key.length < 4 || key.length > 10) continue
+                if (key.all { it.isDigit() } && key.length < 5) continue
+                codeIndex[key]?.forEach { if (!hits.containsKey(it.id)) hits[it.id] = ScanHit(it, "código ${it.code}") }
+            } else {
+                if (key.length < 5) continue
+                nameIndex[key]?.forEach { if (!hits.containsKey(it.id)) hits[it.id] = ScanHit(it, "nombre") }
+            }
+        }
+        return hits.values.toList()
+    }
+
+    // ---------- dónde guardas tus pinturas ----------
+
+    var spots by mutableStateOf<List<StorageSpot>>(emptyList())
+        private set
+    var locations by mutableStateOf<Map<String, PaintLocation>>(emptyMap())
+        private set
+
+    fun spotFile(s: StorageSpot): File = File(File(getApplication<Application>().filesDir, "spots"), s.photo)
+
+    fun spotOf(paintId: String): StorageSpot? = locations[paintId]?.let { l -> spots.firstOrNull { it.id == l.spotId } }
+
+    /** Guarda una foto de una gaveta o estante (reducida a 2400 px) como nuevo lugar. */
+    fun addSpot(uri: Uri, name: String, onDone: (StorageSpot?) -> Unit) {
+        viewModelScope.launch {
+            val spot = withContext(Dispatchers.IO) {
+                try {
+                    val bmp = loadBitmapForAnalysis(getApplication(), uri, 2400) ?: return@withContext null
+                    val id = UUID.randomUUID().toString()
+                    val dir = File(getApplication<Application>().filesDir, "spots").apply { mkdirs() }
+                    val file = "$id.jpg"
+                    File(dir, file).outputStream().use { bmp.compress(Bitmap.CompressFormat.JPEG, 88, it) }
+                    StorageSpot(id, name.ifBlank { "Gaveta ${spots.size + 1}" }, file)
+                } catch (e: Exception) {
+                    null
+                }
+            }
+            if (spot != null) {
+                spots = spots + spot
+                persist()
+            }
+            onDone(spot)
+        }
+    }
+
+    fun renameSpot(id: String, name: String) {
+        spots = spots.map { if (it.id == id) it.copy(name = name.trim().ifBlank { it.name }) else it }
+        persist()
+    }
+
+    fun deleteSpot(id: String) {
+        val s = spots.firstOrNull { it.id == id } ?: return
+        spots = spots - s
+        locations = locations.filterValues { it.spotId != id }
+        persist()
+        viewModelScope.launch(Dispatchers.IO) { spotFile(s).delete() }
+    }
+
+    fun setLocation(paintId: String, spotId: String, x: Float, y: Float) {
+        locations = locations + (paintId to PaintLocation(paintId, spotId, x.coerceIn(0f, 1f), y.coerceIn(0f, 1f)))
+        persist()
+    }
+
+    fun clearLocation(paintId: String) {
+        locations = locations - paintId
+        persist()
+    }
+
+    /**
+     * Lee las etiquetas visibles en la foto (texto en cualquier orientación) y devuelve qué
+     * pinturas reconoce y dónde. Las de tu inventario se aceptan por nombre o código; las que no
+     * tienes, solo por código (para evitar falsos positivos con nombres comunes como "Black").
+     */
+    suspend fun detectInSpot(spot: StorageSpot): List<DetectedPaint> {
+        val file = spotFile(spot)
+        val ownedIds = owned.filterValues { it.qty > 0 }.keys
+        return withContext(Dispatchers.Default) {
+            val bmp = android.graphics.BitmapFactory.decodeFile(file.absolutePath) ?: return@withContext emptyList()
+            val blocks = readTextBlocks(bmp)
+            val found = LinkedHashMap<String, DetectedPaint>()
+            for (b in blocks) {
+                val hits = matchBlock(b.lines)
+                if (hits.isEmpty()) continue
+                val ownedHits = hits.filter { it.paint.id in ownedIds }
+                val chosen = when {
+                    ownedHits.size == 1 -> ownedHits
+                    ownedHits.size > 1 -> ownedHits.filter { it.via.startsWith("código") }.take(1)
+                    else -> hits.filter { it.via.startsWith("código") }.take(1)
+                }
+                for (h in chosen) {
+                    if (!found.containsKey(h.paint.id)) {
+                        found[h.paint.id] = DetectedPaint(h.paint, b.x / bmp.width, b.y / bmp.height, h.paint.id in ownedIds)
+                    }
+                }
+            }
+            found.values.toList()
+        }
+    }
+
+    /** Guarda las ubicaciones detectadas; las pinturas que no tenías se agregan con 1 bote. */
+    fun applyDetections(spotId: String, list: List<DetectedPaint>) {
+        var newOwned = owned
+        var newLoc = locations
+        val now = System.currentTimeMillis()
+        for (d in list) {
+            if ((newOwned[d.paint.id]?.qty ?: 0) == 0) newOwned = newOwned + (d.paint.id to OwnedEntry(d.paint.id, 1, "", now))
+            newLoc = newLoc + (d.paint.id to PaintLocation(d.paint.id, spotId, d.x, d.y))
+        }
+        owned = newOwned
+        locations = newLoc
+        persist()
     }
 
     // ---------- catálogo importado ----------

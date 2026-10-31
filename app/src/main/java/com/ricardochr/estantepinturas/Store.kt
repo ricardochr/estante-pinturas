@@ -10,7 +10,15 @@ data class SavedState(
     val owned: Map<String, OwnedEntry>,
     val custom: List<Paint>,
     val barcodes: Map<String, String>,
+    val spots: List<StorageSpot> = emptyList(),
+    val locations: Map<String, PaintLocation> = emptyMap(),
 )
+
+/** Un lugar donde guardas pinturas (gaveta, estante), con su foto. */
+data class StorageSpot(val id: String, val name: String, val photo: String)
+
+/** Dónde está una pintura: en qué foto y en qué punto (0–1 relativo al ancho y alto). */
+data class PaintLocation(val paintId: String, val spotId: String, val x: Float, val y: Float)
 
 class Store(private val context: Context) {
 
@@ -87,6 +95,10 @@ class Store(private val context: Context) {
     fun loadState(): SavedState {
         val f = file
         if (!f.exists()) return SavedState(emptyMap(), emptyList(), emptyMap())
+        return loadStateFrom(f)
+    }
+
+    private fun loadStateFrom(f: File): SavedState {
         return try {
             val o = JSONObject(f.readText(Charsets.UTF_8))
             val owned = LinkedHashMap<String, OwnedEntry>()
@@ -125,7 +137,20 @@ class Store(private val context: Context) {
                 val k = keys.next()
                 barcodes[k] = bo.getString(k)
             }
-            SavedState(owned, custom, barcodes)
+            val spots = ArrayList<StorageSpot>()
+            val sa = o.optJSONArray("spots") ?: JSONArray()
+            for (i in 0 until sa.length()) {
+                val e = sa.getJSONObject(i)
+                spots.add(StorageSpot(e.getString("id"), e.optString("name", "Gaveta"), e.getString("photo")))
+            }
+            val locations = LinkedHashMap<String, PaintLocation>()
+            val la = o.optJSONArray("locations") ?: JSONArray()
+            for (i in 0 until la.length()) {
+                val e = la.getJSONObject(i)
+                val id = e.getString("paintId")
+                locations[id] = PaintLocation(id, e.getString("spotId"), e.getDouble("x").toFloat(), e.getDouble("y").toFloat())
+            }
+            SavedState(owned, custom, barcodes, spots, locations)
         } catch (e: Exception) {
             // Archivo dañado: se conserva una copia para no perderlo y se empieza vacío.
             f.copyTo(File(context.filesDir, "inventario-danado-${System.currentTimeMillis()}.json"), overwrite = true)
@@ -165,6 +190,14 @@ class Store(private val context: Context) {
         val bo = JSONObject()
         state.barcodes.forEach { (k, v) -> bo.put(k, v) }
         o.put("barcodes", bo)
+        val sa = JSONArray()
+        state.spots.forEach { s -> sa.put(JSONObject().put("id", s.id).put("name", s.name).put("photo", s.photo)) }
+        o.put("spots", sa)
+        val la = JSONArray()
+        state.locations.values.forEach { l ->
+            la.put(JSONObject().put("paintId", l.paintId).put("spotId", l.spotId).put("x", l.x.toDouble()).put("y", l.y.toDouble()))
+        }
+        o.put("locations", la)
 
         val tmp = File(context.filesDir, "inventario.json.tmp")
         tmp.writeText(o.toString(), Charsets.UTF_8)

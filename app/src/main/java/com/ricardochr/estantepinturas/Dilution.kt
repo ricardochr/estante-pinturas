@@ -1,138 +1,317 @@
 package com.ricardochr.estantepinturas
 
 /**
- * Proporciones de dilución como punto de partida, según el tipo de pintura y su gama.
- * Las proporciones son en volumen o gotas: "pintura : diluyente".
- * Cada marca y cada bote varía (la pintura se espesa con el tiempo), así que siempre se ajusta
- * a ojo: para aerógrafo, consistencia de leche descremada; para veladura, casi como tinta.
+ * Dilución y compatibilidad de cada pintura según su marca, su gama y su base química.
+ *
+ * Las proporciones se escriben siempre como "pintura : diluyente" (en gotas o volumen).
+ * Cada guía dice de dónde sale: [Source.MAKER] = indicación del fabricante;
+ * [Source.COMMUNITY] = práctica habitual entre pintores cuando el fabricante no da una cifra.
  */
+enum class Source(val label: String) {
+    MAKER("Indicación del fabricante"),
+    COMMUNITY("Práctica habitual (el fabricante no da cifra)"),
+}
+
 data class DilutionUse(val use: String, val ratio: String, val detail: String)
 
-data class DilutionGuide(val summary: String, val uses: List<DilutionUse>, val notes: List<String>)
+data class DilutionGuide(
+    val summary: String,
+    val thinner: String,
+    val uses: List<DilutionUse>,
+    val notes: List<String>,
+    val source: Source,
+)
 
-private enum class Body { THICK, STANDARD, PRETHINNED, CONTRAST, WASH, INK, METALLIC, PRIMER, AUX, OIL }
+/** Base química: define con qué se puede mezclar y con qué se diluye. */
+enum class Chemistry(val label: String, val mixesWith: String) {
+    WATER_ACRYLIC(
+        "Acrílico al agua",
+        "Se mezcla con otros acrílicos al agua de cualquier marca (Vallejo, Army Painter, Pro Acryl, AK 3Gen, Citadel, Scale75…).",
+    ),
+    WATER_SPECIAL(
+        "Acrílico al agua con diluyente propio",
+        "Mézclala solo con pinturas de su misma gama y dilúyela solo con su diluyente; el agua o pinturas de otras marcas cambian su acabado.",
+    ),
+    ALCOHOL_ACRYLIC(
+        "Acrílico con alcohol",
+        "No la mezcles con acrílicos al agua (Vallejo, Army Painter…): se corta y hace grumos. Mézclala solo con su misma línea.",
+    ),
+    LACQUER(
+        "Laca (solvente)",
+        "Solo con lacas y su diluyente de laca. Nunca con acrílicos al agua. Usa mascarilla y ventilación.",
+    ),
+    ENAMEL(
+        "Esmalte",
+        "Solo con esmaltes y diluyente de esmalte (white spirit / aguarrás sin olor). Se puede aplicar sobre acrílico seco, no mezclar.",
+    ),
+    OIL(
+        "Óleo",
+        "Solo con óleos y diluyente inodoro. Se aplica sobre acrílico barnizado; no se mezcla con acrílico.",
+    ),
+}
 
-private fun bodyOf(p: Paint): Body {
-    val line = norm(p.line)
+fun chemistryOf(p: Paint): Chemistry {
     val brand = norm(p.brand)
+    val line = norm(p.line)
     val name = norm(p.name)
     return when {
-        p.type == "Barniz" || p.type == "Médium" -> Body.AUX
-        p.type == "Imprimación" -> Body.PRIMER
-        line.contains("oleo") || line.contains("oil") -> Body.OIL
-        p.type == "Contraste" -> Body.CONTRAST
-        p.type == "Wash" -> Body.WASH
-        p.type == "Tinta" -> Body.INK
-        // Gamas que vienen listas para aerógrafo
-        p.type == "Aerógrafo" || line.contains("mixed") || brand.contains("kaleido") || line.contains("premium") ||
-            // "Air" de AK son colores de aviación, no de aerógrafo
-            (Regex("\\bair\\b").containsMatchIn(line) && !brand.startsWith("ak")) -> Body.PRETHINNED
-        p.type == "Metálica" -> Body.METALLIC
-        // Gamas muy pigmentadas o espesas
-        brand.contains("pro acryl") || brand.contains("proacryl") || line.contains("base") ||
-            line.contains("scalecolor") || line.contains("artist") || line.contains("expert") ||
-            name.contains("titanium white") -> Body.THICK
-        else -> Body.STANDARD
+        line.contains("oleo") || line.contains("oil") || name.contains("oilbrusher") -> Chemistry.OIL
+        line.contains("enamel") || name.contains("enamel") || line.contains("esmalte") -> Chemistry.ENAMEL
+        brand.contains("tamiya") && (line.contains("lacquer") || line.contains("spray")) -> Chemistry.LACQUER
+        brand.contains("tamiya") -> Chemistry.ALCOHOL_ACRYLIC
+        brand.contains("mr. hobby") || brand.contains("mr hobby") -> when {
+            line.contains("aqueous") -> Chemistry.ALCOHOL_ACRYLIC
+            line.contains("acrysion") -> Chemistry.WATER_SPECIAL
+            else -> Chemistry.LACQUER
+        }
+        brand.contains("humbrol") && !line.contains("acrylic") -> Chemistry.ENAMEL
+        brand.contains("vallejo") && (line.contains("liquid") ) -> Chemistry.ALCOHOL_ACRYLIC
+        brand.contains("vallejo") && line.contains("metal color") -> Chemistry.WATER_SPECIAL
+        brand.contains("mission models") -> Chemistry.WATER_SPECIAL
+        else -> Chemistry.WATER_ACRYLIC
     }
 }
 
+private fun g(
+    summary: String,
+    thinner: String,
+    source: Source,
+    vararg uses: DilutionUse,
+    notes: List<String> = emptyList(),
+) = DilutionGuide(summary, thinner, uses.toList(), notes, source)
+
+private fun u(use: String, ratio: String, detail: String) = DilutionUse(use, ratio, detail)
+
 fun dilutionFor(p: Paint): DilutionGuide {
-    val thinner = "diluyente de aerógrafo (o agua destilada con una gota de flow improver)"
-    return when (bodyOf(p)) {
-        Body.PRETHINNED -> DilutionGuide(
-            "Viene lista para aerógrafo.",
-            listOf(
-                DilutionUse("Aerógrafo", "Directa · hasta 4:1", "Úsala tal cual; si salpica o se seca en la boquilla, agrega 10–20% de diluyente."),
-                DilutionUse("Pincel", "Directa", "Es muy fluida: carga poco el pincel y da varias capas; tarda en cubrir."),
-                DilutionUse("Veladura", "1:2 a 1:3", "Con medio de veladura (glaze medium) para que no pierda adherencia."),
-                DilutionUse("Lavado", "1:4 a 1:6", "Con medio de lavado o agua con una gota de jabón para que corra por los huecos."),
-            ),
-            listOf("Agita bien: el pigmento se asienta en el fondo. Presión sugerida: 15–25 PSI."),
+    val brand = norm(p.brand)
+    val line = norm(p.line)
+    val type = p.type
+    val chem = chemistryOf(p)
+
+    // ---------------- bases no acrílicas
+    when (chem) {
+        Chemistry.OIL -> return g(
+            "Óleo: se diluye con diluyente inodoro, nunca con agua.", "Diluyente inodoro (odorless thinner)", Source.COMMUNITY,
+            u("Pincel", "Directa", "Para fundir colores; tarda horas en secar."),
+            u("Veladura / filtro", "1:3 a 1:6", "Con diluyente inodoro."),
+            u("Lavado", "1:8 a 1:15", "Con diluyente inodoro, para envejecido y filtros."),
+            notes = listOf("Aplícalo sobre una capa de barniz para poder corregir sin dañar el acrílico de abajo."),
         )
-        Body.THICK -> DilutionGuide(
-            "Muy pigmentada: necesita más diluyente que otras.",
-            listOf(
-                DilutionUse("Aerógrafo", "1:1 a 1:2", "Una parte de pintura por una o dos de $thinner. Mezcla en la paleta antes de pasarla al aerógrafo."),
-                DilutionUse("Pincel", "2:1 a 1:1", "Con agua, hasta consistencia de leche; dos capas finas cubren mejor que una gruesa."),
-                DilutionUse("Veladura", "1:4 a 1:6", "Con medio de veladura; debe teñir sin tapar lo de abajo."),
-                DilutionUse("Lavado", "1:6 a 1:10", "Con medio de lavado; mientras más diluido, más sutil."),
-            ),
-            listOf("Pro Acryl, Scalecolor y Citadel Base se secan rápido: un retardante en la paleta ayuda con las transiciones."),
+        Chemistry.ENAMEL -> return g(
+            "Esmalte: se diluye con diluyente de esmalte.", "White spirit o diluyente de esmalte", Source.COMMUNITY,
+            u("Aerógrafo", "2:1 a 1:1", "Con diluyente de esmalte; necesita ventilación."),
+            u("Lavado", "1:3 a 1:6", "Clásico para lavados de paneles sobre acrílico seco y barnizado brillante."),
+            notes = listOf("El diluyente de esmalte no daña el acrílico seco, por eso se usa para lavados que se pueden limpiar."),
         )
-        Body.STANDARD -> DilutionGuide(
-            "Pintura de pincel estándar.",
-            listOf(
-                DilutionUse("Aerógrafo", "1:1", "Partes iguales de pintura y $thinner. Si el chorro sale granulado, agrega un poco más de diluyente."),
-                DilutionUse("Pincel", "3:1 a 2:1", "Con agua; consistencia de leche entera."),
-                DilutionUse("Veladura", "1:3 a 1:5", "Con medio de veladura."),
-                DilutionUse("Lavado", "1:5 a 1:8", "Con medio de lavado o agua con flow improver."),
-            ),
-            listOf("Presión sugerida en aerógrafo: 15–20 PSI para detalle, 25–30 PSI para cubrir."),
+        Chemistry.LACQUER -> return g(
+            "Laca: se diluye con diluyente de laca.", "Diluyente de laca (Mr. Color Thinner / Leveling Thinner, Tamiya Lacquer Thinner)", Source.COMMUNITY,
+            u("Aerógrafo", "1:1 a 1:2", "Con Leveling Thinner queda muy lisa. Solo aerógrafo con juntas resistentes a solventes."),
+            notes = listOf("Usa mascarilla para vapores orgánicos y buena ventilación."),
         )
-        Body.METALLIC -> DilutionGuide(
-            "Metálica: el pigmento es más pesado.",
-            listOf(
-                DilutionUse("Aerógrafo", "1:1", "Con diluyente de aerógrafo; usa boquilla de 0.3 mm o más y limpia bien después (las escamas metálicas tapan)."),
-                DilutionUse("Pincel", "Directa a 3:1", "Muy poca agua: si la diluyes de más se separan las escamas y queda grumoso."),
-                DilutionUse("Veladura", "No recomendada", "Para matizar un metal, aplica encima una tinta o un contraste diluido."),
-                DilutionUse("Lavado", "No recomendado", "Lava el metal con un wash oscuro (negro o sepia) en vez de diluir la metálica."),
-            ),
-            listOf("Mezcla con un palillo, no solo agites: las escamas se quedan en el fondo."),
-        )
-        Body.CONTRAST -> DilutionGuide(
-            "Contraste / Speedpaint / Xpress: no la diluyas con agua.",
-            listOf(
-                DilutionUse("Aerógrafo", "Directa o 2:1", "Si hace falta, con su medio (Contrast Medium, Speedpaint Medium); el agua rompe el efecto."),
-                DilutionUse("Pincel", "Directa", "Una sola capa generosa sobre base clara; no repases mientras se seca."),
-                DilutionUse("Veladura", "1:1 a 1:3", "Con su medio: da un filtro de color muy uniforme."),
-                DilutionUse("Lavado", "1:1 a 1:2", "Con su medio, para un lavado de color sobre zonas ya pintadas."),
-            ),
-            listOf("Funciona sobre imprimación blanca, gris claro o zenital; sobre negro casi no se ve."),
-        )
-        Body.WASH -> DilutionGuide(
-            "Lavado: ya viene diluido.",
-            listOf(
-                DilutionUse("Aerógrafo", "Directa", "Sirve para sombrear de forma general a baja presión (10–15 PSI)."),
-                DilutionUse("Pincel", "Directa", "Aplica en huecos; retira el exceso de zonas planas con el pincel limpio y seco."),
-                DilutionUse("Veladura", "1:1", "Con medio de lavado o veladura para un tono más suave."),
-                DilutionUse("Lavado", "Directa", "Tal cual; diluye 1:1 si se ve muy oscuro."),
-            ),
-            listOf("Deja secar del todo (20–30 min) antes de pintar encima; si no, se levanta."),
-        )
-        Body.INK -> DilutionGuide(
-            "Tinta: muy intensa y transparente.",
-            listOf(
-                DilutionUse("Aerógrafo", "1:1", "Con diluyente de aerógrafo; perfecta para filtros y para saturar colores."),
-                DilutionUse("Pincel", "Directa a 1:1", "Pinta como un lavado de color intenso."),
-                DilutionUse("Veladura", "1:3 a 1:6", "Con medio de veladura: es la mejor base para veladuras."),
-                DilutionUse("Lavado", "1:4 a 1:8", "Con medio de lavado."),
-            ),
-            listOf("Unas gotas de tinta en una pintura opaca aumentan su saturación sin cambiar mucho el tono."),
-        )
-        Body.PRIMER -> DilutionGuide(
-            "Imprimación.",
-            listOf(
-                DilutionUse("Aerógrafo", "Directa", "La mayoría de imprimaciones de aerógrafo vienen listas; 20–25 PSI, capas finas."),
-                DilutionUse("Pincel", "Directa", "Si es de pincel, capa fina y pareja; no la diluyas con agua porque pierde agarre."),
-            ),
-            listOf("Deja curar la imprimación varias horas (idealmente una noche) antes de pintar."),
-        )
-        Body.OIL -> DilutionGuide(
-            "Óleo: se diluye con diluyente sin olor, no con agua.",
-            listOf(
-                DilutionUse("Pincel", "Directa", "Para fundir colores: tarda horas en secar, ideal para degradados."),
-                DilutionUse("Veladura", "1:3 a 1:6", "Con diluyente inodoro (odorless thinner)."),
-                DilutionUse("Lavado", "1:8 a 1:15", "Con diluyente inodoro, para filtros y lavados de envejecido."),
-            ),
-            listOf("Aplica sobre una capa de barniz para poder corregir con diluyente sin dañar lo acrílico de abajo."),
-        )
-        Body.AUX -> DilutionGuide(
-            "Barniz o médium.",
-            listOf(
-                DilutionUse("Aerógrafo", "Directa a 2:1", "Barniz con 10–30% de diluyente, capas finas a 15–20 PSI."),
-                DilutionUse("Pincel", "Directa", "Capa fina con pincel plano suave."),
-            ),
-            listOf("Barniza en un ambiente seco: con humedad alta el barniz mate puede quedar blanquecino."),
-        )
+        Chemistry.ALCOHOL_ACRYLIC -> {
+            if (brand.contains("vallejo")) return g(
+                "Liquid Metal / Liquid Gold: base alcohol.", "Su diluyente propio (Liquid Gold/Metal thinner) o alcohol isopropílico", Source.COMMUNITY,
+                u("Pincel", "Directa", "Agita mucho; no la diluyas con agua."),
+                notes = listOf("Se seca muy rápido y puede levantar el acrílico si repasas mucho."),
+            )
+            return g(
+                "Acrílico con alcohol (Tamiya X/XF, Mr. Hobby Aqueous).", "Su diluyente propio (Tamiya X-20A, Mr. Color Leveling para Aqueous) o alcohol isopropílico", Source.COMMUNITY,
+                u("Aerógrafo", "1:1 a 2:3", "Tamiya X-20A al 50–60%; muy fácil de aerografiar."),
+                u("Pincel", "Directa", "Seca rápido; con pincel deja marcas, mejor en zonas pequeñas."),
+                notes = listOf("Con agua se corta. No la mezcles con Vallejo, Army Painter o Pro Acryl."),
+            )
+        }
+        else -> {}
     }
+
+    // ---------------- por marca y gama
+    val vallejo = brand.contains("vallejo")
+    val ap = brand.contains("army painter")
+    val pro = brand.contains("pro acryl")
+    val ak = brand.startsWith("ak")
+    val s75 = brand.contains("scale75")
+    val citadel = brand.contains("citadel")
+
+    return when {
+        brand.contains("kaleido") -> g(
+            "Kaleido viene lista para aerógrafo.", "Kaleido Retarder Thinner (KT102) o Airbrush Thinner", Source.MAKER,
+            u("Aerógrafo", "Directa", "Agita 3–5 minutos (trae bola mezcladora). 15–30 PSI; 15 PSI o menos para detalle."),
+            u("Aerógrafo detalle", "1:2", "Una de pintura por dos de retarder thinner, solo para líneas finas o si se seca en la punta."),
+            notes = listOf("Gaahleri solo indica su propio diluyente; no hay información oficial sobre mezclarla con otras marcas."),
+        )
+        brand.contains("dspiae") -> g(
+            "DSPIAE Pre-Mixed: al agua y ya diluida para aerógrafo.", "No necesita; si se espesa, unas gotas de diluyente de aerógrafo al agua", Source.MAKER,
+            u("Aerógrafo", "Directa", "Lista para usar; agita bien."),
+            u("Pincel", "Directa", "Muy fluida: varias capas finas."),
+        )
+        vallejo && line.contains("metal color") -> g(
+            "Metal Color: lista para aerógrafo, con diluyente propio.", "Vallejo Airbrush Thinner 71.261 y Flow Improver 71.362", Source.MAKER,
+            u("Aerógrafo", "Directa · máx. 3:1", "Directa; si hace falta, 1 de diluyente por 3 de pintura. 10–15 PSI. Agrega 2 gotas de flow improver por cada 10 de pintura."),
+            u("Pincel", "Directa", "Funciona, pero rinde mejor con aerógrafo."),
+            notes = listOf("Se puede aplicar sin imprimación; para aluminio brillante, base negra brillante (77.660).", "El agua no la arruina pero cambia sus propiedades: mejor su diluyente."),
+        )
+        vallejo && (line.contains("model air") || line.contains("game air") || line.contains("premium")) -> g(
+            "Gama de aerógrafo: ya viene diluida.", "Vallejo Airbrush Thinner 71.161", Source.MAKER,
+            u("Aerógrafo", "Directa · máx. 4:1", "Vallejo indica hasta 25% de diluyente como máximo."),
+            u("Pincel", "Directa · máx. 2:1", "Hasta 50% de diluyente para pincel."),
+            u("Veladura", "1:2 a 1:3", "Con Glaze Medium."),
+        )
+        vallejo && line.contains("xpress") -> g(
+            "Xpress Color: pintura de contraste.", "Xpress Medium (72.448), no agua", Source.MAKER,
+            u("Pincel", "Directa", "Una capa generosa sobre base clara."),
+            u("Aclarar / veladura", "1:1 a 1:3", "Con Xpress Medium; el agua rompe el efecto."),
+            u("Aerógrafo", "Directa a 2:1", "Con Xpress Medium si hace falta."),
+        )
+        vallejo && line.contains("wash") -> g(
+            "Wash FX: lavado listo para usar.", "Agua o Wash FX Medium", Source.COMMUNITY,
+            u("Pincel", "Directa", "Aplica en huecos y limpia el exceso de zonas planas."),
+            u("Más suave", "1:1", "Con medio de lavado o agua."),
+        )
+        vallejo -> g(
+            "Vallejo Model Color / Game Color: pintura de pincel.", "Vallejo Airbrush Thinner 71.161 + Flow Improver; para pincel, agua", Source.COMMUNITY,
+            u("Aerógrafo", "1:1", "Vallejo no da cifra para estas gamas; la práctica habitual es partes iguales con su diluyente de aerógrafo y una gota de flow improver."),
+            u("Pincel", "3:1 a 2:1", "Con agua; consistencia de leche."),
+            u("Veladura", "1:3 a 1:5", "Con Glaze Medium."),
+            u("Lavado", "1:5 a 1:8", "Con Wash Medium o agua con flow improver."),
+        )
+        pro && type == "Imprimación" -> g(
+            "Pro Acryl Prime.", "Agua o diluyente de aerógrafo", Source.COMMUNITY,
+            u("Aerógrafo", "Directa", "Lista para aerógrafo; capas finas a 20–25 PSI."),
+            u("Pincel", "Directa", "Las versiones Brush-On se aplican tal cual."),
+        )
+        pro -> g(
+            "Pro Acryl: muy pigmentada.", "Para veladura y lavado: Glaze & Wash Medium (MPAM-001); para aerógrafo: diluyente de aerógrafo o agua", Source.MAKER,
+            u("Veladura", "1:4", "Monument indica 1 de pintura por 4 de Glaze & Wash Medium; más medio = más transparente."),
+            u("Lavado", "1:4 + agua", "1 de pintura, 4 de medio y tanta agua como medio; menos agua = más control."),
+            u("Aerógrafo", "1:1 a 1:2", "Monument no da cifra; por su pigmento suele necesitar partes iguales o más diluyente."),
+            u("Pincel", "2:1 a 1:1", "Con agua; cubre muy bien aun diluida."),
+            notes = listOf("Las proporciones de veladura y lavado son del fabricante; las de aerógrafo y pincel son práctica habitual."),
+        )
+        ap && (line.contains("air")) -> g(
+            "Warpaints Air: lista para aerógrafo.", "Warpaints Airbrush Medium (AW2001)", Source.MAKER,
+            u("Aerógrafo", "Directa", "Army Painter indica que no necesita diluyente."),
+            u("Pincel", "Directa", "Fluida: varias capas finas."),
+        )
+        ap && (line.contains("speedpaint")) -> g(
+            "Speedpaint: pintura de contraste.", "Speedpaint Medium (WP2090), no agua", Source.COMMUNITY,
+            u("Pincel", "Directa", "Una capa generosa sobre base clara o zenital."),
+            u("Aclarar / veladura", "1:1 a 1:3", "Con Speedpaint Medium."),
+            u("Aerógrafo", "Directa", "Se suele aerografiar tal cual a baja presión."),
+        )
+        ap && line.contains("wash") -> g(
+            "Warpaints Fanatic Wash.", "Fanatic Wash Medium", Source.MAKER,
+            u("Pincel", "Directa", "Aplica en huecos."),
+            u("Tinte sobre metal", "1:1", "Army Painter: mitad wash y mitad Wash Medium para teñir armadura metálica."),
+        )
+        ap -> g(
+            "Warpaints / Fanatic: pintura de pincel.", "Agua para pincel; Warpaints Airbrush Medium para aerógrafo", Source.COMMUNITY,
+            u("Pincel", "Directa a 3:1", "Army Painter indica diluir con agua limpia, sin cifra; unas gotas bastan."),
+            u("Aerógrafo", "1:1", "Con Airbrush Medium; el fabricante no da proporción."),
+            u("Veladura", "1:3 a 1:5", "Con medio de veladura o Speedpaint Medium."),
+            u("Lavado", "1:5 a 1:8", "Con Wash Medium."),
+        )
+        ak && type == "Metálica" -> g(
+            "AK 3Gen metálica.", "AK 3Gen Acrylic Thinner (AK11500)", Source.COMMUNITY,
+            u("Aerógrafo", "1:4", "2 partes de pintura por 8 de diluyente, a unos 22 PSI."),
+            u("Pincel", "Directa", "Agita bien."),
+        )
+        ak -> g(
+            "AK 3rd Gen: acrílico al agua.", "AK 3Gen Acrylic Thinner (AK11500); retardante AK11231 opcional", Source.COMMUNITY,
+            u("Aerógrafo", "1:1 a 3:7", "Entre partes iguales y 7 de diluyente por 3 de pintura, a unos 22 PSI. Evita diluyentes con alcohol."),
+            u("Pincel", "Directa a 3:1", "Con agua."),
+            u("Veladura", "1:3 a 1:5", "Con AK Glaze Medium."),
+            u("Lavado", "1:5 a 1:8", "Con agua y una gota de flow improver."),
+            notes = listOf("Agrega el retardante o medio antes del diluyente."),
+        )
+        s75 && line.contains("instant") -> g(
+            "Instant Colors: contraste.", "Su medio propio", Source.COMMUNITY,
+            u("Pincel", "Directa", "Capa generosa sobre base clara."),
+            u("Aclarar", "1:1 a 1:2", "Con medio, no agua."),
+        )
+        s75 -> g(
+            "Scale75 Scalecolor: mate y muy cubriente.", "Scale75 Acrylic Airbrush Thinner", Source.COMMUNITY,
+            u("Aerógrafo", "1:1 a 1:2", "Es espesa; necesita bastante diluyente y algo de retardante (seca muy rápido)."),
+            u("Pincel", "2:1 a 1:1", "Con agua."),
+            u("Veladura", "1:4 a 1:6", "Con medio de veladura."),
+            u("Lavado", "1:6 a 1:10", "Con medio de lavado."),
+        )
+        citadel && line.contains("contrast") -> g(
+            "Citadel Contrast.", "Contrast Medium, no agua", Source.COMMUNITY,
+            u("Pincel", "Directa", "Capa generosa sobre base clara."),
+            u("Aclarar", "1:1 a 1:3", "Con Contrast Medium."),
+        )
+        citadel && line.contains("air") -> g(
+            "Citadel Air: lista para aerógrafo.", "Citadel Air Caste Thinner", Source.COMMUNITY,
+            u("Aerógrafo", "Directa", "Tal cual."),
+        )
+        citadel && (line.contains("shade") || line.contains("wash")) -> g(
+            "Citadel Shade.", "Lahmian Medium o agua", Source.COMMUNITY,
+            u("Pincel", "Directa", "Aplica en huecos."),
+            u("Más suave", "1:1", "Con Lahmian Medium."),
+        )
+        citadel && line.contains("base") -> g(
+            "Citadel Base: espesa y muy cubriente.", "Agua para pincel; diluyente de aerógrafo", Source.COMMUNITY,
+            u("Aerógrafo", "1:1 a 1:2", "Muy espesa; necesita bastante diluyente."),
+            u("Pincel", "2:1", "Con agua; dos capas finas."),
+        )
+        citadel -> g(
+            "Citadel Layer / Dry / Technical.", "Agua para pincel; diluyente de aerógrafo", Source.COMMUNITY,
+            u("Aerógrafo", "1:1", "Con diluyente de aerógrafo."),
+            u("Pincel", "3:1", "Con agua; las Dry se usan sin diluir para pincel seco."),
+            u("Veladura", "1:3 a 1:5", "Con Lahmian Medium."),
+        )
+        else -> genericByType(p)
+    }
+}
+
+/** Para marcas sin indicación específica: según el tipo de pintura. */
+private fun genericByType(p: Paint): DilutionGuide {
+    val t = "Diluyente de aerógrafo de la marca, o agua destilada con una gota de flow improver"
+    return when (p.type) {
+        "Aerógrafo" -> g("Lista para aerógrafo.", t, Source.COMMUNITY,
+            u("Aerógrafo", "Directa · hasta 4:1", "Tal cual; agrega 10–20% si salpica."),
+            u("Pincel", "Directa", "Muy fluida: varias capas."))
+        "Metálica" -> g("Metálica: pigmento pesado.", t, Source.COMMUNITY,
+            u("Aerógrafo", "1:1", "Boquilla de 0.3 mm o más; limpia bien después."),
+            u("Pincel", "Directa a 3:1", "Muy poca agua: diluida de más se separan las escamas."),
+            notes = listOf("Para matizar un metal usa una tinta o lavado encima, no diluyas la metálica."))
+        "Contraste" -> g("Contraste: no la diluyas con agua.", "Su medio propio", Source.COMMUNITY,
+            u("Pincel", "Directa", "Capa generosa sobre base clara."),
+            u("Aclarar / veladura", "1:1 a 1:3", "Con su medio."))
+        "Wash" -> g("Lavado listo para usar.", "Medio de lavado o agua", Source.COMMUNITY,
+            u("Pincel", "Directa", "Aplica en huecos."),
+            u("Más suave", "1:1", "Con medio de lavado."))
+        "Tinta" -> g("Tinta: intensa y transparente.", t, Source.COMMUNITY,
+            u("Aerógrafo", "1:1", "Ideal para filtros."),
+            u("Veladura", "1:3 a 1:6", "Con medio de veladura."),
+            u("Lavado", "1:4 a 1:8", "Con medio de lavado."))
+        "Imprimación" -> g("Imprimación.", t, Source.COMMUNITY,
+            u("Aerógrafo", "Directa", "Capas finas a 20–25 PSI."),
+            u("Pincel", "Directa", "No la diluyas con agua: pierde agarre."))
+        "Barniz", "Médium" -> g("Barniz o médium.", t, Source.COMMUNITY,
+            u("Aerógrafo", "Directa a 2:1", "10–30% de diluyente, capas finas a 15–20 PSI."))
+        else -> g("Pintura de pincel estándar.", t, Source.COMMUNITY,
+            u("Aerógrafo", "1:1", "Partes iguales con diluyente de aerógrafo."),
+            u("Pincel", "3:1 a 2:1", "Con agua; consistencia de leche."),
+            u("Veladura", "1:3 a 1:5", "Con medio de veladura."),
+            u("Lavado", "1:5 a 1:8", "Con medio de lavado."))
+    }
+}
+
+/** ¿Se pueden mezclar estas pinturas entre sí? Devuelve un aviso o null si no hay problema. */
+fun mixWarning(paints: List<Paint>): String? {
+    val chems = paints.map { chemistryOf(it) }.toSet()
+    if (chems.size > 1) return "Estas pinturas tienen bases distintas (${chems.joinToString { it.label.lowercase() }}): no se mezclan bien."
+    val c = chems.first()
+    if (c == Chemistry.WATER_SPECIAL) {
+        val lines = paints.map { it.brand + it.line }.toSet()
+        if (lines.size > 1) return "Esta gama usa diluyente propio: mezclarla con otras puede cambiar su acabado."
+    }
+    if (paints.any { it.type == "Contraste" } && paints.any { it.type != "Contraste" }) {
+        return "Mezclar contraste con pintura opaca le quita el efecto de contraste."
+    }
+    if (paints.map { it.brand }.toSet().size > 1 && c == Chemistry.WATER_ACRYLIC) {
+        return "Acrílicos al agua de distintas marcas se pueden mezclar; prueba primero en poca cantidad."
+    }
+    return null
 }

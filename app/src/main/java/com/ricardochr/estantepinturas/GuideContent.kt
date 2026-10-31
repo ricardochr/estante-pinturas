@@ -298,26 +298,40 @@ val GUIDE: List<GuideSection> = listOf(
     ),
 )
 
-/** Tabla general de diluciones para la guía. */
+/** Tabla de diluciones por marca y gama (pintura : diluyente). ★ = indicación del fabricante. */
 val DILUTION_TABLE: List<Pair<String, List<Pair<String, String>>>> = listOf(
     "Aerógrafo" to listOf(
-        "Lista para aerógrafo (Model Air, Warpaints Air, Kaleido, DSPIAE)" to "Directa · hasta 4:1",
-        "Pincel estándar (Model Color, Game Color, Warpaints, AK)" to "1:1",
-        "Muy pigmentada (Pro Acryl, Scalecolor, Citadel Base)" to "1:1 a 1:2",
-        "Metálica" to "1:1",
-        "Tinta" to "1:1",
-        "Contraste / Speedpaint" to "Directa o 2:1 con su medio",
+        "★ Vallejo Model Air / Game Air (máx. 25% diluyente)" to "Directa · 4:1",
+        "★ Vallejo Metal Color (71.261, 10–15 PSI)" to "Directa · 3:1",
+        "Vallejo Model Color / Game Color (71.161 + flow)" to "1:1",
+        "★ Army Painter Warpaints Air" to "Directa",
+        "Army Painter Warpaints / Fanatic (Airbrush Medium)" to "1:1",
+        "Pro Acryl (muy pigmentada)" to "1:1 a 1:2",
+        "AK 3rd Gen (AK11500, ~22 PSI)" to "1:1 a 3:7",
+        "AK 3rd Gen metálicas" to "1:4",
+        "Scale75 Scalecolor (+ retardante)" to "1:1 a 1:2",
+        "★ Kaleido Colorworks (detalle: 1:2 con retarder)" to "Directa",
+        "★ DSPIAE Pre-Mixed" to "Directa",
+        "Citadel Base / Layer" to "1:1 a 1:2",
+        "Tamiya X/XF (X-20A, base alcohol)" to "1:1 a 2:3",
     ),
-    "Veladura (con medio de veladura)" to listOf(
-        "Pincel estándar" to "1:3 a 1:5",
-        "Muy pigmentada" to "1:4 a 1:6",
-        "Tinta" to "1:3 a 1:6",
-        "Contraste" to "1:1 a 1:3 con su medio",
+    "Veladura" to listOf(
+        "★ Pro Acryl con Glaze & Wash Medium" to "1:4",
+        "Vallejo con Glaze Medium" to "1:3 a 1:5",
+        "Army Painter / AK / Citadel con medio" to "1:3 a 1:5",
+        "Contraste / Speedpaint / Xpress con su medio" to "1:1 a 1:3",
     ),
-    "Lavado (con medio de lavado)" to listOf(
-        "Pincel estándar" to "1:5 a 1:8",
-        "Muy pigmentada" to "1:6 a 1:10",
-        "Tinta" to "1:4 a 1:8",
-        "Wash comercial" to "Directo",
+    "Lavado" to listOf(
+        "★ Pro Acryl: 1 pintura + 4 medio + 4 agua" to "1:4 + agua",
+        "★ Fanatic Wash sobre metal (Wash Medium)" to "1:1",
+        "Vallejo / Army Painter / AK con medio de lavado" to "1:5 a 1:8",
+        "Wash comercial (Wash FX, Shade, AK Wash)" to "Directo",
+    ),
+    "No mezclar entre sí" to listOf(
+        "Acrílicos al agua (Vallejo, AP, Pro Acryl, AK 3Gen, Citadel, Scale75)" to "Sí entre ellos",
+        "Tamiya X/XF, Mr. Hobby Aqueous (alcohol)" to "Solo su línea",
+        "Lacas (Mr. Color, Tamiya LP)" to "Solo lacas",
+        "Esmaltes y óleos" to "Solo su tipo",
+        "Vallejo Metal Color, Mission Models" to "Solo su gama",
     ),
 )
