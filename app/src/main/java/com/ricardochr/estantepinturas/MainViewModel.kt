@@ -230,6 +230,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val palette: ImagePalette,
         val matches: List<PaletteMatch>,
         val preview: Bitmap,
+        val advice: PaletteAdvice,
     )
 
     var palette by mutableStateOf<PaletteView?>(null)
@@ -265,7 +266,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                     try {
                         val ip = analyzeImage(bmp, detail)
                         val matches = matchPalette(ip, inv, cat)
-                        PaletteView(uri, detail, bmp, ip, matches, renderPreview(ip, matches))
+                        PaletteView(uri, detail, bmp, ip, matches, renderPreview(ip, matches), buildAdvice(ip, matches, inv))
                     } catch (e: Throwable) {
                         error = "Abrí la imagen pero falló el análisis (${e.javaClass.simpleName}: ${e.message}). Envíame este mensaje."
                         null
@@ -286,7 +287,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             val updated = withContext(Dispatchers.Default) {
                 val matches = matchPalette(current.palette, inv, cat)
-                PaletteView(current.uri, current.detail, current.source, current.palette, matches, renderPreview(current.palette, matches))
+                PaletteView(
+                    current.uri, current.detail, current.source, current.palette, matches,
+                    renderPreview(current.palette, matches), buildAdvice(current.palette, matches, inv),
+                )
             }
             if (palette === current) palette = updated
         }

@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.net.Uri
 import androidx.exifinterface.media.ExifInterface
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
@@ -25,7 +26,16 @@ class ImagePalette(
     val labels: IntArray,
     val clusters: List<ColorCluster>,
     val backgroundFound: Boolean,
+    val zones: List<ZoneInfo> = emptyList(),
 )
+
+/**
+ * Cómo se reparte un color en la figura.
+ * @param edgeRatio fracción de sus píxeles que tocan otro color: alto = detalles finos o líneas.
+ * @param texture diferencia media de luminosidad entre píxeles vecinos del mismo color: alto = superficie texturada.
+ * @param adjacency cuántos píxeles de este color tocan cada uno de los otros colores.
+ */
+class ZoneInfo(val edgeRatio: Double, val texture: Double, val adjacency: IntArray)
 
 /** Pintura sugerida para un color de la imagen, con sombra y luz para sombreado por capas. */
 data class PaletteMatch(
@@ -316,7 +326,40 @@ fun analyzeImage(bmp: Bitmap, k: Int): ImagePalette {
     for (i in 0 until n) if (labels[i] >= 0) labels[i] = remap[labels[i]]
     val clusters = order.map { ColorCluster(kept[it].l, kept[it].a, kept[it].b, pixCount[it].toDouble() / fgCount) }
 
-    return ImagePalette(w, h, labels, clusters, backgroundFound)
+    // ---- cómo se reparte cada color: bordes, textura y vecinos
+    val m = clusters.size
+    val edges = IntArray(m)
+    val sizes = IntArray(m)
+    val texSum = DoubleArray(m)
+    val texN = IntArray(m)
+    val adj = Array(m) { IntArray(m) }
+    for (i in fg) {
+        val c = labels[i]
+        sizes[c]++
+        val x = i % w
+        val y = i / w
+        var edge = false
+        if (x < w - 1) {
+            val o = labels[i + 1]
+            if (o == c) { texSum[c] += abs(L[i] - L[i + 1]).toDouble(); texN[c]++ }
+            else { edge = true; if (o >= 0) { adj[c][o]++; adj[o][c]++ } }
+        }
+        if (y < h - 1) {
+            val o = labels[i + w]
+            if (o == c) { texSum[c] += abs(L[i] - L[i + w]).toDouble(); texN[c]++ }
+            else { edge = true; if (o >= 0) { adj[c][o]++; adj[o][c]++ } }
+        }
+        if (edge) edges[c]++
+    }
+    val zones = (0 until m).map { c ->
+        ZoneInfo(
+            edgeRatio = if (sizes[c] > 0) edges[c].toDouble() / sizes[c] else 1.0,
+            texture = if (texN[c] > 0) texSum[c] / texN[c] else 0.0,
+            adjacency = adj[c],
+        )
+    }
+
+    return ImagePalette(w, h, labels, clusters, backgroundFound, zones)
 }
 
 // ---------------------------------------------------------------- sugerencias
@@ -386,4 +429,27 @@ fun renderPreview(palette: ImagePalette, matches: List<PaletteMatch>): Bitmap {
         out[i] = if (lbl < 0) 0 else colors[lbl]
     }
     return Bitmap.createBitmap(out, palette.width, palette.height, Bitmap.Config.ARGB_8888)
+}
+
+/** Imagen original resaltando solo el color [selected]; el resto queda tenue y en gris. */
+fun renderHighlight(palette: ImagePalette, source: Bitmap, selected: Int): Bitmap {
+    val w = palette.width
+    val h = palette.height
+    val src = IntArray(w * h)
+    val scaled = if (source.width == w && source.height == h) source else Bitmap.createScaledBitmap(source, w, h, true)
+    scaled.getPixels(src, 0, w, 0, 0, w, h)
+    val out = IntArray(w * h)
+    for (i in out.indices) {
+        val lbl = palette.labels[i]
+        out[i] = when {
+            lbl == selected -> src[i] or (0xFF shl 24)
+            lbl < 0 -> 0
+            else -> {
+                val c = src[i]
+                val g = (((c shr 16) and 0xFF) * 30 + ((c shr 8) and 0xFF) * 59 + (c and 0xFF) * 11) / 100
+                (0x40 shl 24) or (g shl 16) or (g shl 8) or g
+            }
+        }
+    }
+    return Bitmap.createBitmap(out, w, h, Bitmap.Config.ARGB_8888)
 }

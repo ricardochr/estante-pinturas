@@ -3,6 +3,8 @@ package com.ricardochr.estantepinturas.ui
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -27,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -49,6 +52,8 @@ import androidx.compose.ui.unit.dp
 import com.ricardochr.estantepinturas.MainViewModel
 import com.ricardochr.estantepinturas.Paint
 import com.ricardochr.estantepinturas.PaletteMatch
+import com.ricardochr.estantepinturas.ZoneAdvice
+import com.ricardochr.estantepinturas.renderHighlight
 import com.ricardochr.estantepinturas.similarityLabel
 import kotlin.math.roundToInt
 
@@ -58,6 +63,7 @@ private val DETAIL_OPTIONS = listOf(5 to "Pocos colores", 8 to "Normal", 12 to "
  * Sube una imagen (de preferencia con fondo liso) y la app sugiere qué pinturas de tu
  * inventario usar para cada color, con una más oscura para sombra y una más clara para luz.
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit) {
     var detail by rememberSaveable { mutableStateOf(vm.palette?.detail ?: 8) }
@@ -116,30 +122,66 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit) {
 
     val sourceImg = remember(view.source) { view.source.asImageBitmap() }
     val previewImg = remember(view.preview) { view.preview.asImageBitmap() }
+    var selected by remember(view) { mutableStateOf<Int?>(null) }
+    val sel = selected
+    val highlightImg = remember(view, sel) {
+        if (sel == null) null else renderHighlight(view.palette, view.source, sel).asImageBitmap()
+    }
+    var showPlan by rememberSaveable { mutableStateOf(true) }
 
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 24.dp)) {
-        item {
-            Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        // La imagen queda fija arriba para ver dónde va cada color mientras recorres la lista
+        stickyHeader {
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.background)
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
                 Box(
                     Modifier
                         .fillMaxWidth()
-                        .height(240.dp)
+                        .height(220.dp)
                         .clip(RoundedCornerShape(14.dp))
-                        .background(MaterialTheme.colorScheme.surfaceContainer),
+                        .background(if (sel != null) Color(0xFF15171B) else MaterialTheme.colorScheme.surfaceContainer),
                     contentAlignment = Alignment.Center,
                 ) {
                     Image(
-                        bitmap = if (showPreview) previewImg else sourceImg,
-                        contentDescription = if (showPreview) "Figura con tus pinturas" else "Imagen original",
+                        bitmap = highlightImg ?: if (showPreview) previewImg else sourceImg,
+                        contentDescription = when {
+                            sel != null -> "Dónde va el color seleccionado"
+                            showPreview -> "Figura con tus pinturas"
+                            else -> "Imagen original"
+                        },
                         contentScale = ContentScale.Fit,
                         modifier = Modifier.fillMaxSize(),
                     )
                     if (vm.paletteBusy) CircularProgressIndicator()
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(selected = !showPreview, onClick = { showPreview = false }, label = { Text("Original") })
-                    FilterChip(selected = showPreview, onClick = { showPreview = true }, label = { Text("Con tus pinturas") })
+                if (sel != null) {
+                    val m = view.matches.getOrNull(sel)
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            "Color ${sel + 1}: " + (m?.best?.paint?.name ?: "sin pintura") + " — resaltado en la imagen",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.weight(1f),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        TextButton(onClick = { selected = null }) { Text("Ver todo") }
+                    }
+                } else {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FilterChip(selected = !showPreview, onClick = { showPreview = false }, label = { Text("Original") })
+                        FilterChip(selected = showPreview, onClick = { showPreview = true }, label = { Text("Con tus pinturas") })
+                    }
                 }
+            }
+        }
+        item {
+            Column(Modifier.padding(horizontal = 16.dp, vertical = 4.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (!view.palette.backgroundFound) {
                     Text(
                         "No encontré un fondo liso, así que analicé la imagen completa. Los colores del fondo pueden aparecer en la lista.",
@@ -161,10 +203,27 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit) {
                     )
                 }
                 vm.paletteError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                Text(
+                    "Toca un color de la lista para ver en la imagen dónde va.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
-        itemsIndexed(view.matches) { _, m ->
-            MatchCard(m, onOpenPaint)
+        if (view.advice.plan.isNotEmpty()) {
+            item {
+                PlanCard(view.advice.plan, showPlan) { showPlan = !showPlan }
+            }
+        }
+        itemsIndexed(view.matches) { i, m ->
+            MatchCard(
+                index = i,
+                m = m,
+                advice = view.advice.zones.getOrNull(i),
+                selected = sel == i,
+                onSelect = { selected = if (sel == i) null else i },
+                onOpen = onOpenPaint,
+            )
         }
         item {
             Text(
@@ -198,16 +257,68 @@ private fun ColorChip(argb: Int, size: Dp) {
 }
 
 @Composable
-private fun MatchCard(m: PaletteMatch, onOpen: (Paint) -> Unit) {
+private fun PlanCard(plan: List<String>, expanded: Boolean, onToggle: () -> Unit) {
+    Surface(
+        color = MaterialTheme.colorScheme.primaryContainer,
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        shape = RoundedCornerShape(14.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 6.dp)
+            .clickable(onClick = onToggle),
+    ) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Plan de pintado", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                Text(if (expanded) "Ocultar" else "Ver", style = MaterialTheme.typography.labelLarge)
+            }
+            if (expanded) {
+                plan.forEachIndexed { i, step ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("${i + 1}.", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
+                        Text(step, style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MatchCard(
+    index: Int,
+    m: PaletteMatch,
+    advice: ZoneAdvice?,
+    selected: Boolean,
+    onSelect: () -> Unit,
+    onOpen: (Paint) -> Unit,
+) {
+    var showTips by remember { mutableStateOf(false) }
     Surface(
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
         contentColor = MaterialTheme.colorScheme.onSurface,
         shape = RoundedCornerShape(14.dp),
+        border = if (selected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 6.dp),
+            .padding(horizontal = 16.dp, vertical = 6.dp)
+            .clickable(onClick = onSelect),
     ) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    "Color ${index + 1}" + (advice?.let { " · ${it.role}" + if (it.group.isNotBlank()) " · ${it.group}" else "" } ?: ""),
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.weight(1f),
+                )
+                Text(
+                    if (selected) "Resaltado" else "Ver dónde va",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     ColorChip(m.cluster.argb, 44.dp)
@@ -265,6 +376,32 @@ private fun MatchCard(m: PaletteMatch, onOpen: (Paint) -> Unit) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     ToneChip("Sombra", m.shadow, onOpen, Modifier.weight(1f))
                     ToneChip("Luz", m.highlight, onOpen, Modifier.weight(1f))
+                }
+            }
+            if (advice != null) {
+                Surface(
+                    color = MaterialTheme.colorScheme.surface,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showTips = !showTips },
+                ) {
+                    Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("Cómo pintarlo", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                            Text(if (showTips) "▲" else "▼", style = MaterialTheme.typography.labelLarge)
+                        }
+                        Text("Pincel: ${advice.brush}", style = MaterialTheme.typography.bodySmall)
+                        if (showTips) {
+                            advice.tips.forEach { t ->
+                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    Text("•", style = MaterialTheme.typography.bodySmall)
+                                    Text(t, style = MaterialTheme.typography.bodySmall)
+                                }
+                            }
+                        }
+                    }
                 }
             }
             val buy = m.toBuy
