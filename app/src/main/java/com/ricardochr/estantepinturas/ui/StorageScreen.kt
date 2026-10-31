@@ -4,6 +4,7 @@ package com.ricardochr.estantepinturas.ui
 
 import android.graphics.BitmapFactory
 import android.net.Uri
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -161,9 +162,10 @@ fun StorageScreen(
         camera.launch(uri)
     }
 
-    Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+    // Pantalla superpuesta dentro de la app (no un diálogo aparte): así respeta las barras del sistema
+    Box(Modifier.fillMaxSize()) {
+        BackHandler(onBack = onClose)
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-            // La ventana del diálogo ocupa toda la pantalla: dejar libre la barra de estado y la de navegación
             Column(Modifier.fillMaxSize().systemBarsPadding()) {
                 TopAppBar(
                     title = {
@@ -258,6 +260,38 @@ fun StorageScreen(
                     }
                 }
 
+                // Pin seleccionado o acciones
+                val sel = selectedPin?.let { vm.byId[it] }
+                Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, tonalElevation = 0.dp) {
+                    if (sel != null) {
+                        Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Swatch(sel.hex, size = 36.dp, metallic = sel.type == "Metálica")
+                            Column(Modifier.weight(1f)) {
+                                Text(sel.name, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text(listOf(sel.brand, sel.code).filter { it.isNotBlank() }.joinToString(" · "), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            TextButton(onClick = { onOpenPaint(sel) }) { Text("Ficha") }
+                            TextButton(onClick = { placing = sel; selectedPin = null }) { Text("Mover") }
+                            TextButton(onClick = { vm.clearLocation(sel.id); selectedPin = null }) { Text("Quitar") }
+                        }
+                    } else {
+                        Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Button(
+                                onClick = {
+                                    detecting = true
+                                    scope.launch {
+                                        val res = try { vm.detectInSpot(spot) } catch (e: Exception) { emptyList() }
+                                        detecting = false
+                                        if (res.isEmpty()) say("No pude leer etiquetas en esta foto. Marca las pinturas tocando la foto.")
+                                        else detected = res
+                                    }
+                                },
+                                enabled = !detecting,
+                                modifier = Modifier.weight(1f),
+                            ) { Text("Detectar etiquetas") }
+                        }
+                    }
+                }
                 // Foto con marcas
                 val photo by produceState<ImageBitmap?>(null, spot.id) {
                     value = withContext(Dispatchers.IO) {
@@ -306,38 +340,6 @@ fun StorageScreen(
                     }
                 }
 
-                // Pin seleccionado o acciones
-                val sel = selectedPin?.let { vm.byId[it] }
-                Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, tonalElevation = 0.dp) {
-                    if (sel != null) {
-                        Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Swatch(sel.hex, size = 36.dp, metallic = sel.type == "Metálica")
-                            Column(Modifier.weight(1f)) {
-                                Text(sel.name, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                Text(listOf(sel.brand, sel.code).filter { it.isNotBlank() }.joinToString(" · "), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                            TextButton(onClick = { onOpenPaint(sel) }) { Text("Ficha") }
-                            TextButton(onClick = { placing = sel; selectedPin = null }) { Text("Mover") }
-                            TextButton(onClick = { vm.clearLocation(sel.id); selectedPin = null }) { Text("Quitar") }
-                        }
-                    } else {
-                        Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Button(
-                                onClick = {
-                                    detecting = true
-                                    scope.launch {
-                                        val res = try { vm.detectInSpot(spot) } catch (e: Exception) { emptyList() }
-                                        detecting = false
-                                        if (res.isEmpty()) say("No pude leer etiquetas en esta foto. Marca las pinturas tocando la foto.")
-                                        else detected = res
-                                    }
-                                },
-                                enabled = !detecting,
-                                modifier = Modifier.weight(1f),
-                            ) { Text("Detectar etiquetas") }
-                        }
-                    }
-                }
             }
         }
 
@@ -502,9 +504,10 @@ fun PaintPickerDialog(vm: MainViewModel, title: String, onDismiss: () -> Unit, o
     }
     val words = queryWords(q)
     val shown = remember(q, inv) { if (words.isEmpty()) inv else inv.filter { matchesWords(it.searchText, words) } }
-    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+    Box(Modifier.fillMaxSize()) {
+        BackHandler(onBack = onDismiss)
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-            Column(Modifier.systemBarsPadding()) {
+            Column(Modifier.fillMaxSize().systemBarsPadding()) {
                 TopAppBar(
                     title = { Text(title) },
                     navigationIcon = { IconButton(onClick = onDismiss) { Icon(Icons.Default.ArrowBack, contentDescription = "Volver") } },
