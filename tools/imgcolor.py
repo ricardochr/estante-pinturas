@@ -113,3 +113,54 @@ def _color_from_image(data: bytes, name: str = "", brand: str = "") -> str | Non
     mid = [c for c in greys if 0.15 < c["l"] < 0.85] or greys
     c = max(mid, key=lambda c: c["n"])
     return _hex(c["rgb"])
+
+
+def color_candidates(data: bytes, brand: str = ""):
+    """Colores posibles de la pintura en una imagen de producto: [(hex, proporción, principal)].
+
+    'principal' es el color de la zona calibrada por marca (cuerpo del bote o muestra). El resto son
+    los colores dominantes de todo el objeto, sin el fondo (se toma el color del borde como fondo).
+    Quien llama elige el que coincide con el nombre de la pintura.
+    """
+    out = []
+    try:
+        primary = _color_from_image(data, "", brand)
+    except Exception:
+        primary = None
+    if primary:
+        out.append((primary, 0.0, True))
+    try:
+        img = Image.open(io.BytesIO(data)).convert("RGBA")
+    except Exception:
+        return out
+    img.thumbnail((160, 160))
+    w, h = img.size
+    px = img.load()
+    border = []
+    for x in range(w):
+        border += [px[x, 0], px[x, h - 1]]
+    for y in range(h):
+        border += [px[0, y], px[w - 1, y]]
+    opaque_border = [p for p in border if p[3] > 200]
+    bg = None
+    if len(opaque_border) > len(border) * 0.5:
+        bg = tuple(sorted(p[i] for p in opaque_border)[len(opaque_border) // 2] for i in range(3))
+    pix = []
+    for y in range(h):
+        for x in range(w):
+            r, g, b, a = px[x, y]
+            if a < 200:
+                continue
+            if bg and abs(r - bg[0]) + abs(g - bg[1]) + abs(b - bg[2]) < 36:
+                continue
+            pix.append((r, g, b))
+    if len(pix) < 30:
+        return out
+    cl = _clusters(pix, step=24)
+    total = sum(c["n"] for c in cl)
+    for c in sorted(cl, key=lambda c: -c["n"])[:10]:
+        share = c["n"] / total
+        if share < 0.015:
+            continue
+        out.append((_hex(c["rgb"]), share, False))
+    return out

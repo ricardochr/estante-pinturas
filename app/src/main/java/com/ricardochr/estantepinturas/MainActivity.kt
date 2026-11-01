@@ -65,7 +65,7 @@ import com.ricardochr.estantepinturas.ui.InventoryScreen
 import com.ricardochr.estantepinturas.ui.GuideIcon
 import com.ricardochr.estantepinturas.ui.GuideScreen
 import com.ricardochr.estantepinturas.ui.PaletteIcon
-import com.ricardochr.estantepinturas.ui.PaletteScreen
+import com.ricardochr.estantepinturas.ui.PaletteHub
 import com.ricardochr.estantepinturas.ui.ScanIcon
 import com.ricardochr.estantepinturas.ui.ScanScreen
 import com.ricardochr.estantepinturas.ui.StorageRequest
@@ -238,7 +238,7 @@ private fun App(vm: MainViewModel = viewModel()) {
                     onNotFound = { tab = Tab.Catalogo },
                     onAdded = { say(it) },
                 )
-                Tab.Paleta -> PaletteScreen(vm, onOpenPaint = { editing = it })
+                Tab.Paleta -> PaletteHub(vm, onOpenPaint = { editing = it })
                 Tab.Guia -> GuideScreen()
             }
         }
@@ -262,6 +262,11 @@ private fun App(vm: MainViewModel = viewModel()) {
             similar = remember(p.id, vm.owned) { vm.similarOwned(p) },
             onOpenSimilar = { editing = it },
             locationName = vm.spotOf(p.id)?.name,
+            onFixColor = { hx ->
+                vm.fixColor(p.id, hx)
+                editing = vm.byId[p.id]
+                say("Color guardado")
+            },
             onShowLocation = { editing = null; storage = StorageRequest(findPaintId = p.id) },
             onPlaceLocation = { editing = null; storage = StorageRequest(placingPaintId = p.id) },
             mixes = produceState<List<MixRecipe>?>(null, p.id, vm.owned) {

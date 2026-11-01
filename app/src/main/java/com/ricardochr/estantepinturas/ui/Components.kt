@@ -289,7 +289,9 @@ fun EntrySheet(
     locationName: String? = null,
     onShowLocation: () -> Unit = {},
     onPlaceLocation: () -> Unit = {},
+    onFixColor: (String) -> Unit = {},
 ) {
+    var fixingColor by remember { mutableStateOf(false) }
     val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var qty by remember { mutableIntStateOf(entry?.qty ?: 1) }
     var notes by remember { mutableStateOf(entry?.notes ?: "") }
@@ -312,6 +314,23 @@ fun EntrySheet(
                         Spacer(Modifier.height(4.dp)); CodeTag(paint.code)
                     }
                 }
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    when (paint.quality) {
+                        "f" -> "Color aproximado, tomado de la foto del producto."
+                        "n" -> "Color aproximado según el nombre: no hay una muestra confiable."
+                        "u" -> "Color corregido por ti."
+                        else -> "Color de muestra medida."
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (paint.quality == "f" || paint.quality == "n") MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f),
+                )
+                TextButton(onClick = { fixingColor = true }) { Text("Corregir color") }
+            }
+            if (fixingColor) {
+                ColorFixDialog(paint.hex, onDismiss = { fixingColor = false }, onSave = { fixingColor = false; onFixColor(it) })
             }
             if (entry != null && entry.qty > 0) {
                 Surface(

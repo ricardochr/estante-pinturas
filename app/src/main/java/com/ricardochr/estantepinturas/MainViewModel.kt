@@ -62,6 +62,12 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             barcodes = saved.barcodes
             spots = saved.spots
             locations = saved.locations
+            colorFixes = saved.colorFixes
+            if (colorFixes.isNotEmpty()) {
+                catalog = catalog.map { p -> colorFixes[p.id]?.let { p.copy(hex = it, quality = "u") } ?: p }
+                extra = extra.map { p -> colorFixes[p.id]?.let { p.copy(hex = it, quality = "u") } ?: p }
+                custom = custom.map { p -> colorFixes[p.id]?.let { p.copy(hex = it, quality = "u") } ?: p }
+            }
             // Prepara texto de búsqueda y color Lab de todas las pinturas antes de usarlas
             withContext(Dispatchers.Default) { (ext + cat).forEach { it.searchText; it.lab } }
             rebuildIndexes()
@@ -130,7 +136,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private fun persist() {
-        val snapshot = SavedState(owned, custom, barcodes, spots, locations)
+        val snapshot = SavedState(owned, custom, barcodes, spots, locations, colorFixes)
         viewModelScope.launch(Dispatchers.IO) { store.saveState(snapshot) }
     }
 
@@ -223,6 +229,23 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val same = candidates.filter { it.sameFamily }.sortedBy { it.distance }
         val other = candidates.filter { !it.sameFamily }.sortedBy { it.distance }
         return (same.take(limit) + other.take((limit - same.size).coerceAtLeast(0).coerceAtMost(2)))
+    }
+
+    // ---------- corregir colores ----------
+
+    var colorFixes by mutableStateOf<Map<String, String>>(emptyMap())
+        private set
+
+    /** Cambia el color de una pintura (se guarda y se aplica también tras actualizar el catálogo). */
+    fun fixColor(paintId: String, hex: String) {
+        val h = validHex(hex)
+        colorFixes = colorFixes + (paintId to h)
+        fun upd(list: List<Paint>) = list.map { if (it.id == paintId) it.copy(hex = h, quality = "u") else it }
+        catalog = upd(catalog)
+        extra = upd(extra)
+        custom = upd(custom)
+        rebuildIndexes()
+        persist()
     }
 
     // ---------- mezclas ----------

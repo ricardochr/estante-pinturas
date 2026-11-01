@@ -26,7 +26,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 OUT = os.path.join(ROOT, "app", "src", "main", "assets", "catalog.json")
 REPORT = os.path.join(ROOT, "tools", "catalog-report.md")
-CACHE = os.path.join(HERE, "color-cache-v2.json")  # v2: zonas calibradas por marca
+CACHE = os.path.join(HERE, "color-cache-v3.json")  # v3: candidatos por imagen
+OVERRIDES = os.path.join(HERE, "color-overrides.json")  # correcciones manuales: "Marca|Código": "#RRGGBB"
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
 
 TYPES = ["Opaca", "Metálica", "Wash", "Contraste", "Tinta", "Aerógrafo", "Imprimación", "Barniz", "Médium", "Otro"]
@@ -158,10 +159,12 @@ def load_sources(args):
 # Cada parser devuelve dicts: brand, line, name, code, type, img (url de imagen), hex (opcional)
 
 def shopify_img(p):
-    if p.get("images"):
-        src = p["images"][0]["src"]
-        return src + ("&" if "?" in src else "?") + "width=160"
-    return None
+    """Hasta 4 imágenes del producto (la primera suele ser el bote; otras, muestras de color)."""
+    out = []
+    for im in (p.get("images") or [])[:4]:
+        src = im["src"]
+        out.append(src + ("&" if "?" in src else "?") + "width=240")
+    return out
 
 
 def parse_monument(prods):
@@ -291,9 +294,7 @@ def parse_vallejo(prods):
         if line == "Wash FX": t = "Wash"
         if line in ("Weathering FX", "Pigment FX", "Diorama FX"): t = "Otro"
         if line == "Auxiliary Products" and t == "Opaca": t = "Médium"
-        img = None
-        if p.get("images"):
-            img = p["images"][0].get("thumbnail") or p["images"][0].get("src")
+        img = [im.get("thumbnail") or im.get("src") for im in (p.get("images") or [])[:4]]
         out.append(dict(brand="Vallejo", line=line, name=name, code=sku, type=t, img=img))
     return out
 
@@ -302,14 +303,15 @@ def parse_ak(prods):
     out, seen = [], set()
     for p in prods:
         sku = (p.get("sku") or "").strip().upper()
-        if not re.match(r"^AK1[17]\d{3}$", sku) or sku in seen:
+        if not re.match(r"^AK1[17]\d{3}$", sku) or sku in seen or sku.startswith("AK175"):
             continue
         cats = [html.unescape(c["name"]) for c in p.get("categories", [])]
         # Cada producto existe en español e inglés; se usa la ficha en inglés
         if not any(c in ("AK product", "a.k. Campaings", "3GEN ACRYLICS", "Acrylics paints for modeling") for c in cats):
             continue
         raw = html.unescape(p["name"]).strip()
-        if re.search(r"\bSET\b|GUIDE|\[PDF\]", raw, re.I):
+        # Sets y colecciones (no son una pintura)
+        if re.search(r"\bSET\b|GUIDE|\[PDF\]|\(|COLORS\b|TONES\b|SELECTION|\bVOL\b|MODELS\b|CREATURES|\d+\s?ML\b", raw, re.I):
             continue
         seen.add(sku)
         parts = [x.strip() for x in re.split(r"\s+[–-]\s+", raw)]
@@ -322,9 +324,7 @@ def parse_ak(prods):
             line = line.strip()
         t = guess_type(name, line)
         if sku.startswith("AK17") and t == "Opaca": t = "Contraste"
-        img = None
-        if p.get("images"):
-            img = p["images"][0].get("thumbnail") or p["images"][0].get("src")
+        img = [im.get("thumbnail") or im.get("src") for im in (p.get("images") or [])[:4]]
         out.append(dict(brand="AK Interactive", line=line, name=name, code=sku, type=t, img=img))
     return out
 
@@ -361,11 +361,11 @@ def parse_dspiae(prods):
             if m:
                 code = m.group(1)
                 n = m.group(2) or ("Metallic " + code if metallic else code)
-            img = None
+            img = []
             if v.get("image_id"):
                 for im in p.get("images", []):
                     if im["id"] == v["image_id"]:
-                        img = im["src"] + "?width=160"
+                        img = [im["src"] + "?width=240"]
             out.append(dict(brand="DSPIAE", line="50ml Pre-Mixed" + (" Metallic" if metallic else ""), name=n, code=code,
                             type="Metálica" if metallic else "Opaca", img=img))
     return out
@@ -433,6 +433,32 @@ def load_miniature_paints(path, files):
 
 
 # ---------------------------------------------------------------- unión
+
+def severe_mismatch(hexv, name):
+    """Color medido que contradice claramente el nombre (p. ej. un 'Orange Ink' azul)."""
+    import math
+    from colornames import EXPECT, expectations, hex_to_lab
+    words = expectations(name)
+    if not words:
+        return False
+    L, a, b = hex_to_lab(hexv)
+    c = math.hypot(a, b)
+    h = math.degrees(math.atan2(b, a)) % 360
+    for w in words:
+        lo, hi, cmin, cmax, lmin, lmax, _ = EXPECT[w]
+        if lo is None:
+            if c <= cmax + 15:
+                return False
+            continue
+        if c < 6:
+            continue
+        mid = ((lo + (hi + 360 if hi < lo else hi)) / 2) % 360
+        diff = abs((h - mid + 180) % 360 - 180)
+        half = ((hi - lo) % 360) / 2
+        if diff <= half + 60:
+            return False
+    return True
+
 
 def key_code(r):
     ck = code_key(r["code"])
@@ -521,39 +547,72 @@ def build(args):
         seen.add(k)
         add(dict(r))
 
-    # 3) Colores faltantes: de la foto del producto
+    # 3) Colores faltantes: de las fotos del producto, eligiendo el que coincide con el nombre
+    sys.path.insert(0, HERE)
+    from colornames import plausible, typical, expectations, hex_to_lab
     missing = [r for r in rows if not r.get("hex")]
     print(f"Pinturas sin color conocido: {len(missing)}")
     if missing and args.fetch:
-        sys.path.insert(0, HERE)
-        from imgcolor import color_from_image
+        from imgcolor import color_candidates
         done = 0
         for r in missing:
-            img = r.get("img")
-            if not img:
-                continue
-            if img in cache:
-                r["hex"] = cache[img]; continue
-            data = get(img, tries=2)
-            hx = color_from_image(data, r["name"], r["brand"]) if data else None
-            if hx:
-                cache[img] = hx
-                r["hex"] = hx
-            done += 1
-            if done % 100 == 0:
-                print(f"  colores calculados: {done}")
-                json.dump(cache, open(CACHE, "w"), indent=0, sort_keys=True)
+            imgs = r.get("img") or []
+            if isinstance(imgs, str):
+                imgs = [imgs]
+            options = []  # (hex, peso, plausible)
+            for url in imgs:
+                if url not in cache:
+                    data = get(url, tries=2)
+                    cache[url] = color_candidates(data, r["brand"]) if data else []
+                    done += 1
+                    if done % 100 == 0:
+                        print(f"  imágenes analizadas: {done}")
+                        json.dump(cache, open(CACHE, "w"), indent=0, sort_keys=True)
+                for hx, share, primary in cache[url]:
+                    options.append((hx, share + (0.5 if primary else 0), plausible(hx, r["name"])))
+            good = [o for o in options if o[2]]
+            if good:
+                r["hex"] = max(good, key=lambda o: o[1])[0]
+                r["quality"] = "f"
+            elif options and not expectations(r["name"]):
+                r["hex"] = max(options, key=lambda o: o[1])[0]
+                r["quality"] = "f"
         json.dump(cache, open(CACHE, "w"), indent=0, sort_keys=True)
-    else:
-        for r in missing:
-            if r.get("img") in cache:
-                r["hex"] = cache[r["img"]]
+
+    # 4) Validación: el color no debe contradecir el nombre
+    overrides = json.load(open(OVERRIDES)) if os.path.exists(OVERRIDES) else {}
+    fixed_name, kept_suspicious = 0, []
+    for r in rows:
+        key = f"{r['brand']}|{r['code'] or r['name']}"
+        if key in overrides:
+            r["hex"] = overrides[key]
+            r["quality"] = ""
+            continue
+        hx = r.get("hex")
+        if hx and plausible(hx, r["name"]):
+            continue
+        t = typical(r["name"])
+        if not hx:
+            if t:
+                r["hex"] = t; r["quality"] = "n"; fixed_name += 1
+            continue
+        if t and (r.get("quality") == "f" or severe_mismatch(hx, r["name"])):
+            r["hex"] = t; r["quality"] = "n"; fixed_name += 1
+        elif t:
+            kept_suspicious.append(r)
+    print(f"Colores corregidos por nombre: {fixed_name}; dudosos sin cambiar (medidos): {len(kept_suspicious)}")
 
     final = []
     for r in rows:
         hx = r.get("hex") or "#888888"
         t = r.get("type") if r.get("type") in TYPES else guess_type(r["name"], r["line"])
-        final.append([r["brand"], r["line"], r["name"], r["code"], hx, t])
+        q = r.get("quality", "")
+        if hx == "#888888":
+            q = "n"
+        row = [r["brand"], r["line"], r["name"], r["code"], hx, t]
+        if q:
+            row.append(q)  # "f" = estimado de la foto, "n" = típico según el nombre
+        final.append(row)
     final.sort(key=lambda x: (x[0].lower(), x[1].lower(), x[2].lower()))
 
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
@@ -579,6 +638,13 @@ def build(args):
         if report_new.get(b):
             lines.append(f"- Pinturas con color estimado de la foto: {len(report_new[b])}")
         lines.append("")
+    q = Counter(x[6] if len(x) > 6 else "" for x in final)
+    lines.append("## Calidad del color")
+    lines.append("")
+    lines.append(f"- Medido (datos abiertos o muestra oficial): {q['']}")
+    lines.append(f"- Estimado de la foto del producto: {q['f']}")
+    lines.append(f"- Típico según el nombre (aproximado): {q['n']}")
+    lines.append("")
     open(REPORT, "w", encoding="utf-8").write("\n".join(lines))
     print(f"catalog.json: {len(final)} pinturas")
     for b, n in sorted(by_brand.items(), key=lambda t: -t[1]):

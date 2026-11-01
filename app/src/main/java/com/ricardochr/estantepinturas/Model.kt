@@ -16,6 +16,8 @@ data class Paint(
     val hex: String,
     val type: String,
     val custom: Boolean = false,
+    /** "" = medido, "f" = estimado de la foto del producto, "n" = típico según el nombre, "u" = corregido por ti. */
+    val quality: String = "",
 ) {
     /** Color ARGB para dibujar la muestra. */
     val argb: Long by lazy { parseHex(hex) }

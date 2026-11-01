@@ -35,6 +35,9 @@ import com.ricardochr.estantepinturas.Paint
 import com.ricardochr.estantepinturas.chemistryOf
 import com.ricardochr.estantepinturas.dilutionFor
 import com.ricardochr.estantepinturas.similarityLabel
+import com.ricardochr.estantepinturas.parseHex
+import com.ricardochr.estantepinturas.validHex
+import androidx.compose.runtime.remember
 
 @Composable
 private fun ColorSquare(argb: Int, size: Dp) {
@@ -188,4 +191,64 @@ fun DilutionSection(paint: Paint) {
             }
         }
     }
+}
+
+/** Elegir el color correcto de una pintura con tono, saturación y brillo, o escribiendo el código #RRGGBB. */
+@Composable
+fun ColorFixDialog(initial: String, onDismiss: () -> Unit, onSave: (String) -> Unit) {
+    val hsv = remember {
+        FloatArray(3).also { android.graphics.Color.colorToHSV(parseHex(initial).toInt(), it) }
+    }
+    var h by remember { mutableStateOf(hsv[0]) }
+    var sat by remember { mutableStateOf(hsv[1]) }
+    var v by remember { mutableStateOf(hsv[2]) }
+    var text by remember { mutableStateOf(initial) }
+    fun current(): Int = android.graphics.Color.HSVToColor(floatArrayOf(h, sat, v))
+    fun hexOf(c: Int) = String.format("#%06X", c and 0xFFFFFF)
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Corregir color") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        ColorSquare(parseHex(initial).toInt(), 44.dp)
+                        Text("Antes", style = MaterialTheme.typography.labelSmall)
+                    }
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        ColorSquare(current(), 44.dp)
+                        Text("Ahora", style = MaterialTheme.typography.labelSmall)
+                    }
+                    androidx.compose.material3.OutlinedTextField(
+                        value = text,
+                        onValueChange = { t ->
+                            text = t.take(7)
+                            val hx = validHex(t)
+                            if (t.trim().length >= 6 && hx != "#888888" || t.trim().equals("#888888", true)) {
+                                val out = FloatArray(3)
+                                android.graphics.Color.colorToHSV(parseHex(hx).toInt(), out)
+                                h = out[0]; sat = out[1]; v = out[2]
+                            }
+                        },
+                        label = { Text("#RRGGBB") },
+                        singleLine = true,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                Text("Tono", style = MaterialTheme.typography.labelMedium)
+                androidx.compose.material3.Slider(value = h, onValueChange = { h = it; text = hexOf(current()) }, valueRange = 0f..360f)
+                Text("Saturación", style = MaterialTheme.typography.labelMedium)
+                androidx.compose.material3.Slider(value = sat, onValueChange = { sat = it; text = hexOf(current()) }, valueRange = 0f..1f)
+                Text("Brillo", style = MaterialTheme.typography.labelMedium)
+                androidx.compose.material3.Slider(value = v, onValueChange = { v = it; text = hexOf(current()) }, valueRange = 0f..1f)
+                Text(
+                    "Compáralo con el bote real con buena luz. El cambio se guarda en tu teléfono y se mantiene aunque se actualice el catálogo.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        },
+        confirmButton = { androidx.compose.material3.TextButton(onClick = { onSave(hexOf(current())) }) { Text("Guardar") } },
+        dismissButton = { androidx.compose.material3.TextButton(onClick = onDismiss) { Text("Cancelar") } },
+    )
 }

@@ -12,6 +12,8 @@ data class SavedState(
     val barcodes: Map<String, String>,
     val spots: List<StorageSpot> = emptyList(),
     val locations: Map<String, PaintLocation> = emptyMap(),
+    /** Colores que corregiste a mano: id de pintura -> #RRGGBB. */
+    val colorFixes: Map<String, String> = emptyMap(),
 )
 
 /** Un lugar donde guardas pinturas (gaveta, estante), con su foto. */
@@ -43,6 +45,7 @@ class Store(private val context: Context) {
                     code = code,
                     hex = r.getString(4),
                     type = r.getString(5),
+                    quality = if (r.length() > 6) r.optString(6, "") else "",
                 )
             )
         }
@@ -150,7 +153,14 @@ class Store(private val context: Context) {
                 val id = e.getString("paintId")
                 locations[id] = PaintLocation(id, e.getString("spotId"), e.getDouble("x").toFloat(), e.getDouble("y").toFloat())
             }
-            SavedState(owned, custom, barcodes, spots, locations)
+            val fixes = LinkedHashMap<String, String>()
+            val fo = o.optJSONObject("colorFixes") ?: JSONObject()
+            val fk = fo.keys()
+            while (fk.hasNext()) {
+                val k = fk.next()
+                fixes[k] = fo.getString(k)
+            }
+            SavedState(owned, custom, barcodes, spots, locations, fixes)
         } catch (e: Exception) {
             // Archivo dañado: se conserva una copia para no perderlo y se empieza vacío.
             f.copyTo(File(context.filesDir, "inventario-danado-${System.currentTimeMillis()}.json"), overwrite = true)
@@ -198,6 +208,9 @@ class Store(private val context: Context) {
             la.put(JSONObject().put("paintId", l.paintId).put("spotId", l.spotId).put("x", l.x.toDouble()).put("y", l.y.toDouble()))
         }
         o.put("locations", la)
+        val fo = JSONObject()
+        state.colorFixes.forEach { (k, v) -> fo.put(k, v) }
+        o.put("colorFixes", fo)
 
         val tmp = File(context.filesDir, "inventario.json.tmp")
         tmp.writeText(o.toString(), Charsets.UTF_8)
