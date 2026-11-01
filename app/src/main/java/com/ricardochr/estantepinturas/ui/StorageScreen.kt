@@ -641,13 +641,20 @@ private fun PhotoWithPins(
 }
 
 @Composable
-fun PaintPickerDialog(vm: MainViewModel, title: String, onDismiss: () -> Unit, onPick: (Paint) -> Unit) {
+fun PaintPickerDialog(vm: MainViewModel, title: String, onDismiss: () -> Unit, fromCatalog: Boolean = false, onPick: (Paint) -> Unit) {
     var q by remember { mutableStateOf("") }
-    val inv = remember(vm.owned, vm.byId) {
-        vm.owned.values.filter { it.qty > 0 }.mapNotNull { vm.byId[it.paintId] }.sortedWith(compareBy({ it.brand }, { it.name }))
+    val inv = remember(vm.owned, vm.byId, fromCatalog) {
+        if (fromCatalog) vm.allPaints
+        else vm.owned.values.filter { it.qty > 0 }.mapNotNull { vm.byId[it.paintId] }.sortedWith(compareBy({ it.brand }, { it.name }))
     }
     val words = queryWords(q)
-    val shown = remember(q, inv) { if (words.isEmpty()) inv else inv.filter { matchesWords(it.searchText, words) } }
+    val shown = remember(q, inv) {
+        when {
+            words.isEmpty() && fromCatalog -> emptyList()
+            words.isEmpty() -> inv
+            else -> inv.asSequence().filter { matchesWords(it.searchText, words) }.take(200).toList()
+        }
+    }
     Box(Modifier.fillMaxSize()) {
         BackHandler(onBack = onDismiss)
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
@@ -658,7 +665,7 @@ fun PaintPickerDialog(vm: MainViewModel, title: String, onDismiss: () -> Unit, o
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
                 )
                 Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                    SearchField(q, { q = it }, "Buscar en tu inventario…")
+                    SearchField(q, { q = it }, if (fromCatalog) "Buscar en el catálogo: nombre, código, marca…" else "Buscar en tu inventario…")
                 }
                 LazyColumn(contentPadding = PaddingValues(bottom = 24.dp)) {
                     items(shown, key = { it.id }) { p ->

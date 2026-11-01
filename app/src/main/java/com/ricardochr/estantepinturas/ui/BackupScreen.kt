@@ -1,0 +1,130 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
+package com.ricardochr.estantepinturas.ui
+
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.ricardochr.estantepinturas.MainViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
+/** Respaldo del inventario, lista de compras y proyectos en un archivo (local o en Google Drive). */
+@Composable
+fun BackupScreen(vm: MainViewModel, onClose: () -> Unit, say: (String) -> Unit) {
+    val stamp = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+    val autoLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/zip")) { uri ->
+        if (uri != null) vm.enableAutoBackup(uri) { say(it) }
+    }
+    val nowLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/zip")) { uri ->
+        if (uri != null) vm.backupNow(uri) { say(it) }
+    }
+    val restoreLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) vm.restoreBackup(uri) { say(it) }
+    }
+    Box(Modifier.fillMaxSize()) {
+        BackHandler(onBack = onClose)
+        Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+            Column(Modifier.fillMaxSize().systemBarsPadding()) {
+                TopAppBar(
+                    title = { Text("Respaldo") },
+                    navigationIcon = { IconButton(onClick = onClose) { Icon(Icons.Default.Close, contentDescription = "Cerrar") } },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
+                )
+                Column(
+                    Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp),
+                ) {
+                    Text(
+                        "Guarda en un solo archivo tu inventario, pinturas propias, colores corregidos, códigos de barras, lista de compras y proyectos " +
+                            "(con su imagen de referencia y fotos de avance). Las fotos de gavetas no se incluyen.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+
+                    Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = MaterialTheme.shapes.medium, modifier = Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("Respaldo automático", style = MaterialTheme.typography.titleMedium)
+                            if (vm.autoBackupUri == null) {
+                                Text(
+                                    "Elige dónde guardar el archivo. Si eliges Google Drive en el selector, tu respaldo queda en la nube y se actualiza solo cada vez que cambias algo.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                                Button(onClick = { autoLauncher.launch("gotario-respaldo.zip") }, modifier = Modifier.fillMaxWidth()) {
+                                    Text("Activar respaldo automático")
+                                }
+                            } else {
+                                Text(
+                                    "Activado. Último respaldo: " +
+                                        if (vm.lastBackupAt > 0) SimpleDateFormat("d MMM yyyy, HH:mm", Locale("es")).format(Date(vm.lastBackupAt)) else "pendiente",
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                                vm.backupError?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error) }
+                                OutlinedButton(onClick = { autoLauncher.launch("gotario-respaldo.zip") }, modifier = Modifier.fillMaxWidth()) {
+                                    Text("Cambiar archivo")
+                                }
+                                TextButton(onClick = { vm.disableAutoBackup(); say("Respaldo automático desactivado") }) {
+                                    Text("Desactivar")
+                                }
+                            }
+                        }
+                    }
+
+                    Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = MaterialTheme.shapes.medium, modifier = Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("A mano", style = MaterialTheme.typography.titleMedium)
+                            OutlinedButton(onClick = { nowLauncher.launch("gotario-respaldo-$stamp.zip") }, modifier = Modifier.fillMaxWidth()) {
+                                Text("Guardar un respaldo ahora")
+                            }
+                            OutlinedButton(
+                                onClick = { restoreLauncher.launch(arrayOf("application/zip", "application/x-zip-compressed", "application/octet-stream")) },
+                                modifier = Modifier.fillMaxWidth(),
+                            ) { Text("Restaurar desde un respaldo") }
+                            Text(
+                                "Restaurar no borra nada: une el respaldo con lo que ya tienes. Si una pintura está en ambos, se queda el dato más reciente.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+
+                    Text(
+                        "Además, Android respalda los datos de Gotario en tu cuenta de Google (si tienes activada la copia de seguridad del teléfono) y los recupera al reinstalar.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 24.dp),
+                    )
+                }
+            }
+        }
+    }
+}

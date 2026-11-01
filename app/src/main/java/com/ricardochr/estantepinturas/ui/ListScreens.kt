@@ -1,5 +1,7 @@
 package com.ricardochr.estantepinturas.ui
 
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -74,6 +76,7 @@ fun InventoryScreen(
     onEdit: (Paint) -> Unit,
     onGoCatalog: () -> Unit,
     onGoScan: () -> Unit,
+    onOpenShopping: () -> Unit = {},
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     var brand by rememberSaveable { mutableStateOf<String?>(null) }
@@ -97,7 +100,10 @@ fun InventoryScreen(
         Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             if (ownedPaints.isNotEmpty() && query.isEmpty()) {
                 SummaryCard(ownedPaints.map { it.first }, totalBottles, brands.size)
-                StorageCard(vm.spots.size, vm.locations.keys.count { it in vm.owned }, onOpenStorage)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.height(IntrinsicSize.Min)) {
+                    StorageCard(vm.spots.size, vm.locations.keys.count { it in vm.owned }, onOpenStorage, Modifier.weight(1f).fillMaxHeight())
+                    ShoppingCard(vm.shoppingCount, onOpenShopping, Modifier.weight(1f).fillMaxHeight())
+                }
             }
             SearchField(query, { query = it }, "Buscar: nombre, código, marca, color…")
         }
@@ -258,25 +264,38 @@ private fun Stat(value: String, label: String) {
 }
 
 @Composable
-private fun StorageCard(spots: Int, located: Int, onOpen: () -> Unit) {
+private fun StorageCard(spots: Int, located: Int, onOpen: () -> Unit, modifier: Modifier = Modifier) {
     Surface(
         color = MaterialTheme.colorScheme.tertiaryContainer,
         contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
         shape = MaterialTheme.shapes.medium,
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onOpen),
+        modifier = modifier.clickable(onClick = onOpen),
     ) {
-        Row(Modifier.padding(horizontal = 14.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f)) {
-                Text("Encontrar una pintura", style = MaterialTheme.typography.titleMedium)
-                Text(
-                    if (spots == 0) "Fotografía tu gaveta y te señalo dónde está cada pintura"
-                    else "$spots ${if (spots == 1) "foto" else "fotos"} · $located pinturas ubicadas",
-                    style = MaterialTheme.typography.bodySmall,
-                )
-            }
-            Text("Abrir", style = MaterialTheme.typography.labelLarge)
+        Column(Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
+            Text("Encontrar una pintura", style = MaterialTheme.typography.titleSmall)
+            Text(
+                if (spots == 0) "Por foto o con la cámara, por etiqueta y color"
+                else "$spots ${if (spots == 1) "foto" else "fotos"} · $located ubicadas",
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ShoppingCard(count: Int, onOpen: () -> Unit, modifier: Modifier = Modifier) {
+    Surface(
+        color = MaterialTheme.colorScheme.secondaryContainer,
+        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+        shape = MaterialTheme.shapes.medium,
+        modifier = modifier.clickable(onClick = onOpen),
+    ) {
+        Column(Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
+            Text("Lista de compras", style = MaterialTheme.typography.titleSmall)
+            Text(
+                if (count == 0) "Vacía · marca las que se acaban" else "$count ${if (count == 1) "pintura" else "pinturas"} por comprar",
+                style = MaterialTheme.typography.bodySmall,
+            )
         }
     }
 }

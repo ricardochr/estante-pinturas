@@ -22,12 +22,13 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -73,6 +74,10 @@ import com.ricardochr.estantepinturas.ui.ScanScreen
 import com.ricardochr.estantepinturas.ui.StorageRequest
 import com.ricardochr.estantepinturas.ui.StorageScreen
 import com.ricardochr.estantepinturas.ui.LiveFindScreen
+import com.ricardochr.estantepinturas.ui.BackupScreen
+import com.ricardochr.estantepinturas.ui.ProjectDetail
+import com.ricardochr.estantepinturas.ui.ProjectsScreen
+import com.ricardochr.estantepinturas.ui.ShoppingScreen
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -90,7 +95,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private enum class Tab(val label: String) { Inventario("Mis pinturas"), Catalogo("Catálogo"), Escanear("Escanear"), Paleta("Paleta"), Guia("Guía") }
+private enum class Tab(val label: String) { Inventario("Inventario"), Proyectos("Proyectos"), Escanear("Escanear"), Paleta("Paleta"), Guia("Guía") }
 
 @Composable
 private fun App(vm: MainViewModel = viewModel()) {
@@ -105,6 +110,11 @@ private fun App(vm: MainViewModel = viewModel()) {
     var storage by remember { mutableStateOf<StorageRequest?>(null) }
     var liveFind by remember { mutableStateOf<Paint?>(null) }
     var wheelFor by remember { mutableStateOf<Paint?>(null) }
+    var invMode by rememberSaveable { mutableStateOf(0) } // 0 = Mis pinturas, 1 = Catálogo
+    var openProject by rememberSaveable { mutableStateOf<String?>(null) }
+    var showShopping by rememberSaveable { mutableStateOf(false) }
+    var showBackup by rememberSaveable { mutableStateOf(false) }
+    fun goCatalog() { tab = Tab.Inventario; invMode = 1 }
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     fun say(msg: String) {
@@ -129,7 +139,7 @@ private fun App(vm: MainViewModel = viewModel()) {
     }
     val csvTypes = arrayOf("text/*", "application/csv", "application/vnd.ms-excel", "application/octet-stream")
 
-    BackHandler(enabled = tab != Tab.Inventario) { tab = Tab.Inventario }
+    BackHandler(enabled = tab != Tab.Inventario || invMode != 0) { tab = Tab.Inventario; invMode = 0 }
 
     Scaffold(
         topBar = {
@@ -142,7 +152,7 @@ private fun App(vm: MainViewModel = viewModel()) {
                             color = MaterialTheme.colorScheme.tertiary,
                             letterSpacing = 2.sp,
                         )
-                        Text(tab.label, style = MaterialTheme.typography.headlineMedium)
+                        Text(if (tab == Tab.Inventario && invMode == 1) "Catálogo" else if (tab == Tab.Inventario) "Mis pinturas" else tab.label, style = MaterialTheme.typography.headlineMedium)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
@@ -152,8 +162,14 @@ private fun App(vm: MainViewModel = viewModel()) {
                         DropdownMenuItem(text = { Text("Agregar pintura fuera del catálogo") }, onClick = {
                             menuOpen = false; createForBarcode = null; creating = true
                         })
-                        DropdownMenuItem(text = { Text("Dónde están mis pinturas (gavetas)") }, onClick = {
+                        DropdownMenuItem(text = { Text("Lista de compras") }, onClick = {
+                            menuOpen = false; showShopping = true
+                        })
+                        DropdownMenuItem(text = { Text("Encontrar una pintura") }, onClick = {
                             menuOpen = false; storage = StorageRequest()
+                        })
+                        DropdownMenuItem(text = { Text("Respaldo") }, onClick = {
+                            menuOpen = false; showBackup = true
                         })
                         DropdownMenuItem(text = { Text("Exportar inventario (CSV)") }, onClick = {
                             menuOpen = false
@@ -189,11 +205,11 @@ private fun App(vm: MainViewModel = viewModel()) {
             NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh, tonalElevation = 0.dp) {
                 NavigationBarItem(
                     selected = tab == Tab.Inventario, onClick = { tab = Tab.Inventario },
-                    icon = { Icon(Icons.Default.Home, contentDescription = null) }, label = { Text("Mis pinturas") },
+                    icon = { Icon(Icons.Default.Home, contentDescription = null) }, label = { Text("Inventario") },
                 )
                 NavigationBarItem(
-                    selected = tab == Tab.Catalogo, onClick = { tab = Tab.Catalogo },
-                    icon = { Icon(Icons.Default.List, contentDescription = null) }, label = { Text("Catálogo") },
+                    selected = tab == Tab.Proyectos, onClick = { tab = Tab.Proyectos },
+                    icon = { Icon(Icons.Default.Edit, contentDescription = null) }, label = { Text("Proyectos") },
                 )
                 NavigationBarItem(
                     selected = tab == Tab.Escanear, onClick = { tab = Tab.Escanear },
@@ -213,35 +229,52 @@ private fun App(vm: MainViewModel = viewModel()) {
     ) { padding ->
         Surface(Modifier.padding(padding).fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             when (tab) {
-                Tab.Inventario -> InventoryScreen(
-                    vm,
-                    onOpenStorage = { storage = StorageRequest() },
-                    onEdit = { editing = it },
-                    onGoCatalog = { tab = Tab.Catalogo },
-                    onGoScan = { tab = Tab.Escanear },
-                )
-                Tab.Catalogo -> CatalogList(
-                    vm,
-                    onRowClick = { editing = it },
-                    onPlus = { p ->
-                        val q = vm.qtyOf(p.id)
-                        vm.add(p.id, 1)
-                        say(if (q == 0) "Agregada: ${p.name}" else "${p.name}: ahora ${q + 1} botes")
-                    },
-                    footer = {
-                        TextButton(onClick = { createForBarcode = null; creating = true }, modifier = Modifier.padding(8.dp)) {
-                            Text("¿No está en el catálogo? Agrégala a mano")
+                Tab.Inventario -> Column(Modifier.fillMaxSize()) {
+                    Row(Modifier.padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FilterChip(selected = invMode == 0, onClick = { invMode = 0 }, label = { Text("Mis pinturas (${vm.owned.values.count { it.qty > 0 }})") })
+                        FilterChip(selected = invMode == 1, onClick = { invMode = 1 }, label = { Text("Catálogo") })
+                    }
+                    Box(Modifier.weight(1f)) {
+                        if (invMode == 0) {
+                            InventoryScreen(
+                                vm,
+                                onOpenStorage = { storage = StorageRequest() },
+                                onEdit = { editing = it },
+                                onGoCatalog = { goCatalog() },
+                                onGoScan = { tab = Tab.Escanear },
+                                onOpenShopping = { showShopping = true },
+                            )
+                        } else {
+                            CatalogList(
+                                vm,
+                                onRowClick = { editing = it },
+                                onPlus = { p ->
+                                    val q = vm.qtyOf(p.id)
+                                    vm.add(p.id, 1)
+                                    say(if (q == 0) "Agregada: ${p.name}" else "${p.name}: ahora ${q + 1} botes")
+                                },
+                                footer = {
+                                    TextButton(onClick = { createForBarcode = null; creating = true }, modifier = Modifier.padding(8.dp)) {
+                                        Text("¿No está en el catálogo? Agrégala a mano")
+                                    }
+                                },
+                            )
                         }
-                    },
-                )
+                    }
+                }
+                Tab.Proyectos -> ProjectsScreen(vm, onOpenProject = { openProject = it })
                 Tab.Escanear -> ScanScreen(
                     vm,
-                    active = linking == null && editing == null && !creating && storage == null && liveFind == null,
+                    active = linking == null && editing == null && !creating && storage == null && liveFind == null &&
+                        openProject == null && !showShopping && !showBackup,
                     onLinkBarcode = { linking = it },
-                    onNotFound = { tab = Tab.Catalogo },
+                    onNotFound = { goCatalog() },
                     onAdded = { say(it) },
                 )
-                Tab.Paleta -> PaletteHub(vm, onOpenPaint = { editing = it })
+                Tab.Paleta -> PaletteHub(vm, onOpenPaint = { editing = it }, onProjectCreated = {
+                    say("Proyecto creado: ${it.name}")
+                    openProject = it.id
+                })
                 Tab.Guia -> GuideScreen()
             }
         }
@@ -274,6 +307,20 @@ private fun App(vm: MainViewModel = viewModel()) {
             },
             onShowLocation = { editing = null; storage = StorageRequest(findPaintId = p.id) },
             onPlaceLocation = { editing = null; storage = StorageRequest(placingPaintId = p.id) },
+            inShopping = vm.shopping.any { it.paintId == p.id },
+            onToggleShopping = {
+                if (vm.inShopping(p.id)) { vm.removeFromShopping(p.id); say("Quitada de la lista de compras") }
+                else { vm.addToShopping(p.id, ""); say("Agregada a la lista de compras") }
+            },
+            onSetLow = { low ->
+                vm.setLow(p.id, low)
+                say(if (low) "En tu lista de compras" else "Quitada de la lista de compras")
+            },
+            projects = vm.projects,
+            onAddToProject = { pid ->
+                vm.addPaintToProject(pid, p.id)
+                say("Agregada a ${vm.projects.firstOrNull { it.id == pid }?.name ?: "el proyecto"}")
+            },
             mixes = produceState<List<MixRecipe>?>(null, p.id, vm.owned) {
                 val ownedQty = vm.owned[p.id]?.qty ?: 0
                 value = if (ownedQty == 0 && p.hasColor) vm.mixesFor(p.lab, p.id) else emptyList()
@@ -331,6 +378,18 @@ private fun App(vm: MainViewModel = viewModel()) {
         )
     }
 
+    openProject?.let { id ->
+        ProjectDetail(vm, id, onClose = { openProject = null }, onOpenPaint = { editing = it }, say = { say(it) })
+    }
+
+    if (showShopping) {
+        ShoppingScreen(vm, onClose = { showShopping = false }, onOpenPaint = { editing = it }, say = { say(it) })
+    }
+
+    if (showBackup) {
+        BackupScreen(vm, onClose = { showBackup = false }, say = { say(it) })
+    }
+
     storage?.let { req ->
         StorageScreen(
             vm = vm,
@@ -376,7 +435,7 @@ private fun App(vm: MainViewModel = viewModel()) {
                             "Catálogo incluido: ${vm.catalog.size} pinturas del proyecto miniature-paints de Rick Fleuren (licencia MIT), actualizado a marzo de 2025. " +
                             "Importadas por ti: ${vm.extra.size}. Los colores son aproximados.\n\n" +
                             "El reconocimiento de etiquetas y códigos de barras usa ML Kit de Google y funciona sin internet. " +
-                            "Tu inventario se guarda solo en este teléfono; usa Exportar para respaldarlo."
+                            "Tu inventario y proyectos se guardan en este teléfono; activa Respaldo (menú) para tener una copia en Google Drive u otro lugar."
                     )
                     Text("Pinturas por marca", style = MaterialTheme.typography.titleSmall)
                     vm.brandCounts.forEach { (b, n) ->

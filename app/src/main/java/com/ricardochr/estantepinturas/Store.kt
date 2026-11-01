@@ -14,6 +14,7 @@ data class SavedState(
     val locations: Map<String, PaintLocation> = emptyMap(),
     /** Colores que corregiste a mano: id de pintura -> #RRGGBB. */
     val colorFixes: Map<String, String> = emptyMap(),
+    val shopping: List<ShopItem> = emptyList(),
 )
 
 /** Un lugar donde guardas pinturas (gaveta, estante), con su foto. */
@@ -103,7 +104,27 @@ class Store(private val context: Context) {
 
     private fun loadStateFrom(f: File): SavedState {
         return try {
-            val o = JSONObject(f.readText(Charsets.UTF_8))
+            stateFromJson(JSONObject(f.readText(Charsets.UTF_8)))
+        } catch (e: Exception) {
+            // Archivo dañado: se conserva una copia para no perderlo y se empieza vacío.
+            f.copyTo(File(context.filesDir, "inventario-danado-${System.currentTimeMillis()}.json"), overwrite = true)
+            SavedState(emptyMap(), emptyList(), emptyMap())
+        }
+    }
+
+    @Synchronized
+    fun saveState(state: SavedState) {
+        val o = stateToJson(state)
+        val tmp = File(context.filesDir, "inventario.json.tmp")
+        tmp.writeText(o.toString(), Charsets.UTF_8)
+        if (!tmp.renameTo(file)) {
+            file.writeText(o.toString(), Charsets.UTF_8)
+            tmp.delete()
+        }
+    }
+
+    companion object {
+        fun stateFromJson(o: JSONObject): SavedState {
             val owned = LinkedHashMap<String, OwnedEntry>()
             val oa = o.optJSONArray("owned") ?: JSONArray()
             for (i in 0 until oa.length()) {
@@ -114,6 +135,7 @@ class Store(private val context: Context) {
                     qty = e.optInt("qty", 1),
                     notes = e.optString("notes", ""),
                     updatedAt = e.optLong("updatedAt", 0L),
+                    low = e.optBoolean("low", false),
                 )
             }
             val custom = ArrayList<Paint>()
@@ -160,63 +182,121 @@ class Store(private val context: Context) {
                 val k = fk.next()
                 fixes[k] = fo.getString(k)
             }
-            SavedState(owned, custom, barcodes, spots, locations, fixes)
-        } catch (e: Exception) {
-            // Archivo dañado: se conserva una copia para no perderlo y se empieza vacío.
-            f.copyTo(File(context.filesDir, "inventario-danado-${System.currentTimeMillis()}.json"), overwrite = true)
-            SavedState(emptyMap(), emptyList(), emptyMap())
+            val shopping = ArrayList<ShopItem>()
+            val sha = o.optJSONArray("shopping") ?: JSONArray()
+            for (i in 0 until sha.length()) {
+                val e = sha.getJSONObject(i)
+                shopping.add(ShopItem(e.getString("paintId"), e.optString("reason", ""), e.optLong("addedAt", 0L)))
+            }
+            return SavedState(owned, custom, barcodes, spots, locations, fixes, shopping)
         }
+
+        fun stateToJson(state: SavedState): JSONObject {
+            val o = JSONObject()
+            o.put("version", 1)
+            val oa = JSONArray()
+            state.owned.values.forEach { e ->
+                oa.put(
+                    JSONObject()
+                        .put("paintId", e.paintId)
+                        .put("qty", e.qty)
+                        .put("notes", e.notes)
+                        .put("updatedAt", e.updatedAt)
+                        .put("low", e.low)
+                )
+            }
+            o.put("owned", oa)
+            val ca = JSONArray()
+            state.custom.forEach { p ->
+                ca.put(
+                    JSONObject()
+                        .put("id", p.id)
+                        .put("brand", p.brand)
+                        .put("line", p.line)
+                        .put("name", p.name)
+                        .put("code", p.code)
+                        .put("hex", p.hex)
+                        .put("type", p.type)
+                )
+            }
+            o.put("custom", ca)
+            val bo = JSONObject()
+            state.barcodes.forEach { (k, v) -> bo.put(k, v) }
+            o.put("barcodes", bo)
+            val sa = JSONArray()
+            state.spots.forEach { s -> sa.put(JSONObject().put("id", s.id).put("name", s.name).put("photo", s.photo)) }
+            o.put("spots", sa)
+            val la = JSONArray()
+            state.locations.values.forEach { l ->
+                la.put(JSONObject().put("paintId", l.paintId).put("spotId", l.spotId).put("x", l.x.toDouble()).put("y", l.y.toDouble()))
+            }
+            o.put("locations", la)
+            val fo = JSONObject()
+            state.colorFixes.forEach { (k, v) -> fo.put(k, v) }
+            o.put("colorFixes", fo)
+            val sha = JSONArray()
+            state.shopping.forEach { sha.put(JSONObject().put("paintId", it.paintId).put("reason", it.reason).put("addedAt", it.addedAt)) }
+            o.put("shopping", sha)
+            return o
+        }
+    }
+}
+
+/** Proyectos: projects.json + una carpeta por proyecto con sus imágenes. */
+class ProjectStore(private val context: Context) {
+    private val file: File get() = File(context.filesDir, "projects.json")
+
+    fun dir(projectId: String): File = File(File(context.filesDir, "projects"), projectId).apply { mkdirs() }
+
+    fun load(): List<Project> {
+        val f = file
+        if (!f.exists()) return emptyList()
+        return try { fromJson(JSONArray(f.readText(Charsets.UTF_8))) } catch (e: Exception) { emptyList() }
     }
 
     @Synchronized
-    fun saveState(state: SavedState) {
-        val o = JSONObject()
-        o.put("version", 1)
-        val oa = JSONArray()
-        state.owned.values.forEach { e ->
-            oa.put(
-                JSONObject()
-                    .put("paintId", e.paintId)
-                    .put("qty", e.qty)
-                    .put("notes", e.notes)
-                    .put("updatedAt", e.updatedAt)
-            )
-        }
-        o.put("owned", oa)
-        val ca = JSONArray()
-        state.custom.forEach { p ->
-            ca.put(
-                JSONObject()
-                    .put("id", p.id)
-                    .put("brand", p.brand)
-                    .put("line", p.line)
-                    .put("name", p.name)
-                    .put("code", p.code)
-                    .put("hex", p.hex)
-                    .put("type", p.type)
-            )
-        }
-        o.put("custom", ca)
-        val bo = JSONObject()
-        state.barcodes.forEach { (k, v) -> bo.put(k, v) }
-        o.put("barcodes", bo)
-        val sa = JSONArray()
-        state.spots.forEach { s -> sa.put(JSONObject().put("id", s.id).put("name", s.name).put("photo", s.photo)) }
-        o.put("spots", sa)
-        val la = JSONArray()
-        state.locations.values.forEach { l ->
-            la.put(JSONObject().put("paintId", l.paintId).put("spotId", l.spotId).put("x", l.x.toDouble()).put("y", l.y.toDouble()))
-        }
-        o.put("locations", la)
-        val fo = JSONObject()
-        state.colorFixes.forEach { (k, v) -> fo.put(k, v) }
-        o.put("colorFixes", fo)
+    fun save(list: List<Project>) {
+        val tmp = File(context.filesDir, "projects.json.tmp")
+        tmp.writeText(toJson(list).toString(), Charsets.UTF_8)
+        if (!tmp.renameTo(file)) { file.writeText(toJson(list).toString(), Charsets.UTF_8); tmp.delete() }
+    }
 
-        val tmp = File(context.filesDir, "inventario.json.tmp")
-        tmp.writeText(o.toString(), Charsets.UTF_8)
-        if (!tmp.renameTo(file)) {
-            file.writeText(o.toString(), Charsets.UTF_8)
-            tmp.delete()
+    companion object {
+        fun toJson(list: List<Project>): JSONArray {
+            val arr = JSONArray()
+            list.forEach { p ->
+                val paints = JSONArray()
+                p.paints.forEach { paints.put(JSONObject().put("paintId", it.paintId).put("use", it.use)) }
+                val photos = JSONArray()
+                p.photos.forEach { photos.put(JSONObject().put("file", it.file).put("takenAt", it.takenAt).put("caption", it.caption)) }
+                arr.put(
+                    JSONObject().put("id", p.id).put("name", p.name).put("createdAt", p.createdAt).put("status", p.status)
+                        .put("notes", p.notes).put("reference", p.reference ?: JSONObject.NULL).put("paints", paints).put("photos", photos)
+                )
+            }
+            return arr
+        }
+
+        fun fromJson(arr: JSONArray): List<Project> {
+            val out = ArrayList<Project>()
+            for (i in 0 until arr.length()) {
+                val o = arr.getJSONObject(i)
+                val paints = ArrayList<ProjectPaint>()
+                val pa = o.optJSONArray("paints") ?: JSONArray()
+                for (j in 0 until pa.length()) pa.getJSONObject(j).let { paints.add(ProjectPaint(it.getString("paintId"), it.optString("use", ""))) }
+                val photos = ArrayList<ProgressPhoto>()
+                val ph = o.optJSONArray("photos") ?: JSONArray()
+                for (j in 0 until ph.length()) ph.getJSONObject(j).let { photos.add(ProgressPhoto(it.getString("file"), it.optLong("takenAt", 0L), it.optString("caption", ""))) }
+                out.add(
+                    Project(
+                        id = o.getString("id"), name = o.optString("name", "Proyecto"), createdAt = o.optLong("createdAt", 0L),
+                        status = o.optString("status", "En progreso"), notes = o.optString("notes", ""),
+                        reference = if (o.isNull("reference")) null else o.optString("reference", "").ifBlank { null },
+                        paints = paints, photos = photos,
+                    )
+                )
+            }
+            return out
         }
     }
 }

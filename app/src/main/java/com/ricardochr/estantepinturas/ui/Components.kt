@@ -41,6 +41,9 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -67,6 +70,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ricardochr.estantepinturas.OwnedEntry
+import com.ricardochr.estantepinturas.Project
 import com.ricardochr.estantepinturas.MixRecipe
 import com.ricardochr.estantepinturas.PAINT_TYPES
 import com.ricardochr.estantepinturas.SimilarPaint
@@ -292,7 +296,13 @@ fun EntrySheet(
     onFixColor: (String) -> Unit = {},
     inventory: List<Paint> = emptyList(),
     onOpenWheel: () -> Unit = {},
+    inShopping: Boolean = false,
+    onToggleShopping: () -> Unit = {},
+    onSetLow: (Boolean) -> Unit = {},
+    projects: List<Project> = emptyList(),
+    onAddToProject: (String) -> Unit = {},
 ) {
+    var projectMenu by remember { mutableStateOf(false) }
     var fixingColor by remember { mutableStateOf(false) }
     val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var qty by remember { mutableIntStateOf(entry?.qty ?: 1) }
@@ -352,6 +362,62 @@ fun EntrySheet(
                         }
                         TextButton(onClick = onShowLocation) { Text("Buscar") }
                         TextButton(onClick = onPlaceLocation) { Text(if (locationName != null) "Mover" else "Marcar") }
+                    }
+                }
+            }
+            Surface(
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                contentColor = MaterialTheme.colorScheme.onSurface,
+                shape = MaterialTheme.shapes.small,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Column(Modifier.padding(start = 12.dp, end = 8.dp, top = 4.dp, bottom = 4.dp)) {
+                    if (entry != null && entry.qty > 0) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f)) {
+                                Text("Se está acabando", style = MaterialTheme.typography.titleSmall)
+                                Text("Aparece en tu lista de compras", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            Switch(checked = entry.low, onCheckedChange = onSetLow)
+                        }
+                    } else {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f)) {
+                                Text("Lista de compras", style = MaterialTheme.typography.titleSmall)
+                                Text(
+                                    if (inShopping) "Ya está en tu lista" else "No la tienes",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            TextButton(onClick = onToggleShopping) { Text(if (inShopping) "Quitar" else "Agregar") }
+                        }
+                    }
+                    if (projects.isNotEmpty()) {
+                        val inProjects = projects.filter { pr -> pr.paints.any { it.paintId == paint.id } }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f)) {
+                                Text("Proyectos", style = MaterialTheme.typography.titleSmall)
+                                Text(
+                                    if (inProjects.isEmpty()) "No la usas en ningún proyecto" else "En: " + inProjects.joinToString(", ") { it.name },
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                            Box {
+                                TextButton(onClick = { projectMenu = true }) { Text("Agregar a…") }
+                                DropdownMenu(expanded = projectMenu, onDismissRequest = { projectMenu = false }) {
+                                    projects.filter { pr -> inProjects.none { it.id == pr.id } }.forEach { pr ->
+                                        DropdownMenuItem(text = { Text(pr.name) }, onClick = { projectMenu = false; onAddToProject(pr.id) })
+                                    }
+                                    if (inProjects.size == projects.size) {
+                                        DropdownMenuItem(text = { Text("Ya está en todos tus proyectos") }, onClick = { projectMenu = false })
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }

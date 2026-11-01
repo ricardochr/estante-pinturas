@@ -62,6 +62,7 @@ import com.ricardochr.estantepinturas.Paint
 import com.ricardochr.estantepinturas.Lab
 import com.ricardochr.estantepinturas.MixRecipe
 import com.ricardochr.estantepinturas.PaletteMatch
+import com.ricardochr.estantepinturas.Project
 import com.ricardochr.estantepinturas.ZoneAdvice
 import com.ricardochr.estantepinturas.renderHighlight
 import com.ricardochr.estantepinturas.similarityLabel
@@ -75,7 +76,8 @@ private val DETAIL_OPTIONS = listOf(6 to "Pocos colores", 10 to "Normal", 14 to 
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit) {
+fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, onProjectCreated: (Project) -> Unit = {}) {
+    var askProjectName by remember { mutableStateOf(false) }
     var detail by rememberSaveable { mutableStateOf(vm.palette?.detail ?: 10) }
     var showPreview by rememberSaveable { mutableStateOf(false) }
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
@@ -256,6 +258,18 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit) {
                     )
                 }
                 vm.paletteError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                Button(onClick = { askProjectName = true }, enabled = !vm.paletteBusy, modifier = Modifier.fillMaxWidth()) {
+                    Text("Guardar como proyecto")
+                }
+                if (askProjectName) {
+                    ProjectNameDialog(
+                        onDismiss = { askProjectName = false },
+                        onSave = { name ->
+                            askProjectName = false
+                            vm.projectFromPalette(name, onProjectCreated)
+                        },
+                    )
+                }
                 Text(
                     "Toca un color de la lista para ver en la imagen dónde va.",
                     style = MaterialTheme.typography.bodySmall,
@@ -277,6 +291,8 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit) {
                 onSelect = { selected = if (sel == i) null else i },
                 onOpen = onOpenPaint,
                 mixFor = { lab -> vm.mixesFor(lab) },
+                inShopping = m.toBuy?.let { b -> vm.shopping.any { it.paintId == b.id } } ?: false,
+                onAddShopping = { b -> vm.addToShopping(b.id, "Para la paleta de una imagen") },
             )
         }
         item {
@@ -347,6 +363,8 @@ private fun MatchCard(
     onSelect: () -> Unit,
     onOpen: (Paint) -> Unit,
     mixFor: suspend (Lab) -> List<MixRecipe>,
+    inShopping: Boolean = false,
+    onAddShopping: (Paint) -> Unit = {},
 ) {
     var showTips by remember { mutableStateOf(false) }
     var showMix by remember { mutableStateOf(false) }
@@ -495,6 +513,11 @@ private fun MatchCard(
                             modifier = Modifier.weight(1f),
                         )
                         Text(similarityLabel(m.toBuyDistance), style = MaterialTheme.typography.labelSmall)
+                        if (inShopping) {
+                            Text("✓ En tu lista", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                        } else {
+                            TextButton(onClick = { onAddShopping(buy) }) { Text("+ Lista") }
+                        }
                     }
                 }
             }
@@ -540,4 +563,25 @@ private fun ToneChip(label: String, p: Paint?, onOpen: (Paint) -> Unit, modifier
             }
         }
     }
+}
+
+/** Pide el nombre de un proyecto nuevo. */
+@Composable
+fun ProjectNameDialog(onDismiss: () -> Unit, onSave: (String) -> Unit, initial: String = "", title: String = "Nuevo proyecto") {
+    var name by remember { mutableStateOf(initial) }
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = {
+            androidx.compose.material3.OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Nombre") },
+                placeholder = { Text("Motoko, Space Marine, busto…") },
+                singleLine = true,
+            )
+        },
+        confirmButton = { TextButton(onClick = { onSave(name) }, enabled = name.isNotBlank()) { Text("Guardar") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } },
+    )
 }

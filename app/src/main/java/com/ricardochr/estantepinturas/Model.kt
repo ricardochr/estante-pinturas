@@ -40,6 +40,29 @@ data class OwnedEntry(
     val qty: Int,
     val notes: String,
     val updatedAt: Long,
+    /** Marcada como "se está acabando": aparece en la lista de compras. */
+    val low: Boolean = false,
+)
+
+/** Algo por comprar: una pintura del catálogo y por qué. */
+data class ShopItem(val paintId: String, val reason: String, val addedAt: Long)
+
+/** Pintura usada en un proyecto y para qué (base de la piel, sombra del pelo…). */
+data class ProjectPaint(val paintId: String, val use: String)
+
+/** Foto de avance de un proyecto (archivo en la carpeta del proyecto). */
+data class ProgressPhoto(val file: String, val takenAt: Long, val caption: String)
+
+/** Una figura que estás pintando: referencia, pinturas, notas y fotos de avance. */
+data class Project(
+    val id: String,
+    val name: String,
+    val createdAt: Long,
+    val status: String,          // "En progreso" o "Terminado"
+    val notes: String,
+    val reference: String?,      // archivo de la imagen de referencia
+    val paints: List<ProjectPaint>,
+    val photos: List<ProgressPhoto>,
 )
 
 /** Minúsculas, sin acentos, espacios simples. */

@@ -8,7 +8,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import android.content.Context
+import android.content.Intent
+import android.graphics.BitmapFactory
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -23,6 +28,8 @@ data class ScanResult(val hits: List<ScanHit>, val unknownBarcodes: List<String>
 class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     private val store = Store(app)
+    private val projectStore = ProjectStore(app)
+    private val prefs = app.getSharedPreferences("gotario", Context.MODE_PRIVATE)
 
     var loading by mutableStateOf(true)
         private set
@@ -63,6 +70,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             spots = saved.spots
             locations = saved.locations
             colorFixes = saved.colorFixes
+            shopping = saved.shopping
+            projects = withContext(Dispatchers.IO) { projectStore.load() }
             if (colorFixes.isNotEmpty()) {
                 catalog = catalog.map { p -> colorFixes[p.id]?.let { p.copy(hex = it, quality = "u") } ?: p }
                 extra = extra.map { p -> colorFixes[p.id]?.let { p.copy(hex = it, quality = "u") } ?: p }
@@ -136,8 +145,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private fun persist() {
-        val snapshot = SavedState(owned, custom, barcodes, spots, locations, colorFixes)
+        val snapshot = SavedState(owned, custom, barcodes, spots, locations, colorFixes, shopping)
         viewModelScope.launch(Dispatchers.IO) { store.saveState(snapshot) }
+        scheduleAutoBackup()
     }
 
     // ---------- inventario ----------
@@ -147,12 +157,13 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     fun add(paintId: String, delta: Int = 1) {
         val cur = owned[paintId]
         val qty = ((cur?.qty ?: 0) + delta).coerceAtLeast(0)
-        owned = owned + (paintId to OwnedEntry(paintId, qty, cur?.notes ?: "", System.currentTimeMillis()))
+        owned = owned + (paintId to OwnedEntry(paintId, qty, cur?.notes ?: "", System.currentTimeMillis(), low = (cur?.low ?: false) && qty > 0))
         persist()
     }
 
     fun update(paintId: String, qty: Int, notes: String) {
-        owned = owned + (paintId to OwnedEntry(paintId, qty.coerceAtLeast(0), notes.trim(), System.currentTimeMillis()))
+        val low = (owned[paintId]?.low ?: false) && qty > 0
+        owned = owned + (paintId to OwnedEntry(paintId, qty.coerceAtLeast(0), notes.trim(), System.currentTimeMillis(), low))
         persist()
     }
 
@@ -741,6 +752,354 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 }
             }
             onDone("Importadas ${matched + created}: $matched del catálogo, $created nuevas")
+        }
+    }
+
+    // ---------- lista de compras ----------
+
+    var shopping by mutableStateOf<List<ShopItem>>(emptyList())
+        private set
+
+    fun inShopping(paintId: String): Boolean = shopping.any { it.paintId == paintId }
+
+    fun addToShopping(paintId: String, reason: String) {
+        if (inShopping(paintId)) return
+        shopping = shopping + ShopItem(paintId, reason, System.currentTimeMillis())
+        persist()
+    }
+
+    fun removeFromShopping(paintId: String) {
+        shopping = shopping.filterNot { it.paintId == paintId }
+        persist()
+    }
+
+    /** Marca una pintura que tienes como "se está acabando" (o lo quita). */
+    fun setLow(paintId: String, low: Boolean) {
+        val cur = owned[paintId] ?: return
+        owned = owned + (paintId to cur.copy(low = low, updatedAt = System.currentTimeMillis()))
+        persist()
+    }
+
+    /** La compraste: suma un bote al inventario y la quita de la lista. */
+    fun bought(paintId: String) {
+        val cur = owned[paintId]
+        owned = owned + (paintId to OwnedEntry(paintId, (cur?.qty ?: 0) + 1, cur?.notes ?: "", System.currentTimeMillis(), low = false))
+        shopping = shopping.filterNot { it.paintId == paintId }
+        persist()
+    }
+
+    /** Pinturas que tienes marcadas como "se está acabando". */
+    val lowPaints: List<Paint>
+        get() = owned.values.filter { it.low && it.qty > 0 }.mapNotNull { byId[it.paintId] }.sortedWith(compareBy({ it.brand }, { it.name }))
+
+    val shoppingCount: Int get() = shopping.size + owned.values.count { it.low && it.qty > 0 }
+
+    /** La lista como texto para compartir (WhatsApp, notas, correo). */
+    fun shoppingText(): String {
+        val lines = ArrayList<String>()
+        val items = shopping.mapNotNull { byId[it.paintId] } + lowPaints.filter { lp -> shopping.none { it.paintId == lp.id } }
+        items.groupBy { it.brand }.toSortedMap().forEach { (brand, list) ->
+            lines.add(brand.uppercase())
+            list.sortedBy { it.name }.forEach { p ->
+                lines.add("• " + listOf(p.code, p.name).filter { it.isNotBlank() }.joinToString(" ") + (if (p.line.isNotBlank()) " (${p.line})" else ""))
+            }
+            lines.add("")
+        }
+        return "Lista de compras · Gotario\n\n" + lines.joinToString("\n").trim()
+    }
+
+    /**
+     * Pinturas del catálogo para cubrir un tono que no tienes: opacas, con color medido y bien
+     * saturadas; primero las de marcas que ya usas.
+     */
+    private var wheelCache: Pair<List<Paint>, List<Pair<Paint, WheelPos>>>? = null
+
+    fun suggestForHue(ryb: Float, limit: Int = 3): List<Paint> {
+        val myBrands = owned.values.filter { it.qty > 0 }.mapNotNull { byId[it.paintId]?.let { p -> brandKey(p.brand) } }
+            .groupingBy { it }.eachCount()
+        val base = catalog
+        val cached = wheelCache
+        val positions = if (cached != null && cached.first === base) cached.second else {
+            val list = (extra + base).filter { it.hasColor && it.type == "Opaca" && it.quality != "n" }
+                .map { it to wheelPosOf(it) }
+                .filter { (_, w) -> !w.neutral && w.radius >= 0.55f }
+            wheelCache = base to list
+            list
+        }
+        return positions.asSequence()
+            .filter { (p, w) -> (owned[p.id]?.qty ?: 0) == 0 && angleDiff(w.ryb, ryb) <= 10f }
+            .sortedWith(compareBy({ -(myBrands[brandKey(it.first.brand)] ?: 0) }, { angleDiff(it.second.ryb, ryb) + (1f - it.second.radius) * 20f }))
+            .map { it.first }
+            .distinctBy { brandKey(it.brand) }
+            .take(limit)
+            .toList()
+    }
+
+    // ---------- proyectos ----------
+
+    var projects by mutableStateOf<List<Project>>(emptyList())
+        private set
+
+    fun projectFile(projectId: String, name: String): File = File(projectStore.dir(projectId), name)
+
+    private fun saveProjects() {
+        val snapshot = projects
+        viewModelScope.launch(Dispatchers.IO) { projectStore.save(snapshot) }
+        scheduleAutoBackup()
+    }
+
+    /** Copia una imagen al proyecto, reducida a 1600 px en JPG. Devuelve el nombre del archivo. */
+    private fun importImage(projectId: String, uri: Uri, prefix: String): String? {
+        val ctx = getApplication<Application>()
+        return try {
+            val bmp = loadBitmapScaled(ctx, uri, 1600) ?: return null
+            val name = prefix + "-" + System.currentTimeMillis() + ".jpg"
+            File(projectStore.dir(projectId), name).outputStream().use { bmp.compress(Bitmap.CompressFormat.JPEG, 88, it) }
+            bmp.recycle()
+            name
+        } catch (e: Throwable) {
+            null
+        }
+    }
+
+    private fun loadBitmapScaled(ctx: Context, uri: Uri, maxSide: Int): Bitmap? {
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        ctx.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds) }
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+        var sample = 1
+        while (maxOf(bounds.outWidth, bounds.outHeight) / (sample * 2) >= maxSide) sample *= 2
+        val raw = ctx.contentResolver.openInputStream(uri)?.use {
+            BitmapFactory.decodeStream(it, null, BitmapFactory.Options().apply { inSampleSize = sample })
+        } ?: return null
+        // Respeta la orientación de la foto
+        val rotation = try {
+            ctx.contentResolver.openInputStream(uri)?.use {
+                when (androidx.exifinterface.media.ExifInterface(it).getAttributeInt(
+                    androidx.exifinterface.media.ExifInterface.TAG_ORIENTATION,
+                    androidx.exifinterface.media.ExifInterface.ORIENTATION_NORMAL,
+                )) {
+                    androidx.exifinterface.media.ExifInterface.ORIENTATION_ROTATE_90 -> 90f
+                    androidx.exifinterface.media.ExifInterface.ORIENTATION_ROTATE_180 -> 180f
+                    androidx.exifinterface.media.ExifInterface.ORIENTATION_ROTATE_270 -> 270f
+                    else -> 0f
+                }
+            } ?: 0f
+        } catch (e: Exception) {
+            0f
+        }
+        val scale = minOf(1f, maxSide.toFloat() / maxOf(raw.width, raw.height))
+        if (rotation == 0f && scale >= 1f) return raw
+        val m = android.graphics.Matrix().apply { postScale(scale, scale); postRotate(rotation) }
+        val out = Bitmap.createBitmap(raw, 0, 0, raw.width, raw.height, m, true)
+        if (out !== raw) raw.recycle()
+        return out
+    }
+
+    fun createProject(name: String, reference: Uri?, paints: List<ProjectPaint>, notes: String, onDone: (Project) -> Unit) {
+        val id = UUID.randomUUID().toString()
+        viewModelScope.launch {
+            val ref = if (reference != null) withContext(Dispatchers.IO) { importImage(id, reference, "ref") } else null
+            val p = Project(
+                id = id, name = name.trim().ifBlank { "Proyecto" }, createdAt = System.currentTimeMillis(),
+                status = "En progreso", notes = notes, reference = ref,
+                paints = paints.distinctBy { it.paintId }, photos = emptyList(),
+            )
+            projects = listOf(p) + projects
+            saveProjects()
+            onDone(p)
+        }
+    }
+
+    /** Crea un proyecto con la imagen y las pinturas sugeridas en Paleta. */
+    fun projectFromPalette(name: String, onDone: (Project) -> Unit) {
+        val pv = palette ?: return
+        val paints = pv.matches.mapIndexedNotNull { i, m ->
+            val p = m.best?.paint ?: return@mapIndexedNotNull null
+            val z = pv.advice.zones.getOrNull(i)
+            ProjectPaint(p.id, listOfNotNull(z?.role, z?.group).joinToString(" · "))
+        }
+        val notes = pv.advice.plan.joinToString("\n") { "• $it" }
+        createProject(name, pv.uri, paints, notes, onDone)
+    }
+
+    private fun updateProject(id: String, f: (Project) -> Project) {
+        projects = projects.map { if (it.id == id) f(it) else it }
+        saveProjects()
+    }
+
+    fun renameProject(id: String, name: String) = updateProject(id) { it.copy(name = name.trim().ifBlank { it.name }) }
+    fun setProjectNotes(id: String, notes: String) = updateProject(id) { it.copy(notes = notes) }
+    fun setProjectStatus(id: String, status: String) = updateProject(id) { it.copy(status = status) }
+
+    fun addPaintToProject(id: String, paintId: String, use: String = "") =
+        updateProject(id) { p -> if (p.paints.any { it.paintId == paintId }) p else p.copy(paints = p.paints + ProjectPaint(paintId, use)) }
+
+    fun setPaintUse(id: String, paintId: String, use: String) =
+        updateProject(id) { p -> p.copy(paints = p.paints.map { if (it.paintId == paintId) it.copy(use = use) else it }) }
+
+    fun removePaintFromProject(id: String, paintId: String) =
+        updateProject(id) { p -> p.copy(paints = p.paints.filterNot { it.paintId == paintId }) }
+
+    fun setProjectReference(id: String, uri: Uri) {
+        viewModelScope.launch {
+            val name = withContext(Dispatchers.IO) { importImage(id, uri, "ref") } ?: return@launch
+            val old = projects.firstOrNull { it.id == id }?.reference
+            updateProject(id) { it.copy(reference = name) }
+            if (old != null && old != name) withContext(Dispatchers.IO) { projectFile(id, old).delete() }
+        }
+    }
+
+    fun addProgressPhoto(id: String, uri: Uri, caption: String, onDone: (Boolean) -> Unit = {}) {
+        viewModelScope.launch {
+            val name = withContext(Dispatchers.IO) { importImage(id, uri, "avance") }
+            if (name != null) updateProject(id) { it.copy(photos = it.photos + ProgressPhoto(name, System.currentTimeMillis(), caption.trim())) }
+            onDone(name != null)
+        }
+    }
+
+    fun setPhotoCaption(id: String, file: String, caption: String) =
+        updateProject(id) { p -> p.copy(photos = p.photos.map { if (it.file == file) it.copy(caption = caption.trim()) else it }) }
+
+    fun removeProgressPhoto(id: String, file: String) {
+        updateProject(id) { p -> p.copy(photos = p.photos.filterNot { it.file == file }) }
+        viewModelScope.launch(Dispatchers.IO) { projectFile(id, file).delete() }
+    }
+
+    fun deleteProject(id: String) {
+        projects = projects.filterNot { it.id == id }
+        saveProjects()
+        viewModelScope.launch(Dispatchers.IO) { projectStore.dir(id).deleteRecursively() }
+    }
+
+    // ---------- respaldo ----------
+
+    /** Archivo elegido para el respaldo automático (puede estar en Google Drive). */
+    var autoBackupUri by mutableStateOf(prefs.getString("backup_uri", null)?.let { Uri.parse(it) })
+        private set
+    var lastBackupAt by mutableStateOf(prefs.getLong("backup_at", 0L))
+        private set
+    var backupError by mutableStateOf<String?>(null)
+        private set
+    private var backupJob: Job? = null
+
+    private fun projectsRoot(): File = File(getApplication<Application>().filesDir, "projects")
+
+    private fun currentState() = SavedState(owned, custom, barcodes, spots, locations, colorFixes, shopping)
+
+    private fun writeBackup(uri: Uri): String? = try {
+        val out = getApplication<Application>().contentResolver.openOutputStream(uri, "wt")
+            ?: getApplication<Application>().contentResolver.openOutputStream(uri, "w")
+        if (out == null) "No se pudo abrir el archivo"
+        else {
+            out.use { Backup.write(it, currentState(), projects, projectsRoot()) }
+            null
+        }
+    } catch (e: Exception) {
+        e.message ?: e.javaClass.simpleName
+    }
+
+    private fun scheduleAutoBackup() {
+        val uri = autoBackupUri ?: return
+        if (loading) return
+        backupJob?.cancel()
+        backupJob = viewModelScope.launch {
+            delay(4000)
+            val err = withContext(Dispatchers.IO) { writeBackup(uri) }
+            if (err == null) {
+                lastBackupAt = System.currentTimeMillis()
+                prefs.edit().putLong("backup_at", lastBackupAt).apply()
+                backupError = null
+            } else {
+                backupError = "El respaldo automático falló: $err. Vuelve a elegir el archivo."
+            }
+        }
+    }
+
+    /** Activa el respaldo automático en el archivo elegido y escribe el primer respaldo. */
+    fun enableAutoBackup(uri: Uri, onDone: (String) -> Unit) {
+        val ctx = getApplication<Application>()
+        try {
+            ctx.contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+        } catch (e: Exception) {
+            // Algunos proveedores no dan permiso permanente; se intenta igual
+        }
+        viewModelScope.launch {
+            val err = withContext(Dispatchers.IO) { writeBackup(uri) }
+            if (err == null) {
+                autoBackupUri = uri
+                lastBackupAt = System.currentTimeMillis()
+                prefs.edit().putString("backup_uri", uri.toString()).putLong("backup_at", lastBackupAt).apply()
+                backupError = null
+                onDone("Respaldo automático activado")
+            } else {
+                onDone("No se pudo escribir el respaldo: $err")
+            }
+        }
+    }
+
+    fun disableAutoBackup() {
+        val uri = autoBackupUri
+        autoBackupUri = null
+        backupError = null
+        prefs.edit().remove("backup_uri").apply()
+        if (uri != null) try {
+            getApplication<Application>().contentResolver.releasePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+        } catch (e: Exception) {
+        }
+    }
+
+    fun backupNow(uri: Uri, onDone: (String) -> Unit) {
+        viewModelScope.launch {
+            val err = withContext(Dispatchers.IO) { writeBackup(uri) }
+            onDone(if (err == null) "Respaldo guardado: ${owned.size} pinturas, ${projects.size} proyectos" else "No se pudo guardar: $err")
+        }
+    }
+
+    /**
+     * Restaura un respaldo uniéndolo con lo que ya hay: para cada pintura gana el registro más reciente,
+     * y se agregan las pinturas propias, códigos, colores, compras y proyectos que no estén.
+     */
+    fun restoreBackup(uri: Uri, onDone: (String) -> Unit) {
+        viewModelScope.launch {
+            val content = withContext(Dispatchers.IO) {
+                try {
+                    getApplication<Application>().contentResolver.openInputStream(uri)?.use { Backup.read(it, projectsRoot()) }
+                } catch (e: Exception) {
+                    null
+                }
+            }
+            if (content == null) {
+                onDone("Ese archivo no es un respaldo de Gotario")
+                return@launch
+            }
+            val b = content.state
+            val knownCustom = custom.map { it.id }.toHashSet()
+            val newCustom = b.custom.filter { it.id !in knownCustom }
+            custom = custom + newCustom
+            val mergedOwned = LinkedHashMap(owned)
+            var added = 0
+            b.owned.values.forEach { e ->
+                val cur = mergedOwned[e.paintId]
+                if (cur == null) added++
+                if (cur == null || e.updatedAt > cur.updatedAt) mergedOwned[e.paintId] = e
+            }
+            owned = mergedOwned
+            barcodes = b.barcodes + barcodes
+            val fixes = b.colorFixes + colorFixes
+            if (fixes != colorFixes) {
+                colorFixes = fixes
+                catalog = catalog.map { p -> fixes[p.id]?.let { p.copy(hex = it, quality = "u") } ?: p }
+                extra = extra.map { p -> fixes[p.id]?.let { p.copy(hex = it, quality = "u") } ?: p }
+            }
+            shopping = shopping + b.shopping.filter { s -> shopping.none { it.paintId == s.paintId } }
+            val knownProjects = projects.map { it.id }.toHashSet()
+            val newProjects = content.projects.filter { it.id !in knownProjects }
+            projects = projects + newProjects
+            rebuildIndexes()
+            migrateOrphans()
+            persist()
+            saveProjects()
+            onDone("Restaurado: $added pinturas nuevas, ${newCustom.size} propias, ${newProjects.size} proyectos")
         }
     }
 }

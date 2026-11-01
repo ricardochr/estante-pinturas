@@ -62,7 +62,7 @@ private fun point(center: Offset, radius: Float, ryb: Float, frac: Float): Offse
 
 /** Paleta: elegir entre analizar una imagen o ver el círculo cromático. */
 @Composable
-fun PaletteHub(vm: MainViewModel, onOpenPaint: (Paint) -> Unit) {
+fun PaletteHub(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, onProjectCreated: (com.ricardochr.estantepinturas.Project) -> Unit = {}) {
     var mode by rememberSaveable { mutableStateOf(0) }
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.padding(horizontal = 16.dp, vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -70,7 +70,7 @@ fun PaletteHub(vm: MainViewModel, onOpenPaint: (Paint) -> Unit) {
             FilterChip(selected = mode == 1, onClick = { mode = 1 }, label = { Text("Círculo cromático") })
         }
         Box(Modifier.weight(1f)) {
-            if (mode == 0) PaletteScreen(vm, onOpenPaint) else ColorWheelScreen(vm, onOpenPaint)
+            if (mode == 0) PaletteScreen(vm, onOpenPaint, onProjectCreated) else ColorWheelScreen(vm, onOpenPaint)
         }
     }
 }
@@ -191,11 +191,19 @@ fun ColorWheelScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, focus: Pai
                     )
                     if (empty.isNotEmpty()) {
                         Surface(color = MaterialTheme.colorScheme.tertiaryContainer, contentColor = MaterialTheme.colorScheme.onTertiaryContainer, shape = MaterialTheme.shapes.small) {
-                            Text(
-                                "Te faltan colores en: " + empty.joinToString(", ") { it.name.lowercase() } + ".",
-                                style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier.padding(10.dp),
-                            )
+                            Column(Modifier.fillMaxWidth().padding(10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text(
+                                    "Te faltan colores en: " + empty.joinToString(", ") { it.name.lowercase() } + ". Opciones para cubrirlos:",
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                                empty.forEach { sec ->
+                                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        Swatch(sec.hex, size = 16.dp, metallic = false)
+                                        Text(sec.name, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                                    }
+                                    SuggestionRows(vm, sec.ryb, onOpenPaint)
+                                }
+                            }
                         }
                     }
                 } else {
@@ -231,7 +239,8 @@ fun ColorWheelScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, focus: Pai
                                         Text(sec.name, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
                                     }
                                     if (list.isEmpty()) {
-                                        Text("No tienes pinturas de este tono.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        Text("No tienes pinturas de este tono. Podrías conseguir:", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        SuggestionRows(vm, a, onOpenPaint)
                                     }
                                     list.forEach { p ->
                                         Row(
@@ -251,6 +260,35 @@ fun ColorWheelScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, focus: Pai
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+/** Pinturas del catálogo para un tono que no tienes, con botón para la lista de compras. */
+@Composable
+private fun SuggestionRows(vm: MainViewModel, ryb: Float, onOpenPaint: (Paint) -> Unit) {
+    val list = remember(ryb, vm.owned, vm.catalog) { vm.suggestForHue(ryb) }
+    if (list.isEmpty()) {
+        Text("No encontré opciones en el catálogo.", style = MaterialTheme.typography.bodySmall)
+        return
+    }
+    list.forEach { p ->
+        val inList = vm.shopping.any { it.paintId == p.id }
+        Row(
+            Modifier.fillMaxWidth().clickable { onOpenPaint(p) },
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Swatch(p.hex, size = 24.dp, metallic = false)
+            Column(Modifier.weight(1f)) {
+                Text(p.name, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(listOf(p.brand, p.code).filter { it.isNotBlank() }.joinToString(" · "), style = MaterialTheme.typography.labelSmall)
+            }
+            if (inList) {
+                Text("✓ En lista", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+            } else {
+                androidx.compose.material3.TextButton(onClick = { vm.addToShopping(p.id, "Tono que te falta en el círculo") }) { Text("+ Lista") }
             }
         }
     }
