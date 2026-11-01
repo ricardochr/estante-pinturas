@@ -1,11 +1,11 @@
 # Catálogo de pinturas
 
-Total: **8423** pinturas · generado 2026-11-01
+Total: **8315** pinturas · generado 2026-11-01
 
 | Marca | Pinturas | Fuente |
 |---|---:|---|
 | Vallejo | 1495 | tienda oficial + datos abiertos |
-| AK Interactive | 1217 | tienda oficial + datos abiertos |
+| AK Interactive | 1109 | tienda oficial + datos abiertos |
 | The Army Painter | 783 | tienda oficial + datos abiertos |
 | Mr. Hobby | 668 | datos abiertos |
 | Citadel | 608 | datos abiertos |
@@ -29,21 +29,24 @@ Total: **8423** pinturas · generado 2026-11-01
 
 ## AK Interactive
 
-- 3rd Gen Standard: 179
-- 3rd Gen: 138
-- 3rd Gen Air: 120
+- 3rd Gen Standard: 178
 - AFV: 106
-- Real Colors - WWII: 97
-- Quick Gen: 84
-- 3rd Gen Afv: 80
+- Real Colors - WWII: 103
+- 3rd Gen Air: 94
+- Quick Gen: 79
 - Air: 77
 - Figures: 76
+- 3rd Gen Afv: 64
 - Real Colors - Air: 48
 - Real Colors - AFV: 41
-- 3rd Gen Figures: 40
+- 3rd Gen Figures: 38
+- 3rd Gen: 26
 - 3rd Gen Metallic: 22
+- Air (3rd Gen): 20
 - General: 20
 - Naval: 18
+- AFV (3rd Gen): 16
+- Primer (3rd Gen): 13
 - 3rd Gen Intense: 11
 - 3rd Gen Punch: 10
 - Real Colors - Modern: 8
@@ -52,19 +55,17 @@ Total: **8423** pinturas · generado 2026-11-01
 - Effects: 6
 - Ink (3rd Gen): 6
 - 3rd Gen Auxiliary: 5
+- Figures (3rd Gen): 2
 - 3rd Gen Efecto Escarcha: 1
 - 3rd Gen Full Range Afv Series: 1
 - 3rd Gen Interior De Vehículos Rojo Y Azul: 1
-- 3rd Gen Legion Condor Aircraft S: 1
 - 3rd Gen Lino Dopado Claro: 1
-- 3rd Gen Los 120 Mejores Es Para Figuras: 1
-- 3rd Gen Los 120 Mejores Es Para Wargames, Fantasía Y Ciencia Ficción: 1
-- 3rd Gen Republican Aircraft S: 1
 - 3rd Gen Wargame Paint It All Box X108: 1
 - 3rd Gen Wargame Paint It All Box X36: 1
 - 3rd Gen Wargame Paint It All Box X72: 1
 - Auxiliary (3rd Gen): 1
-- Pinturas con color estimado de la foto: 223
+- Standard (3rd Gen): 1
+- Pinturas con color estimado de la foto: 115
 
 ## DSPIAE
 
@@ -166,3 +167,9 @@ Total: **8423** pinturas · generado 2026-11-01
 - Game Color Wash: 2
 - Xpress Color Intense: 1
 - Pinturas con color estimado de la foto: 331
+
+## Calidad del color
+
+- Medido (datos abiertos o muestra oficial): 7049
+- Estimado de la foto del producto: 983
+- Típico según el nombre (aproximado): 283
