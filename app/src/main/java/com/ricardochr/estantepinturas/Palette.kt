@@ -170,16 +170,17 @@ fun analyzeImage(bmp: Bitmap, k: Int): ImagePalette {
         val ba = median(A)
         val bb = median(B)
         fun distBg(i: Int): Float {
+            // El croma pesa doble: un rojo muy oscuro de la figura no es un fondo negro
             val dl = L[i] - bl
-            val da = A[i] - ba
-            val db = B[i] - bb
+            val da = 2f * (A[i] - ba)
+            val db = 2f * (B[i] - bb)
             return sqrt(dl * dl + da * da + db * db)
         }
         val dists = opaqueBorder.map { distBg(it) }.sorted()
         val within = dists.count { it < 15f }.toDouble() / dists.size
         if (within > 0.6) {
             backgroundFound = true
-            val t = (dists[(dists.size * 0.8).toInt().coerceAtMost(dists.size - 1)] * 1.5f).coerceIn(10f, 22f)
+            val t = (dists[(dists.size * 0.8).toInt().coerceAtMost(dists.size - 1)] * 1.3f).coerceIn(8f, 16f)
             val queue = IntArray(n)
             var head = 0
             var tail = 0
@@ -200,7 +201,7 @@ fun analyzeImage(bmp: Bitmap, k: Int): ImagePalette {
             }
             // Huecos de fondo encerrados por la figura (entre brazos, cables…): no tocan el borde,
             // pero son del mismo color que el fondo
-            val tHole = t * 0.7f
+            val tHole = t * 0.6f
             for (i in 0 until n) if (!isBg[i] && !transparent[i] && distBg(i) < tHole) isBg[i] = true
         }
     }
@@ -278,15 +279,49 @@ fun analyzeImage(bmp: Bitmap, k: Int): ImagePalette {
         }
     }
 
-    // ---- unir grupos casi iguales
+    // ---- colores poco frecuentes pero distintos (dientes, ojos, detalles): lo que quedó lejos de todos los grupos
     val groups = ArrayList<MutableCluster>()
     val counts = IntArray(kk)
     for (s in assign) counts[s]++
-    for (c in 0 until kk) if (counts[c] > 0) groups.add(MutableCluster(cl[c], ca[c], cb[c], counts[c].toDouble()))
+    for (c in 0 until kk) if (counts[c] > 0) groups.add(MutableCluster(cl[c], ca[c], cb[c], counts[c].toDouble() * step))
+    run {
+        val residual = ArrayList<Int>()
+        for (i in fg) {
+            var md = Double.MAX_VALUE
+            for (c in 0 until kk) { val d = d2(i, c); if (d < md) md = d }
+            if (md > 14.0 * 14.0) residual.add(i)
+        }
+        if (residual.size > 50) {
+            val rStep = max(1, residual.size / 4000)
+            val rs = IntArray((residual.size + rStep - 1) / rStep) { residual[it * rStep] }
+            val rk = min(5, rs.size / 50).coerceAtLeast(1)
+            val rl = DoubleArray(rk); val ra = DoubleArray(rk); val rb = DoubleArray(rk)
+            for (c in 0 until rk) { val i = rs[(c * rs.size) / rk]; rl[c] = L[i].toDouble(); ra[c] = A[i].toDouble(); rb[c] = B[i].toDouble() }
+            val rc = IntArray(rk)
+            repeat(12) {
+                val sl2 = DoubleArray(rk); val sa2 = DoubleArray(rk); val sb2 = DoubleArray(rk)
+                java.util.Arrays.fill(rc, 0)
+                for (i in rs) {
+                    var best = 0
+                    var bd = Double.MAX_VALUE
+                    for (c in 0 until rk) {
+                        val dl = L[i] - rl[c]; val da = A[i] - ra[c]; val db = B[i] - rb[c]
+                        val d = dl * dl + da * da + db * db
+                        if (d < bd) { bd = d; best = c }
+                    }
+                    sl2[best] += L[i]; sa2[best] += A[i]; sb2[best] += B[i]; rc[best]++
+                }
+                for (c in 0 until rk) if (rc[c] > 0) { rl[c] = sl2[c] / rc[c]; ra[c] = sa2[c] / rc[c]; rb[c] = sb2[c] / rc[c] }
+            }
+            for (c in 0 until rk) if (rc[c] > 0) groups.add(MutableCluster(rl[c], ra[c], rb[c], rc[c].toDouble() * rStep))
+        }
+    }
+
+    // ---- unir grupos casi iguales
     while (true) {
         var bi = -1
         var bj = -1
-        var bd = 8.0
+        var bd = 7.0
         for (i in groups.indices) for (j in i + 1 until groups.size) {
             val d = deltaE2000(Lab(groups[i].l, groups[i].a, groups[i].b), Lab(groups[j].l, groups[j].a, groups[j].b))
             if (d < bd) { bd = d; bi = i; bj = j }
@@ -302,7 +337,7 @@ fun analyzeImage(bmp: Bitmap, k: Int): ImagePalette {
         groups.removeAt(bj)
     }
     val totalW = groups.sumOf { it.w }
-    val kept = groups.filter { it.w / totalW >= 0.012 }.ifEmpty { groups }
+    val kept = groups.filter { it.w / totalW >= 0.003 }.sortedByDescending { it.w }.take(16).ifEmpty { groups }
 
     // ---- asignar cada píxel de la figura a su color final
     val labels = IntArray(n) { -1 }
@@ -388,7 +423,8 @@ private fun pickTone(base: Lab, candidates: List<Paint>, exclude: String?, darke
  * se parece, sugiere la más cercana del catálogo para comprar.
  */
 fun matchPalette(palette: ImagePalette, inventory: List<Paint>, catalog: List<Paint>): List<PaletteMatch> {
-    val inv = inventory.filter { it.hasColor && typeGroup(it.type) != "auxiliar" }
+    // Los metálicos no se sugieren para colores de la foto: un tono parecido en gris o café no es metal
+    val inv = inventory.filter { it.hasColor && typeGroup(it.type) != "auxiliar" && typeGroup(it.type) != "metal" }
     val ownedIds = inventory.map { it.id }.toHashSet()
     val buyable = catalog.filter { it.hasColor && it.type == "Opaca" && it.id !in ownedIds }
     return palette.clusters.map { c ->

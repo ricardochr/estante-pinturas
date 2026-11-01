@@ -66,6 +66,8 @@ import com.ricardochr.estantepinturas.ui.GuideIcon
 import com.ricardochr.estantepinturas.ui.GuideScreen
 import com.ricardochr.estantepinturas.ui.PaletteIcon
 import com.ricardochr.estantepinturas.ui.PaletteHub
+import com.ricardochr.estantepinturas.ui.ColorWheelScreen
+import androidx.compose.foundation.layout.Box
 import com.ricardochr.estantepinturas.ui.ScanIcon
 import com.ricardochr.estantepinturas.ui.ScanScreen
 import com.ricardochr.estantepinturas.ui.StorageRequest
@@ -102,6 +104,7 @@ private fun App(vm: MainViewModel = viewModel()) {
     var confirmClearCatalog by remember { mutableStateOf(false) }
     var storage by remember { mutableStateOf<StorageRequest?>(null) }
     var liveFind by remember { mutableStateOf<Paint?>(null) }
+    var wheelFor by remember { mutableStateOf<Paint?>(null) }
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     fun say(msg: String) {
@@ -262,6 +265,8 @@ private fun App(vm: MainViewModel = viewModel()) {
             similar = remember(p.id, vm.owned) { vm.similarOwned(p) },
             onOpenSimilar = { editing = it },
             locationName = vm.spotOf(p.id)?.name,
+            inventory = remember(vm.owned, vm.byId) { vm.owned.values.filter { it.qty > 0 }.mapNotNull { vm.byId[it.paintId] } },
+            onOpenWheel = { editing = null; wheelFor = p },
             onFixColor = { hx ->
                 vm.fixColor(p.id, hx)
                 editing = vm.byId[p.id]
@@ -335,6 +340,24 @@ private fun App(vm: MainViewModel = viewModel()) {
             onLiveFind = { liveFind = it },
             say = { say(it) },
         )
+    }
+
+    wheelFor?.let { p ->
+        Box(Modifier.fillMaxSize()) {
+            BackHandler { wheelFor = null }
+            Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                Column(Modifier.fillMaxSize().systemBarsPadding()) {
+                    TopAppBar(
+                        title = { Text("Círculo cromático") },
+                        navigationIcon = { IconButton(onClick = { wheelFor = null }) { Icon(Icons.Default.Close, contentDescription = "Cerrar") } },
+                        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
+                    )
+                    Box(Modifier.weight(1f)) {
+                        ColorWheelScreen(vm, onOpenPaint = { editing = it }, focus = p)
+                    }
+                }
+            }
+        }
     }
 
     liveFind?.let { p ->

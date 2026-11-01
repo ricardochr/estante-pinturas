@@ -30,7 +30,7 @@ private fun hueDeg(c: ColorCluster): Double {
 /** Nombre del color en español a partir de CIELAB. */
 fun colorName(c: ColorCluster): String {
     val ch = chroma(c)
-    if (ch < 10) return when {
+    if (ch < 6) return when {
         c.l > 88 -> "blanco"
         c.l > 65 -> "gris claro"
         c.l > 38 -> "gris"

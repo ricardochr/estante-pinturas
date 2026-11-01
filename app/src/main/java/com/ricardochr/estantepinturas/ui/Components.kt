@@ -290,6 +290,8 @@ fun EntrySheet(
     onShowLocation: () -> Unit = {},
     onPlaceLocation: () -> Unit = {},
     onFixColor: (String) -> Unit = {},
+    inventory: List<Paint> = emptyList(),
+    onOpenWheel: () -> Unit = {},
 ) {
     var fixingColor by remember { mutableStateOf(false) }
     val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -380,6 +382,7 @@ fun EntrySheet(
                     ) { Text("Eliminar") }
                 }
             }
+            if (paint.hasColor) TheorySection(paint, inventory, onOpenSimilar, onOpenWheel)
             DilutionSection(paint)
             if (entry != null && entry.qty > 0 && similar.isNotEmpty()) {
                 SimilarSection(paint, similar, onOpenSimilar, title = "Parecidas en tu estante")

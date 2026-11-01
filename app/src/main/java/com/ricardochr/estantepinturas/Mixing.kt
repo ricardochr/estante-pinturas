@@ -142,3 +142,6 @@ fun findMixes(target: Lab, inventory: List<Paint>, limit: Int = 3): List<MixReci
         }
         .take(limit)
 }
+
+/** Color resultante de mezclar dos pinturas en proporción [wa]:[wb] (Kubelka-Munk). */
+fun mixTwo(a: Paint, b: Paint, wa: Int, wb: Int): Int = mixArgb(listOf(ksOf(a), ksOf(b)), intArrayOf(wa, wb))

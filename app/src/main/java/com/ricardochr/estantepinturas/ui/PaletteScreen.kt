@@ -67,7 +67,7 @@ import com.ricardochr.estantepinturas.renderHighlight
 import com.ricardochr.estantepinturas.similarityLabel
 import kotlin.math.roundToInt
 
-private val DETAIL_OPTIONS = listOf(5 to "Pocos colores", 8 to "Normal", 12 to "Detallado")
+private val DETAIL_OPTIONS = listOf(6 to "Pocos colores", 10 to "Normal", 14 to "Detallado")
 
 /**
  * Sube una imagen (de preferencia con fondo liso) y la app sugiere qué pinturas de tu
@@ -76,7 +76,7 @@ private val DETAIL_OPTIONS = listOf(5 to "Pocos colores", 8 to "Normal", 12 to "
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit) {
-    var detail by rememberSaveable { mutableStateOf(vm.palette?.detail ?: 8) }
+    var detail by rememberSaveable { mutableStateOf(vm.palette?.detail ?: 10) }
     var showPreview by rememberSaveable { mutableStateOf(false) }
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) {

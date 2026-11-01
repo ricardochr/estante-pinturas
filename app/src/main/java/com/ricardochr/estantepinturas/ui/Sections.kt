@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
@@ -250,5 +252,130 @@ fun ColorFixDialog(initial: String, onDismiss: () -> Unit, onSave: (String) -> U
         },
         confirmButton = { androidx.compose.material3.TextButton(onClick = { onSave(hexOf(current())) }) { Text("Guardar") } },
         dismissButton = { androidx.compose.material3.TextButton(onClick = onDismiss) { Text("Cancelar") } },
+    )
+}
+
+/** Teoría del color de una pintura: cómo es, cómo sombrearla e iluminarla, y qué pasa al poner otra encima. */
+@Composable
+fun TheorySection(
+    paint: Paint,
+    inventory: List<Paint>,
+    onOpen: (Paint) -> Unit,
+    onOpenWheel: () -> Unit,
+) {
+    var expanded by rememberSaveable(paint.id) { mutableStateOf(false) }
+    var picking by remember { mutableStateOf(false) }
+    var top by remember(paint.id) { mutableStateOf<Paint?>(null) }
+    val prof = remember(paint.id, paint.hex) { com.ricardochr.estantepinturas.profileOf(paint) }
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        shape = MaterialTheme.shapes.small,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(Modifier.padding(12.dp).animateContentSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(Modifier.fillMaxWidth().clickable { expanded = !expanded }, verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text("Teoría del color", style = MaterialTheme.typography.titleSmall)
+                    Text(
+                        "${prof.hue.replaceFirstChar { it.uppercase() }} · ${prof.temperature} · ${prof.value} · ${prof.saturation}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Text(if (expanded) "▲" else "▼", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            if (expanded) {
+                androidx.compose.material3.OutlinedButton(onClick = onOpenWheel) { Text("Ver en el círculo cromático") }
+                Text("Si la usas de base", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                val advice = remember(paint.id, paint.hex, inventory) { com.ricardochr.estantepinturas.baseAdvice(paint, inventory) }
+                advice.forEach { a ->
+                    Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        val p = a.paint
+                        if (p != null) Swatch(p.hex, size = 26.dp, metallic = p.type == "Metálica")
+                        else Box(Modifier.size(26.dp))
+                        Column(Modifier.weight(1f).then(if (p != null) Modifier.clickable { onOpen(p) } else Modifier)) {
+                            Text(
+                                a.role + ": " + (p?.let { "${it.name} (${it.brand})" } ?: "no tienes una adecuada"),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                            Text(a.why, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                Text("¿Qué pasa si pongo otra encima?", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                val t = top
+                if (t == null) {
+                    androidx.compose.material3.TextButton(onClick = { picking = true }) { Text("Elegir la pintura de encima") }
+                } else {
+                    val res = remember(paint.id, paint.hex, t.id, t.hex) { com.ricardochr.estantepinturas.layerOver(paint, t) }
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        listOf(
+                            parseHex(paint.hex).toInt() to "Base",
+                            res.glazeArgb to "Veladura",
+                            res.layerArgb to "Capa fina",
+                            parseHex(t.hex).toInt() to "Encima",
+                        ).forEach { (c, label) ->
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                ColorSquare(c, 40.dp)
+                                Text(label, style = MaterialTheme.typography.labelSmall)
+                            }
+                        }
+                    }
+                    Text("Encima: ${t.name} (${t.brand})", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
+                    res.explanation.forEach { e ->
+                        Text("• $e", style = MaterialTheme.typography.bodySmall)
+                    }
+                    androidx.compose.material3.TextButton(onClick = { picking = true }) { Text("Probar con otra") }
+                }
+            }
+        }
+    }
+    if (picking) {
+        InventoryPickDialog(
+            inventory = inventory.filter { it.id != paint.id && it.hasColor },
+            onDismiss = { picking = false },
+            onPick = { top = it; picking = false },
+        )
+    }
+}
+
+/** Diálogo pequeño para elegir una pintura del inventario. */
+@Composable
+fun InventoryPickDialog(inventory: List<Paint>, onDismiss: () -> Unit, onPick: (Paint) -> Unit) {
+    var q by remember { mutableStateOf("") }
+    val words = com.ricardochr.estantepinturas.queryWords(q)
+    val shown = remember(q, inventory) {
+        (if (words.isEmpty()) inventory else inventory.filter { com.ricardochr.estantepinturas.matchesWords(it.searchText, words) })
+            .sortedWith(compareBy({ it.brand }, { it.name }))
+    }
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Elige de tu inventario") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                SearchField(q, { q = it }, "Buscar…")
+                androidx.compose.foundation.lazy.LazyColumn(Modifier.heightIn(max = 360.dp)) {
+                    items(shown.size) { i ->
+                        val p = shown[i]
+                        Row(
+                            Modifier.fillMaxWidth().clickable { onPick(p) }.padding(vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Swatch(p.hex, size = 24.dp, metallic = p.type == "Metálica")
+                            Column {
+                                Text(p.name, style = MaterialTheme.typography.bodyMedium)
+                                Text(p.brand, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = { androidx.compose.material3.TextButton(onClick = onDismiss) { Text("Cerrar") } },
     )
 }

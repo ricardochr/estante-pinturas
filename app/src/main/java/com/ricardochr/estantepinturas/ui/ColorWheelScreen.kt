@@ -80,14 +80,15 @@ fun PaletteHub(vm: MainViewModel, onOpenPaint: (Paint) -> Unit) {
  * tríada, etc., y qué pinturas tuyas caen en esos puntos.
  */
 @Composable
-fun ColorWheelScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit) {
-    val placed: List<Pair<Paint, WheelPos>> = remember(vm.owned, vm.byId) {
-        vm.owned.values.filter { it.qty > 0 }
+fun ColorWheelScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, focus: Paint? = null) {
+    val placed: List<Pair<Paint, WheelPos>> = remember(vm.owned, vm.byId, focus) {
+        val own = vm.owned.values.filter { it.qty > 0 }
             .mapNotNull { vm.byId[it.paintId] }
             .filter { it.hasColor && typeGroup(it.type) != "auxiliar" && it.type != "Imprimación" }
-            .map { it to wheelPosOf(it) }
+        // La pintura elegida aparece aunque no la tengas
+        (if (focus != null && focus.hasColor && own.none { it.id == focus.id }) own + focus else own).map { it to wheelPosOf(it) }
     }
-    var selectedId by rememberSaveable { mutableStateOf<String?>(null) }
+    var selectedId by rememberSaveable { mutableStateOf(focus?.id) }
     var harmony by rememberSaveable { mutableStateOf(Harmony.COMPLEMENTARY) }
     val selected = placed.firstOrNull { it.first.id == selectedId }
 
