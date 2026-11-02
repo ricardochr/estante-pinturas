@@ -81,6 +81,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             withContext(Dispatchers.Default) { (ext + cat).forEach { it.searchText; it.lab } }
             rebuildIndexes()
             migrateOrphans()
+            adoptCatalogMatches()
             loading = false
         }
     }
@@ -128,6 +129,67 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }
         persist()
     }
+
+    /**
+     * Si registraste a mano una pintura que después llegó al catálogo (por ejemplo los lavados de AK
+     * o los metálicos de Kaleido), se pasa a la del catálogo: botes, notas, códigos de barras,
+     * lista de compras, ubicación y proyectos. Si le habías puesto color, se conserva como corrección.
+     */
+    private fun adoptCatalogMatches() {
+        if (custom.isEmpty()) return
+        val pool = extra + catalog
+        val byCode = pool.filter { codeKey(it.code).length >= 3 }.groupBy { brandKey(it.brand) + "|" + codeKey(it.code) }
+        fun loose(n: String) = nameKey(n).removeSuffix("wash").removeSuffix("lavado").removeSuffix("ink").removeSuffix("tinta")
+        val byName = pool.groupBy { brandKey(it.brand) + "|" + loose(it.name) }
+        val remap = HashMap<String, Paint>()
+        for (c in custom) {
+            val bk = brandKey(c.brand)
+            val ck = codeKey(c.code)
+            val hit = (if (ck.length >= 3) byCode["$bk|$ck"]?.firstOrNull() else null)
+                ?: byName["$bk|${loose(c.name)}"]?.takeIf { it.size == 1 }?.first()
+            if (hit != null) remap[c.id] = hit
+        }
+        if (remap.isEmpty()) return
+        val newOwned = LinkedHashMap<String, OwnedEntry>()
+        owned.values.forEach { e ->
+            val id = remap[e.paintId]?.id ?: e.paintId
+            val prev = newOwned[id]
+            newOwned[id] = if (prev == null) e.copy(paintId = id)
+            else prev.copy(qty = prev.qty + e.qty, low = prev.low || e.low,
+                notes = listOf(prev.notes, e.notes).filter { it.isNotBlank() }.distinct().joinToString(" · "))
+        }
+        owned = newOwned
+        barcodes = barcodes.mapValues { (_, v) -> remap[v]?.id ?: v }
+        shopping = shopping.map { s -> remap[s.paintId]?.let { s.copy(paintId = it.id) } ?: s }.distinctBy { it.paintId }
+        locations = locations.entries.associate { (k, v) ->
+            val id = remap[k]?.id ?: k
+            id to v.copy(paintId = id)
+        }
+        // Color elegido a mano: se respeta si el del catálogo es solo aproximado
+        val fixes = HashMap(colorFixes)
+        for ((cid, target) in remap) {
+            val c = custom.firstOrNull { it.id == cid } ?: continue
+            if (c.hasColor && !c.hex.equals("#888888", true) && target.quality != "" && !fixes.containsKey(target.id)) fixes[target.id] = c.hex
+        }
+        if (fixes != colorFixes) {
+            colorFixes = fixes
+            catalog = catalog.map { p -> fixes[p.id]?.let { p.copy(hex = it, quality = "u") } ?: p }
+            extra = extra.map { p -> fixes[p.id]?.let { p.copy(hex = it, quality = "u") } ?: p }
+        }
+        custom = custom.filterNot { remap.containsKey(it.id) }
+        if (projects.isNotEmpty()) {
+            projects = projects.map { pr ->
+                pr.copy(paints = pr.paints.map { pp -> remap[pp.paintId]?.let { pp.copy(paintId = it.id) } ?: pp }.distinctBy { it.paintId })
+            }
+            saveProjects()
+        }
+        rebuildIndexes()
+        persist()
+        adoptedCount = remap.size
+    }
+
+    /** Cuántas pinturas tuyas se pasaron al catálogo en este arranque (para avisarte). */
+    var adoptedCount by mutableStateOf(0)
 
     private fun rebuildIndexes() {
         val all = custom + extra + catalog

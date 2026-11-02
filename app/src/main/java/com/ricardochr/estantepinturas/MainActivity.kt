@@ -139,6 +139,10 @@ private fun App(vm: MainViewModel = viewModel()) {
     }
     val csvTypes = arrayOf("text/*", "application/csv", "application/vnd.ms-excel", "application/octet-stream")
 
+    androidx.compose.runtime.LaunchedEffect(vm.adoptedCount) {
+        if (vm.adoptedCount > 0) say("${vm.adoptedCount} pinturas que agregaste a mano ya están en el catálogo y se unieron a él")
+    }
+
     BackHandler(enabled = tab != Tab.Inventario || invMode != 0) { tab = Tab.Inventario; invMode = 0 }
 
     Scaffold(

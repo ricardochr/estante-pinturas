@@ -125,6 +125,23 @@ def fetch_wc(base, category=None):
     return items
 
 
+def fetch_wc_search(base, terms):
+    """Productos de una tienda WooCommerce por búsqueda (sin repetir)."""
+    out, ids = [], set()
+    for q in terms:
+        for p in range(1, 40):
+            b = get(f"{base}/wp-json/wc/store/v1/products?per_page=100&page={p}&search={q}")
+            if not b: break
+            prods = json.loads(b)
+            if not prods: break
+            for x in prods:
+                if x["id"] not in ids:
+                    ids.add(x["id"]); out.append(x)
+            time.sleep(0.7)
+    print(f"  {base} búsqueda {terms}: {len(out)} productos")
+    return out
+
+
 def load_sources(args):
     if args.fetch:
         print("Descargando tiendas…")
@@ -135,7 +152,8 @@ def load_sources(args):
             "gaahleri": fetch_shopify("www.gaahleri.com"),
             "vallejo": fetch_wc("https://acrylicosvallejo.com/en"),
             "ak": fetch_wc("https://ak-interactive.com", 1538) + fetch_wc("https://ak-interactive.com", 1410)
-                  + fetch_wc("https://ak-interactive.com", 151796),
+                  + fetch_wc("https://ak-interactive.com", 151796)
+                  + fetch_wc_search("https://ak-interactive.com", ["acrylic wash", "wash", "ink"]),
         }
         ds = []
         for h in ["dspiae-50ml-pre-mixed-acrylic-paint", "dspiae-50ml-pre-mixed-metallic-acrylic-paints"]:
@@ -303,28 +321,50 @@ def parse_ak(prods):
     out, seen = [], set()
     for p in prods:
         sku = (p.get("sku") or "").strip().upper()
-        if not re.match(r"^AK1[17]\d{3}$", sku) or sku in seen or sku.startswith("AK175"):
+        if sku in seen:
             continue
         cats = [html.unescape(c["name"]) for c in p.get("categories", [])]
-        # Cada producto existe en español e inglés; se usa la ficha en inglés
-        if not any(c in ("AK product", "a.k. Campaings", "3GEN ACRYLICS", "Acrylics paints for modeling") for c in cats):
-            continue
+        cat_set = {c.upper() for c in cats}
         raw = html.unescape(p["name"]).strip()
-        # Sets y colecciones (no son una pintura)
-        if re.search(r"\bSET\b|GUIDE|\[PDF\]|\(|COLORS\b|TONES\b|SELECTION|\bVOL\b|MODELS\b|CREATURES|\d+\s?ML\b", raw, re.I):
+        # Cada producto existe en español e inglés; se usa la ficha en inglés
+        if not any(c in ("AK product", "a.k. Campaings", "3GEN ACRYLICS", "Acrylics paints for modeling", "ACRYLIC WASHES") for c in cats):
+            continue
+        # Sets, guías, marcadores y colecciones (no son una pintura)
+        if re.search(r"\bSET\b|GUIDE|\[PDF\]|\(\d+ COLORS\)|\bBOX\b|MARKER|COLORS\b|TONES\b|SELECTION|\bVOL\b|MODELS\b|CREATURES", raw, re.I):
+            continue
+        parts = [x.strip() for x in re.split(r"\s+[–-]\s+", raw)]
+        img = [im.get("thumbnail") or im.get("src") for im in (p.get("images") or [])[:4]]
+        if re.match(r"^AK193\d{2}$", sku):
+            # Lavados acrílicos 3ª generación
+            name = titlecase(re.sub(r"\s*[–-]\s*ACRYLIC WASH$", "", raw, flags=re.I))
+            line, t = "Acrylic Wash", "Wash"
+        elif re.match(r"^AK160[0-5]\d$", sku) and re.search(r"\bINK\b", raw, re.I):
+            # The Inks
+            name = titlecase(re.sub(r"\s*[–-]\s*INK$", "", raw, flags=re.I))
+            line, t = "The Inks", "Tinta"
+        elif re.match(r"^AK\d{3,5}$", sku) and ("AK INTERACTIVE WASHES" in cat_set or "WASHES" in cat_set) \
+                and re.search(r"WASH", raw, re.I) and not re.match(r"^AK1[17]\d{3}$", sku):
+            # Lavados de esmalte (modelismo y wargame)
+            name = titlecase(re.sub(r"\s*\d+\s?ML$", "", re.sub(r"\s*[–-]\s*WARGAME SERIES$", "", raw, flags=re.I), flags=re.I))
+            line, t = "Enamel Wash", "Wash"
+        elif re.match(r"^AK1[17]\d{3}$", sku) and not sku.startswith("AK175"):
+            if not any(c in ("AK product", "a.k. Campaings", "3GEN ACRYLICS", "Acrylics paints for modeling") for c in cats):
+                continue
+            if re.search(r"\(|\d+\s?ML\b", raw, re.I):
+                continue
+            name = titlecase(parts[0])
+            suffix = parts[1].upper() if len(parts) > 1 else ""
+            if sku.startswith("AK17"):
+                line = "Quick Gen"
+            else:
+                line = "3rd Gen" + (" " + titlecase(suffix.replace("COLOR", "").replace("3RD GEN", "").replace("3GEN", "").strip()) if suffix else "")
+                line = line.strip()
+            t = guess_type(name, line)
+            if re.search(r"washable", name, re.I): t = "Opaca"
+            if sku.startswith("AK17") and t == "Opaca": t = "Contraste"
+        else:
             continue
         seen.add(sku)
-        parts = [x.strip() for x in re.split(r"\s+[–-]\s+", raw)]
-        name = titlecase(parts[0])
-        suffix = parts[1].upper() if len(parts) > 1 else ""
-        if sku.startswith("AK17"):
-            line = "Quick Gen"
-        else:
-            line = "3rd Gen" + (" " + titlecase(suffix.replace("COLOR", "").replace("3RD GEN", "").replace("3GEN", "").strip()) if suffix else "")
-            line = line.strip()
-        t = guess_type(name, line)
-        if sku.startswith("AK17") and t == "Opaca": t = "Contraste"
-        img = [im.get("thumbnail") or im.get("src") for im in (p.get("images") or [])[:4]]
         out.append(dict(brand="AK Interactive", line=line, name=name, code=sku, type=t, img=img))
     return out
 
@@ -332,7 +372,7 @@ def parse_ak(prods):
 def parse_kaleido(prods):
     out, seen = [], set()
     for p in prods:
-        m = re.match(r"^(K\d{3})\s+(.+)$", p["title"].strip())
+        m = re.match(r"^(K[CM]?\d{3})\s+(.+)$", p["title"].strip())
         if not m:
             continue
         code = m.group(1)
@@ -343,7 +383,15 @@ def parse_kaleido(prods):
         name = re.sub(r"\s*20\s?ml\b.*$", "", name, flags=re.I).strip()
         tags = [t.lower() for t in p.get("tags", [])]
         line = "Mecha Colors" if "mecha colors" in tags else "Auto Colors" if "auto colors" in tags else "Primary Colors" if "primary colors" in tags else "Kaleido"
-        out.append(dict(brand="Kaleido Colorworks", line=line, name=name, code=code, type=guess_type(name, line), img=shopify_img(p)))
+        t = guess_type(name, line)
+        if code.startswith("KM"):
+            line, t = "Metal Colors", "Metálica"
+        elif code.startswith("KC"):
+            line, t = "Translucent Colors", "Tinta"
+        elif re.match(r"^K3\d{2}$", code):
+            # Auto Colors serie 300: metalizados y perlados
+            line, t = "Auto Colors", "Metálica"
+        out.append(dict(brand="Kaleido Colorworks", line=line, name=name, code=code, type=t, img=shopify_img(p)))
     return out
 
 
