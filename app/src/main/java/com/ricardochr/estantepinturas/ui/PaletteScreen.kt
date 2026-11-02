@@ -62,7 +62,8 @@ import com.ricardochr.estantepinturas.Paint
 import com.ricardochr.estantepinturas.Lab
 import com.ricardochr.estantepinturas.MixRecipe
 import com.ricardochr.estantepinturas.PaletteMatch
-import com.ricardochr.estantepinturas.paintingSteps
+import com.ricardochr.estantepinturas.familySteps
+import com.ricardochr.estantepinturas.PaletteFamily
 import com.ricardochr.estantepinturas.ToneMix
 import com.ricardochr.estantepinturas.Project
 import com.ricardochr.estantepinturas.ZoneAdvice
@@ -136,10 +137,10 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, onProjectCrea
 
     val sourceImg = remember(view.source) { view.source.asImageBitmap() }
     val previewImg = remember(view.preview) { view.preview.asImageBitmap() }
-    var selected by remember(view) { mutableStateOf<Int?>(null) }
+    var selected by remember(view) { mutableStateOf<Highlight?>(null) }
     val sel = selected
     val highlightImg = remember(view, sel) {
-        if (sel == null) null else renderHighlight(view.palette, view.source, sel).asImageBitmap()
+        if (sel == null) null else renderHighlight(view.palette, view.source, sel.ids).asImageBitmap()
     }
     var zoom by remember(view) { mutableStateOf(1f) }
     var pan by remember(view) { mutableStateOf(Offset.Zero) }
@@ -205,10 +206,9 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, onProjectCrea
                     }
                 }
                 if (sel != null) {
-                    val m = view.matches.getOrNull(sel)
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
-                            "Color ${sel + 1}: " + (m?.best?.paint?.name ?: "sin pintura") + " — resaltado en la imagen",
+                            sel.label,
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.weight(1f),
@@ -261,7 +261,7 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, onProjectCrea
                     )
                 }
                 Text(
-                    "Toca un color de la lista para ver en la imagen dónde va.",
+                    "Cada tarjeta es una zona de la figura (piel, chaqueta, pelo…) con su base, sombra y luz. Toca la zona o uno de sus colores para verlo en la imagen.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -272,16 +272,20 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, onProjectCrea
                 PlanCard(view.advice.plan, showPlan) { showPlan = !showPlan }
             }
         }
-        itemsIndexed(view.matches) { i, m ->
-            MatchCard(
-                index = i,
-                m = m,
-                advice = view.advice.zones.getOrNull(i),
-                selected = sel == i,
-                onSelect = { selected = if (sel == i) null else i },
+        val families = view.advice.families.ifEmpty {
+            view.matches.indices.map { PaletteFamily("color", listOf(it), it, mapOf(it to "Base")) }
+        }
+        itemsIndexed(families) { zi, f ->
+            ZoneCard(
+                number = zi + 1,
+                f = f,
+                matches = view.matches,
+                zones = view.advice.zones,
+                fraction = f.members.sumOf { view.matches.getOrNull(it)?.cluster?.fraction ?: 0.0 },
+                selected = sel,
+                onSelect = { h -> selected = if (sel == h) null else h },
                 onOpen = onOpenPaint,
                 mixFor = { lab -> vm.mixesFor(lab) },
-                inShopping = m.toBuy?.let { b -> vm.shopping.any { it.paintId == b.id } } ?: false,
                 onAddShopping = { b -> vm.addToShopping(b.id, "Para la paleta de una imagen") },
                 isInShopping = { b -> vm.shopping.any { it.paintId == b.id } },
             )
@@ -345,182 +349,222 @@ private fun PlanCard(plan: List<String>, expanded: Boolean, onToggle: () -> Unit
     }
 }
 
+/** Lo que está resaltado en la imagen: uno o varios colores y el texto que lo describe. */
+data class Highlight(val ids: Set<Int>, val label: String)
+
+private val ROLE_ORDER = listOf("Base", "Sombra", "Sombra profunda", "Luz", "Punto de luz")
+
+/**
+ * Una zona de la figura: su color base, sus sombras y luces (los colores de la imagen que son esa
+ * misma zona con otra iluminación) y el paso a paso para pintarla.
+ */
 @Composable
-private fun MatchCard(
-    index: Int,
-    m: PaletteMatch,
-    advice: ZoneAdvice?,
-    selected: Boolean,
-    onSelect: () -> Unit,
+private fun ZoneCard(
+    number: Int,
+    f: PaletteFamily,
+    matches: List<PaletteMatch>,
+    zones: List<ZoneAdvice>,
+    fraction: Double,
+    selected: Highlight?,
+    onSelect: (Highlight) -> Unit,
     onOpen: (Paint) -> Unit,
     mixFor: suspend (Lab) -> List<MixRecipe>,
-    inShopping: Boolean = false,
-    onAddShopping: (Paint) -> Unit = {},
-    isInShopping: (Paint) -> Boolean = { false },
+    onAddShopping: (Paint) -> Unit,
+    isInShopping: (Paint) -> Boolean,
 ) {
-    var showTips by remember { mutableStateOf(false) }
+    val mb = matches.getOrNull(f.base) ?: return
+    val baseAdvice = zones.getOrNull(f.base)
+    var showSteps by remember { mutableStateOf(false) }
     var showMix by remember { mutableStateOf(false) }
-    val mixes by produceState<List<MixRecipe>?>(null, showMix, m) {
-        value = if (showMix) mixFor(m.cluster.lab) else null
+    val mixes by produceState<List<MixRecipe>?>(null, showMix, mb) {
+        value = if (showMix) mixFor(mb.cluster.lab) else null
     }
+    val zoneHighlight = Highlight(f.members.toSet(), "Zona $number · ${f.name}: resaltada en la imagen")
+    val zoneSelected = selected?.ids == zoneHighlight.ids
+    val members = f.members.sortedBy { ROLE_ORDER.indexOf(f.roles[it] ?: "Base").let { r -> if (r < 0) 0 else r } }
+    val steps = remember(f, matches) { familySteps(f, matches, zones) }
+    val title = when {
+        f.members.size == 1 && baseAdvice?.role == "Detalle" -> "Detalle · ${f.name}"
+        else -> f.name.replaceFirstChar { it.uppercase() }
+    }
+
     Surface(
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
         contentColor = MaterialTheme.colorScheme.onSurface,
         shape = RoundedCornerShape(14.dp),
-        border = if (selected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
+        border = if (selected != null && selected.ids.any { it in f.members }) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 6.dp)
-            .clickable(onClick = onSelect),
+            .padding(horizontal = 16.dp, vertical = 6.dp),
     ) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .clickable { onSelect(zoneHighlight) },
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        "Zona $number · $title",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    Text(
+                        "${(fraction * 100).roundToInt().coerceAtLeast(1)}% de la figura · " +
+                            if (f.members.size == 1) "un solo tono" else "${f.members.size} tonos: base, sombras y luces",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
                 Text(
-                    "Color ${index + 1}" + (advice?.let { " · ${it.role}" + if (it.group.isNotBlank()) " · ${it.group}" else "" } ?: ""),
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.weight(1f),
-                )
-                Text(
-                    if (selected) "Resaltado" else "Ver dónde va",
+                    if (zoneSelected) "Resaltada" else "Ver zona",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    ColorChip(m.cluster.argb, 44.dp)
-                    Text(
-                        "${(m.cluster.fraction * 100).roundToInt().coerceAtLeast(1)}%",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontFamily = FontFamily.Monospace,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                val best = m.best
-                if (best == null) {
-                    Text(
-                        "Nada parecido en tu inventario",
-                        modifier = Modifier.weight(1f),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                } else {
-                    Column(
-                        Modifier
-                            .weight(1f)
-                            .clickable { onOpen(best.paint) },
-                    ) {
-                        Text(
-                            best.paint.name,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        Text(
-                            listOf(best.paint.brand, best.paint.code.ifBlank { best.paint.line }).filter { it.isNotBlank() }.joinToString(" · "),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        Text(
-                            similarityLabel(best.distance),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                        )
-                    }
-                    Swatch(best.paint.hex, size = 44.dp, metallic = best.paint.type == "Metálica")
-                }
-            }
-            if (m.alternatives.isNotEmpty()) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text("También:", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    m.alternatives.forEach { alt -> MiniPaint(alt.paint, onOpen, Modifier.weight(1f)) }
-                }
-            }
-            if (m.best != null) {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    ToneChip("Sombra", m.shadow, m.shadowMix, m.shadowBuy, onOpen, onAddShopping, isInShopping)
-                    ToneChip("Luz", m.highlight, m.highlightMix, m.highlightBuy, onOpen, onAddShopping, isInShopping)
-                }
-            }
-            if (advice != null) {
+
+            // Un renglón por cada tono de la zona
+            members.forEach { i ->
+                val m = matches.getOrNull(i) ?: return@forEach
+                val role = if (f.members.size == 1) "Base" else (f.roles[i] ?: "Base")
+                val h = Highlight(setOf(i), "Zona $number · $role: " + (m.best?.paint?.name ?: "sin pintura") + " — resaltado")
+                val rowSelected = selected?.ids == h.ids
                 Surface(
-                    color = MaterialTheme.colorScheme.surface,
+                    color = if (rowSelected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
                     contentColor = MaterialTheme.colorScheme.onSurface,
                     shape = RoundedCornerShape(10.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { showTips = !showTips },
+                        .clickable { onSelect(h) },
                 ) {
-                    Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("Paso a paso", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                            Text(if (showTips) "▲" else "▼", style = MaterialTheme.typography.labelLarge)
+                    Row(
+                        Modifier.padding(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            ColorChip(m.cluster.argb, 34.dp)
+                            Text(
+                                "${(m.cluster.fraction * 100).roundToInt().coerceAtLeast(1)}%",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontFamily = FontFamily.Monospace,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                         }
-                        val steps = remember(m, advice) { paintingSteps(m, advice) }
-                        (if (showTips) steps else steps.take(1)).forEachIndexed { i, step ->
+                        Column(Modifier.weight(1f)) {
+                            Text(role.uppercase(), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.tertiary)
+                            val best = m.best
+                            if (best == null) {
+                                Text("Nada parecido en tu inventario", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            } else {
+                                Text(
+                                    best.paint.name,
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.clickable { onOpen(best.paint) },
+                                )
+                                Text(
+                                    listOf(best.paint.brand, best.paint.code.ifBlank { best.paint.line }).filter { it.isNotBlank() }.joinToString(" · ") +
+                                        " · " + similarityLabel(best.distance).lowercase(),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                            val buy = m.toBuy
+                            if (buy != null) {
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    Swatch(buy.hex, size = 16.dp, metallic = false)
+                                    Text(
+                                        "Mejor: ${buy.name} · ${buy.brand}",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        modifier = Modifier.weight(1f).clickable { onOpen(buy) },
+                                    )
+                                    if (isInShopping(buy)) Text("✓ lista", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                    else Text(
+                                        "+ Lista",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontWeight = FontWeight.Bold,
+                                        modifier = Modifier.clickable { onAddShopping(buy) }.padding(4.dp),
+                                    )
+                                }
+                            }
+                        }
+                        m.best?.let { Swatch(it.paint.hex, size = 34.dp, metallic = it.paint.type == "Metálica") }
+                    }
+                }
+            }
+
+            // Si la imagen no trae sombra o luz para esta zona, se sugiere cómo lograrla desde la base
+            if (mb.best != null && f.shadows.isEmpty()) {
+                ToneChip("Sombra", mb.shadow, mb.shadowMix, mb.shadowBuy, onOpen, onAddShopping, isInShopping)
+            }
+            if (mb.best != null && f.lights.isEmpty()) {
+                ToneChip("Luz", mb.highlight, mb.highlightMix, mb.highlightBuy, onOpen, onAddShopping, isInShopping)
+            }
+            if (mb.alternatives.isNotEmpty()) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text("Otra base:", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    mb.alternatives.forEach { alt -> MiniPaint(alt.paint, onOpen, Modifier.weight(1f)) }
+                }
+            }
+
+            // Paso a paso
+            Surface(
+                color = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.onSurface,
+                shape = RoundedCornerShape(10.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showSteps = !showSteps },
+            ) {
+                Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Paso a paso", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                        Text(if (showSteps) "▲" else "▼", style = MaterialTheme.typography.labelLarge)
+                    }
+                    if (showSteps) {
+                        steps.forEachIndexed { k, step ->
                             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Text("${i + 1}.", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+                                Text("${k + 1}.", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
                                 Text(step, style = MaterialTheme.typography.bodySmall)
                             }
                         }
-                        if (!showTips && steps.size > 1) {
-                            Text("Toca para ver los ${steps.size} pasos y consejos", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
-                        }
-                        if (showTips && advice.tips.isNotEmpty()) {
+                        val tips = baseAdvice?.tips.orEmpty()
+                        if (tips.isNotEmpty()) {
                             Text("Consejos", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
-                            advice.tips.forEach { t ->
+                            tips.forEach { t ->
                                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                     Text("•", style = MaterialTheme.typography.bodySmall)
                                     Text(t, style = MaterialTheme.typography.bodySmall)
                                 }
                             }
                         }
-                    }
-                }
-            }
-            // Mezcla: útil cuando nada del inventario se parece lo suficiente
-            if (m.best == null || m.best.distance > 6) {
-                if (!showMix) {
-                    TextButton(onClick = { showMix = true }) { Text("Cómo lograrlo mezclando lo que tienes") }
-                } else {
-                    MixSection(m.cluster.argb, mixes, onOpen, title = "Mezcla para este color")
-                }
-            }
-            val buy = m.toBuy
-            if (buy != null) {
-                Surface(
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    shape = RoundedCornerShape(10.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onOpen(buy) },
-                ) {
-                    Row(
-                        Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        Swatch(buy.hex, size = 24.dp, metallic = false)
+                    } else {
                         Text(
-                            "Para comprar: ${buy.name} · ${buy.brand}" + if (buy.code.isNotBlank()) " ${buy.code}" else "",
-                            style = MaterialTheme.typography.bodySmall,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f),
+                            "Toca para ver ${steps.size} pasos: qué pintura va en cada parte, cuánto diluir y dónde aplicarla.",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
                         )
-                        Text(similarityLabel(m.toBuyDistance), style = MaterialTheme.typography.labelSmall)
-                        if (inShopping) {
-                            Text("✓ En tu lista", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
-                        } else {
-                            TextButton(onClick = { onAddShopping(buy) }) { Text("+ Lista") }
-                        }
                     }
+                }
+            }
+
+            // Mezcla: útil cuando nada del inventario se parece lo suficiente a la base
+            if (mb.best == null || mb.best.distance > 6) {
+                if (!showMix) {
+                    TextButton(onClick = { showMix = true }) { Text("Cómo lograr la base mezclando lo que tienes") }
+                } else {
+                    MixSection(mb.cluster.argb, mixes, onOpen, title = "Mezcla para la base")
                 }
             }
         }

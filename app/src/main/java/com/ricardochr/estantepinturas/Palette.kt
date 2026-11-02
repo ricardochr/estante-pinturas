@@ -551,7 +551,7 @@ fun markerFor(c: ColorCluster): Int {
  * (figura y fondo) queda en gris muy claro y desvaído, con un contorno fino gris oscuro alrededor
  * de la zona para que se encuentren también las partes pequeñas.
  */
-fun renderHighlight(palette: ImagePalette, source: Bitmap, selected: Int): Bitmap {
+fun renderHighlight(palette: ImagePalette, source: Bitmap, selected: Set<Int>): Bitmap {
     val w = palette.width
     val h = palette.height
     val n = w * h
@@ -560,17 +560,19 @@ fun renderHighlight(palette: ImagePalette, source: Bitmap, selected: Int): Bitma
     scaled.getPixels(src, 0, w, 0, 0, w, h)
     if (scaled !== source) scaled.recycle()
     val lbl = palette.labels
+    val mask = BooleanArray(palette.clusters.size + 1) { it in selected }
+    fun sel(l: Int) = l >= 0 && l < mask.size && mask[l]
     val out = IntArray(n)
     for (i in 0 until n) {
-        if (lbl[i] == selected) {
+        if (sel(lbl[i])) {
             out[i] = src[i] or (0xFF shl 24)
             continue
         }
         // Contorno de 1 px junto a la zona elegida
         val x = i % w
         val y = i / w
-        val edge = (x > 0 && lbl[i - 1] == selected) || (x < w - 1 && lbl[i + 1] == selected) ||
-            (y > 0 && lbl[i - w] == selected) || (y < h - 1 && lbl[i + w] == selected)
+        val edge = (x > 0 && sel(lbl[i - 1])) || (x < w - 1 && sel(lbl[i + 1])) ||
+            (y > 0 && sel(lbl[i - w])) || (y < h - 1 && sel(lbl[i + w]))
         out[i] = if (edge) {
             0xFF505050.toInt()
         } else {

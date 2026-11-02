@@ -18,7 +18,17 @@ data class ZoneAdvice(
     val tips: List<String>,
 )
 
-data class PaletteAdvice(val plan: List<String>, val zones: List<ZoneAdvice>)
+/**
+ * Una zona de la figura (piel, chaqueta roja, pelo…): varios colores de la imagen que son la misma
+ * pintura iluminada distinto. [base] es el tono principal; [roles] dice qué es cada color
+ * ("Sombra profunda", "Sombra", "Base", "Luz", "Punto de luz").
+ */
+data class PaletteFamily(val name: String, val members: List<Int>, val base: Int, val roles: Map<Int, String>) {
+    val shadows: List<Int> get() = members.filter { roles[it]?.startsWith("Sombra") == true }
+    val lights: List<Int> get() = members.filter { roles[it] == "Luz" || roles[it] == "Punto de luz" }
+}
+
+data class PaletteAdvice(val plan: List<String>, val zones: List<ZoneAdvice>, val families: List<PaletteFamily> = emptyList())
 
 private fun chroma(c: ColorCluster) = sqrt(c.a * c.a + c.b * c.b)
 
@@ -62,7 +72,8 @@ private fun sameFamily(a: ColorCluster, b: ColorCluster): Boolean {
     val cb = chroma(b)
     if (ca < 12 && cb < 12) return true                     // neutros: escala de grises
     if (ca < 12 || cb < 12) return false
-    return hueDiff(a, b) < 28
+    // Misma familia: tono parecido y saturación comparable (una piel no es la chaqueta roja de al lado)
+    return hueDiff(a, b) < 24 && maxOf(ca, cb) / minOf(ca, cb) < 1.75
 }
 
 fun buildAdvice(palette: ImagePalette, matches: List<PaletteMatch>, inventory: List<Paint>): PaletteAdvice {
@@ -72,33 +83,62 @@ fun buildAdvice(palette: ImagePalette, matches: List<PaletteMatch>, inventory: L
     if (n == 0 || zones.size != n) return PaletteAdvice(emptyList(), emptyList())
 
     // Familias: colores del mismo tono que se tocan en la figura = escala de luz y sombra
+    // Zonas: colores del mismo tono que se tocan en la figura = la misma pintura con luz y sombra.
+    // Se unen primero los pares más parecidos, y un color solo entra a una zona si es compatible con
+    // TODOS sus miembros (así la sombra de la piel no arrastra a la chaqueta roja a la misma zona).
     val family = IntArray(n) { it }
     fun find(i: Int): Int { var x = i; while (family[x] != x) x = family[x]; return x }
+    val candidates = ArrayList<Triple<Int, Int, Double>>()
     for (i in 0 until n) for (j in i + 1 until n) {
         val touch = zones[i].adjacency[j]
         val minSize = minOf(cs[i].fraction, cs[j].fraction) * palette.width * palette.height
-        if (sameFamily(cs[i], cs[j]) && touch > 0.02 * minSize && abs(cs[i].l - cs[j].l) > 6) {
-            family[find(i)] = find(j)
+        if (sameFamily(cs[i], cs[j]) && touch > 0.02 * minSize && abs(cs[i].l - cs[j].l) > 4) {
+            val ca = chroma(cs[i]).coerceAtLeast(1.0)
+            val cb = chroma(cs[j]).coerceAtLeast(1.0)
+            val score = hueDiff(cs[i], cs[j]) + 10 * kotlin.math.ln(maxOf(ca, cb) / minOf(ca, cb))
+            candidates.add(Triple(i, j, score))
         }
+    }
+    for ((i, j, _) in candidates.sortedBy { it.third }) {
+        val ri = find(i)
+        val rj = find(j)
+        if (ri == rj) continue
+        val gi = (0 until n).filter { find(it) == ri }
+        val gj = (0 until n).filter { find(it) == rj }
+        if (gi.all { x -> gj.all { y -> sameFamily(cs[x], cs[y]) } }) family[ri] = rj
     }
     val groups = (0 until n).groupBy { find(it) }.values.map { g -> g.sortedBy { cs[it].l } }
 
     val contrastPaints = inventory.filter { it.hasColor && (it.type == "Contraste" || it.type == "Wash" || it.type == "Tinta") }
 
     val advice = arrayOfNulls<ZoneAdvice>(n)
+    val families = ArrayList<PaletteFamily>()
     for (g in groups) {
-        val name = colorName(cs[g.last()]).let { if (g.size > 1 && it.startsWith("gris")) "gris" else it }
-        for ((rank, i) in g.withIndex()) {
+        // Base = el color que más área ocupa; los más oscuros son sombras y los más claros, luces
+        val baseIdx = g.maxByOrNull { cs[it].fraction } ?: continue
+        val darker = g.filter { cs[it].l < cs[baseIdx].l - 3 }.sortedBy { cs[it].l }
+        val lighter = g.filter { cs[it].l > cs[baseIdx].l + 3 }.sortedBy { cs[it].l }
+        val roles = HashMap<Int, String>()
+        for (i in g) roles[i] = "Base"
+        darker.forEachIndexed { k, i -> roles[i] = if (darker.size >= 2 && k == 0) "Sombra profunda" else "Sombra" }
+        lighter.forEachIndexed { k, i -> roles[i] = if (lighter.size >= 2 && k == lighter.size - 1) "Punto de luz" else "Luz" }
+        val baseName = colorName(cs[baseIdx])
+        val skinLike = g.any { i -> val h = hueDeg(cs[i]); h in 25.0..75.0 && chroma(cs[i]) in 12.0..45.0 && cs[i].l > 45 }
+        val name = when {
+            g.size > 1 && skinLike && baseName in setOf("rojo", "naranja", "café") -> "piel o tono cálido"
+            g.size > 1 && baseName.startsWith("gris") -> "gris"
+            else -> baseName
+        }
+        families.add(PaletteFamily(name, g.sortedBy { cs[it].l }, baseIdx, roles))
+        for (i in g) {
             val c = cs[i]
             val z = zones[i]
             val ch = chroma(c)
-            val isDetail = c.fraction < 0.03 || z.edgeRatio > 0.45
+            val isDetail = g.size == 1 && (c.fraction < 0.03 || z.edgeRatio > 0.45)
             val isLarge = c.fraction > 0.12 && z.edgeRatio < 0.3
             val role = when {
                 g.size == 1 -> if (isDetail) "Detalle" else "Color base"
-                rank == 0 -> "Sombra"
-                rank == g.size - 1 -> "Luz"
-                else -> "Tono medio"
+                else -> roles[i] ?: "Base"
             }
             val brush = when {
                 isDetail -> "Pincel de detalle talla 0 o 00, con poca pintura en la punta."
@@ -107,7 +147,7 @@ fun buildAdvice(palette: ImagePalette, matches: List<PaletteMatch>, inventory: L
             }
             val tips = ArrayList<String>()
             when (role) {
-                "Sombra" -> {
+                "Sombra", "Sombra profunda" -> {
                     tips.add("Va en huecos, pliegues y zonas que no reciben luz del grupo $name.")
                     val wash = contrastPaints
                         .map { it to deltaE2000(c.lab, it.lab) }
@@ -116,12 +156,12 @@ fun buildAdvice(palette: ImagePalette, matches: List<PaletteMatch>, inventory: L
                     if (wash != null) tips.add("Puedes hacerla con un lavado o veladura de ${wash.name} (${wash.brand}) sobre la base.")
                     tips.add("Estilo anime/2D: píntala con borde definido, sin difuminar. Realista: veladuras finas para fundirla.")
                 }
-                "Luz" -> {
+                "Luz", "Punto de luz" -> {
                     tips.add("Va en bordes y caras que miran hacia arriba o hacia la luz; deja ver el tono de abajo.")
                     if (z.texture > 3.5) tips.add("La zona tiene textura: aplica la luz con pincel seco (drybrush) usando un pincel viejo de cerdas firmes.")
                     else tips.add("Capas finas y diluidas (consistencia de leche) para que la transición se vea suave.")
                 }
-                "Tono medio" -> tips.add("Es el color principal del grupo $name: cúbrelo primero y luego agrega sombra y luz encima.")
+                "Base" -> tips.add("Es el color principal de la zona $name: cúbrela entera con él y luego agrega sombra y luz encima.")
                 "Color base" -> tips.add("Color plano: 2–3 capas finas cubren mejor que una gruesa.")
                 "Detalle" -> tips.add("Píntalo al final, después de bases, sombras y luces, para no ensuciarlo.")
             }
@@ -171,13 +211,14 @@ fun buildAdvice(palette: ImagePalette, matches: List<PaletteMatch>, inventory: L
         } + ".")
     }
     plan.add("Orden: de lo más interno a lo más externo (piel y cara, luego ropa, luego armadura y equipo). Así si te sales, lo tapas con la capa siguiente.")
-    plan.add("Para cada color sigue su \"Paso a paso\" en la tarjeta: base → sombra → luz → punto de luz. Termina un color antes de pasar al siguiente.")
+    plan.add("Cada zona tiene su \"Paso a paso\": base → sombra → luz → punto de luz. Termina una zona antes de pasar a la siguiente.")
     val details = (0 until n).filter { advice[it]?.role == "Detalle" }
     if (details.isNotEmpty()) plan.add("Detalles al final con pincel fino: " + details.joinToString(", ") { colorName(cs[it]) } + ".")
     val varnish = inventory.firstOrNull { it.type == "Barniz" }
     plan.add("Barniz mate para proteger" + (varnish?.let { " (tienes ${it.name})" } ?: "") + "; si algo debe brillar (ojos, metal, joyas), barniz brillante solo ahí.")
 
-    return PaletteAdvice(plan, advice.map { it ?: ZoneAdvice("Color base", "", "Pincel redondo talla 1–2.", emptyList()) })
+    families.sortByDescending { f -> f.members.sumOf { cs[it].fraction } }
+    return PaletteAdvice(plan, advice.map { it ?: ZoneAdvice("Color base", "", "Pincel redondo talla 1–2.", emptyList()) }, families)
 }
 
 /** Cómo conseguir la sombra o la luz, en palabras: pintura tuya, mezcla o compra. */
@@ -190,40 +231,49 @@ fun toneText(p: Paint?, mix: ToneMix?, buy: Paint?, darker: Boolean): String = w
 }
 
 /**
- * Pasos concretos para pintar una zona: base, sombra, luz y punto de luz, con las pinturas
- * (o mezclas) que corresponden, cuánto diluir y dónde va cada capa.
+ * Pasos concretos para pintar una zona completa: base, sombra(s), luz y punto de luz, usando los
+ * colores de la imagen que forman esa zona (o, si la imagen no los tiene, una pintura, mezcla o
+ * compra sugerida), con cuánto diluir y dónde va cada capa.
  */
-fun paintingSteps(m: PaletteMatch, advice: ZoneAdvice?): List<String> {
-    val base = m.best?.paint
-    val baseName = base?.name ?: "un color parecido al de la muestra"
-    val brush = advice?.brush ?: "Pincel redondo talla 1–2."
-    val shadow = toneText(m.shadow, m.shadowMix, m.shadowBuy, darker = true)
-    val light = toneText(m.highlight, m.highlightMix, m.highlightBuy, darker = false)
+fun familySteps(f: PaletteFamily, matches: List<PaletteMatch>, zones: List<ZoneAdvice>): List<String> {
+    val mb = matches.getOrNull(f.base) ?: return emptyList()
+    val baseAdvice = zones.getOrNull(f.base)
+    val baseName = mb.best?.paint?.name ?: "un color parecido al de la muestra"
+    val brush = baseAdvice?.brush ?: "Pincel redondo talla 1–2."
+    fun paintOf(i: Int): String? = matches.getOrNull(i)?.best?.paint?.name
+    val shadowMembers = f.members.filter { f.roles[it] == "Sombra" }
+    val deepMembers = f.members.filter { f.roles[it] == "Sombra profunda" }
+    val lightMembers = f.members.filter { f.roles[it] == "Luz" }
+    val topMembers = f.members.filter { f.roles[it] == "Punto de luz" }
+    val shadow = shadowMembers.firstNotNullOfOrNull { paintOf(it) } ?: toneText(mb.shadow, mb.shadowMix, mb.shadowBuy, darker = true)
+    val light = lightMembers.firstNotNullOfOrNull { paintOf(it) } ?: toneText(mb.highlight, mb.highlightMix, mb.highlightBuy, darker = false)
     val steps = ArrayList<String>()
-    if (advice?.role == "Detalle") {
+    if (f.members.size == 1 && baseAdvice?.role == "Detalle") {
         steps.add("Base: $baseName, diluida a consistencia de leche. $brush Una o dos capas, sin salirte de la zona.")
-        steps.add("Si la zona es grande para un detalle, marca la parte de abajo con $shadow.")
+        steps.add("Si el detalle es grande, marca la parte de abajo con $shadow.")
         steps.add("Un solo toque de luz con $light en el borde o punto más alto (o un punto blanco si brilla, como ojos o gemas).")
         return steps
     }
     steps.add(
-        "Base: $baseName. Dilúyela con un poco de agua hasta que fluya como leche y aplica 2–3 capas finas, " +
-            "dejando secar entre capas, hasta que el color quede parejo. $brush"
+        "Base: $baseName en toda la zona. Dilúyela con un poco de agua hasta que fluya como leche y aplica 2–3 capas finas, " +
+            "dejando secar entre capas, hasta que quede pareja. $brush"
     )
     steps.add(
-        "Sombra: $shadow. Va en los huecos, pliegues, debajo de partes que sobresalen y en el lado contrario a la luz. " +
-            "Dilúyela más (1 de pintura por 2–3 de agua: veladura) y aplica capas que se vayan juntando hacia lo más profundo; " +
-            "descarga el pincel en papel antes de tocar la figura."
+        "Sombra: $shadow en los huecos, pliegues, debajo de lo que sobresale y en el lado contrario a la luz. " +
+            "Dilúyela más (1 de pintura por 2–3 de agua, una veladura) y pasa varias capas que se vayan juntando hacia lo más hundido. " +
+            "Descarga el pincel en papel antes de tocar la figura."
     )
+    deepMembers.firstNotNullOfOrNull { paintOf(it) }?.let {
+        steps.add("Sombra profunda: $it solo en lo más hundido y en las uniones (entre piernas, bajo la falda, axilas), sobre la sombra anterior.")
+    }
     steps.add(
-        "Luz: $light. Va en las caras que miran hacia arriba y en los bordes que sobresalen. " +
+        "Luz: $light en las caras que miran hacia arriba y hacia la luz (rodillas, muslos, nariz, pómulos si es piel). " +
             "Capas finas que cubran menos área que la base, para que se vea la transición."
     )
+    val top = topMembers.firstNotNullOfOrNull { paintOf(it) }
     steps.add(
-        "Punto de luz (opcional): mezcla la luz con un poco de blanco y marca solo las aristas y puntos más altos con la punta del pincel."
+        if (top != null) "Punto de luz: $top solo en las aristas y puntos más altos, con la punta del pincel."
+        else "Punto de luz (opcional): mezcla la luz con un poco de blanco y marca solo las aristas y puntos más altos con la punta del pincel."
     )
-    if (advice?.role == "Sombra" || advice?.role == "Luz") {
-        steps.add(0, "Este color es la ${advice.role.lowercase()} de un grupo: píntalo después de la base de ese grupo, como se indica abajo.")
-    }
     return steps
 }
