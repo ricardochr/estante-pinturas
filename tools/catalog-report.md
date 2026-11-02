@@ -173,5 +173,5 @@ Total: **8404** pinturas · generado 2026-11-02
 ## Calidad del color
 
 - Medido (datos abiertos o muestra oficial): 7048
-- Estimado de la foto del producto: 1064
-- Típico según el nombre (aproximado): 292
+- Estimado de la foto del producto: 1063
+- Típico según el nombre (aproximado): 293
