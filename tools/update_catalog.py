@@ -618,6 +618,7 @@ def build(args):
                         json.dump(cache, open(CACHE, "w"), indent=0, sort_keys=True)
                 for hx, share, primary in cache[url]:
                     options.append((hx, share + (0.5 if primary else 0), plausible(hx, r["name"])))
+            r["_opts"] = options
             good = [o for o in options if o[2]]
             if good:
                 r["hex"] = max(good, key=lambda o: o[1])[0]
@@ -626,6 +627,27 @@ def build(args):
                 r["hex"] = max(options, key=lambda o: o[1])[0]
                 r["quality"] = "f"
         json.dump(cache, open(CACHE, "w"), indent=0, sort_keys=True)
+
+    # 3b) Color del empaque: si el mismo color "medido de la foto" se repite en muchas pinturas
+    #     distintas de una marca, es la etiqueta o el fondo, no la pintura.
+    from collections import Counter
+    rep = Counter((r["brand"], r["hex"]) for r in rows if r.get("quality") == "f")
+    packaging = {k for k, n in rep.items() if n >= 4}
+    if packaging:
+        print(f"Colores de empaque descartados: {sorted(packaging)}")
+    for r in rows:
+        if r.get("quality") != "f" or (r["brand"], r["hex"]) not in packaging:
+            continue
+        opts = [o for o in r.get("_opts", []) if (r["brand"], o[0]) not in packaging]
+        good = [o for o in opts if o[2]]
+        if good:
+            r["hex"] = max(good, key=lambda o: o[1])[0]
+        elif opts and not expectations(r["name"]):
+            r["hex"] = max(opts, key=lambda o: o[1])[0]
+        else:
+            r["hex"] = ""; r.pop("quality", None)
+    for r in rows:
+        r.pop("_opts", None)
 
     # 4) Validación: el color no debe contradecir el nombre
     overrides = json.load(open(OVERRIDES)) if os.path.exists(OVERRIDES) else {}
