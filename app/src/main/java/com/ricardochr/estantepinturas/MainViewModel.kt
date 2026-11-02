@@ -339,6 +339,12 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val matches: List<PaletteMatch>,
         val preview: Bitmap,
         val advice: PaletteAdvice,
+        /** Colores tal como salen de la foto, antes de corregir la exposición. */
+        val original: ImagePalette = palette,
+        /** La foto es oscura (fotografía con poca luz o con sombras fuertes). */
+        val darkPhoto: Boolean = false,
+        /** Se aclararon los colores de la foto para elegir pinturas. */
+        val brightened: Boolean = false,
     )
 
     var palette by mutableStateOf<PaletteView?>(null)
@@ -347,11 +353,23 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         private set
     var paletteError by mutableStateOf<String?>(null)
         private set
+    /** Corregir automáticamente las fotos oscuras antes de elegir pinturas. */
+    var paletteBrighten by mutableStateOf(true)
+        private set
 
     private fun inventoryPaints(): List<Paint> =
         owned.values.filter { it.qty > 0 }.mapNotNull { byId[it.paintId] }
 
-    /** Analiza la imagen y sugiere pinturas del inventario. [detail]: 5 pocos, 8 normal, 12 detallado. */
+    private fun buildPaletteView(uri: Uri, detail: Int, bmp: Bitmap, original: ImagePalette, inv: List<Paint>, cat: List<Paint>): PaletteView {
+        val fixed = brightenedPalette(original)
+        val ip = if (paletteBrighten && fixed != null) fixed else original
+        val raw = matchPalette(ip, inv, cat)
+        val advice = buildAdvice(ip, raw, inv)
+        val matches = refineZones(raw, advice.families, inv, cat)
+        return PaletteView(uri, detail, bmp, ip, matches, renderPreview(ip, matches, bmp), advice, original, fixed != null, ip !== original)
+    }
+
+    /** Analiza la imagen y sugiere pinturas del inventario. [detail]: cuántos colores buscar. */
     fun analyzePalette(uri: Uri, detail: Int) {
         if (paletteBusy) return
         paletteBusy = true
@@ -372,11 +390,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                     null
                 } else {
                     try {
-                        val ip = analyzeImage(bmp, detail)
-                        val raw = matchPalette(ip, inv, cat)
-                        val advice = buildAdvice(ip, raw, inv)
-                        val matches = refineZones(raw, advice.families, inv, cat)
-                        PaletteView(uri, detail, bmp, ip, matches, renderPreview(ip, matches, bmp), advice)
+                        buildPaletteView(uri, detail, bmp, analyzeImage(bmp, detail), inv, cat)
                     } catch (e: Throwable) {
                         error = "Abrí la imagen pero falló el análisis (${e.javaClass.simpleName}: ${e.message}). Envíame este mensaje."
                         null
@@ -389,23 +403,23 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    /** Recalcula las sugerencias cuando cambia el inventario, sin volver a analizar la imagen. */
+    /** Recalcula las sugerencias (cambió el inventario o la corrección de luz), sin volver a analizar la imagen. */
     fun refreshPaletteMatches() {
         val current = palette ?: return
         val inv = inventoryPaints()
         val cat = extra + catalog
         viewModelScope.launch {
             val updated = withContext(Dispatchers.Default) {
-                val raw = matchPalette(current.palette, inv, cat)
-                val advice = buildAdvice(current.palette, raw, inv)
-                val matches = refineZones(raw, advice.families, inv, cat)
-                PaletteView(
-                    current.uri, current.detail, current.source, current.palette, matches,
-                    renderPreview(current.palette, matches, current.source), advice,
-                )
+                buildPaletteView(current.uri, current.detail, current.source, current.original, inv, cat)
             }
             if (palette === current) palette = updated
         }
+    }
+
+    fun setPaletteBrighten(on: Boolean) {
+        if (paletteBrighten == on) return
+        paletteBrighten = on
+        refreshPaletteMatches()
     }
 
     fun clearPalette() {

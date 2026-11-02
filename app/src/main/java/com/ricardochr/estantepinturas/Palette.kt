@@ -677,3 +677,28 @@ fun refineZones(matches: List<PaletteMatch>, families: List<PaletteFamily>, inve
     }
     return out
 }
+
+/**
+ * Las fotos de figuras suelen salir oscuras (poca luz, sombras fuertes, barniz brillante): los
+ * colores de la foto quedan mucho más oscuros que la pintura en el bote. Si la luminosidad media
+ * de la figura es baja, se aclaran los colores con una curva (como subir la exposición) conservando
+ * el tono y recuperando un poco de saturación. Devuelve null si la foto no es oscura.
+ */
+fun brightenedPalette(ip: ImagePalette): ImagePalette? {
+    if (ip.clusters.isEmpty()) return null
+    val sorted = ip.clusters.sortedBy { it.l }
+    var acc = 0.0
+    var median = sorted.last().l
+    for (c in sorted) {
+        acc += c.fraction
+        if (acc >= 0.5) { median = c.l; break }
+    }
+    if (median >= 40 || median <= 1) return null
+    val g = (kotlin.math.ln(0.50) / kotlin.math.ln(median / 100.0)).coerceIn(0.55, 1.0)
+    val clusters = ip.clusters.map { c ->
+        val nl = 100.0 * Math.pow((c.l / 100.0).coerceIn(0.0, 1.0), g)
+        val boost = 1.0 + 0.35 * (1.0 - g) / 0.45
+        ColorCluster(nl, c.a * boost, c.b * boost, c.fraction)
+    }
+    return ImagePalette(ip.width, ip.height, ip.labels, clusters, ip.backgroundFound, ip.zones)
+}

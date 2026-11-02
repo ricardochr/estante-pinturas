@@ -238,6 +238,25 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, onProjectCrea
                     detail = it
                     vm.analyzePalette(view.uri, it)
                 }
+                if (view.darkPhoto) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.tertiaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                        shape = RoundedCornerShape(10.dp),
+                    ) {
+                        Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text(
+                                if (view.brightened) "La foto es oscura: aclaré sus colores para elegir pinturas como se verían con buena luz (en la foto las sombras y el barniz oscurecen todo)."
+                                else "Estás usando los colores tal cual salen de la foto, que es oscura: las pinturas sugeridas serán más oscuras.",
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                FilterChip(selected = vm.paletteBrighten, onClick = { vm.setPaletteBrighten(true) }, label = { Text("Corregir luz") })
+                                FilterChip(selected = !vm.paletteBrighten, onClick = { vm.setPaletteBrighten(false) }, label = { Text("Colores de la foto") })
+                            }
+                        }
+                    }
+                }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                     OutlinedButton(onClick = { pick() }, enabled = !vm.paletteBusy) { Text("Otra imagen") }
                     Text(
