@@ -245,7 +245,14 @@ fun familySteps(f: PaletteFamily, matches: List<PaletteMatch>, zones: List<ZoneA
     val deepMembers = f.members.filter { f.roles[it] == "Sombra profunda" }
     val lightMembers = f.members.filter { f.roles[it] == "Luz" }
     val topMembers = f.members.filter { f.roles[it] == "Punto de luz" }
-    val shadow = shadowMembers.firstNotNullOfOrNull { paintOf(it) } ?: toneText(mb.shadow, mb.shadowMix, mb.shadowBuy, darker = true)
+    val wash = mb.washShadow
+    val ownShadow = shadowMembers.firstNotNullOfOrNull { paintOf(it) }
+    val shadow = when {
+        ownShadow != null -> ownShadow
+        mb.shadow != null -> mb.shadow.name
+        wash != null -> null
+        else -> toneText(null, mb.shadowMix, mb.shadowBuy, darker = true)
+    }
     val light = lightMembers.firstNotNullOfOrNull { paintOf(it) } ?: toneText(mb.highlight, mb.highlightMix, mb.highlightBuy, darker = false)
     val steps = ArrayList<String>()
     if (f.members.size == 1 && baseAdvice?.role == "Detalle") {
@@ -255,14 +262,29 @@ fun familySteps(f: PaletteFamily, matches: List<PaletteMatch>, zones: List<ZoneA
         return steps
     }
     steps.add(
-        "Base: $baseName en toda la zona. Dilúyela con un poco de agua hasta que fluya como leche y aplica 2–3 capas finas, " +
-            "dejando secar entre capas, hasta que quede pareja. $brush"
+        "Base: $baseName (${mb.best?.paint?.type?.lowercase() ?: "opaca"}) en toda la zona. Dilúyela con un poco de agua hasta que fluya como leche " +
+            "y aplica 2–3 capas finas, dejando secar entre capas, hasta que quede pareja. $brush"
     )
-    steps.add(
-        "Sombra: $shadow en los huecos, pliegues, debajo de lo que sobresale y en el lado contrario a la luz. " +
-            "Dilúyela más (1 de pintura por 2–3 de agua, una veladura) y pasa varias capas que se vayan juntando hacia lo más hundido. " +
-            "Descarga el pincel en papel antes de tocar la figura."
-    )
+    mb.quick?.let { q ->
+        steps.add(
+            "Atajo: en vez de base + sombra + luz, puedes usar ${q.name} (${q.brand}, contraste/speedpaint) en una sola capa sobre imprimación blanca o gris claro: " +
+                "se acumula sola en los huecos. Después solo agrega luces opacas en lo más alto."
+        )
+    }
+    if (shadow != null) {
+        steps.add(
+            "Sombra: $shadow (opaca) en los huecos, pliegues, debajo de lo que sobresale y en el lado contrario a la luz. " +
+                "Dilúyela más (1 de pintura por 2–3 de agua, una veladura) y pasa varias capas que se vayan juntando hacia lo más hundido. " +
+                "Descarga el pincel en papel antes de tocar la figura." +
+                (wash?.let { " Más rápido: un lavado de ${it.name} (${it.type.lowercase()}) sobre la base seca hace lo mismo." } ?: "")
+        )
+    } else if (wash != null) {
+        steps.add(
+            "Sombra con lavado: ${wash.name} (${wash.type.lowercase()}, ${wash.brand}) sobre la base ya seca. Aplícalo sin diluir o apenas diluido, " +
+                "con el pincel cargado, para que corra a los huecos y pliegues; quita con un pincel limpio y seco lo que se acumule en zonas planas. " +
+                "Déjalo secar bien (mínimo 30 minutos) antes de la luz."
+        )
+    }
     deepMembers.firstNotNullOfOrNull { paintOf(it) }?.let {
         steps.add("Sombra profunda: $it solo en lo más hundido y en las uniones (entre piernas, bajo la falda, axilas), sobre la sombra anterior.")
     }

@@ -51,6 +51,10 @@ data class PaletteMatch(
     val highlightMix: ToneMix? = null,
     val shadowBuy: Paint? = null,
     val highlightBuy: Paint? = null,
+    /** Lavado, tinta o contraste tuyo que, aplicado sobre la base seca, da la sombra. */
+    val washShadow: Paint? = null,
+    /** Pintura de contraste/speedpaint que da este color de una sola capa sobre imprimación clara. */
+    val quick: Paint? = null,
 )
 
 /** Mezcla de la pintura base con otra para sacar la sombra o la luz: partes de cada una y color que resulta. */
@@ -448,6 +452,21 @@ private fun mixTone(base: Paint, candidates: List<Paint>, darker: Boolean): Tone
     return best
 }
 
+/**
+ * El lavado o tinta que mejor sombrea [base]: se simula la base con el lavado encima (2 partes de
+ * base por 1 de lavado, que es más o menos lo que deja un lavado al acumularse en los huecos).
+ */
+private fun washFor(base: Paint, glazes: List<Paint>): Paint? {
+    val target = toneTarget(base.lab, darker = true)
+    return glazes.asSequence()
+        .map { g -> g to argbLab(mixTwo(base, g, 2, 1)) }
+        .filter { (_, lab) -> lab.l < base.lab.l - 6 }
+        .map { (g, lab) -> g to deltaE2000(target, lab) }
+        .filter { it.second < 14 }
+        .minByOrNull { it.second + if (it.first.type == "Wash") 0.0 else 1.5 }
+        ?.first
+}
+
 /** La pintura del catálogo más cercana al tono objetivo, prefiriendo marcas que ya usas. */
 private fun buyTone(base: Lab, buyable: List<Paint>, brands: Set<String>, darker: Boolean): Paint? {
     val target = toneTarget(base, darker)
@@ -477,7 +496,11 @@ private fun pickTone(base: Lab, candidates: List<Paint>, exclude: String?, darke
  */
 fun matchPalette(palette: ImagePalette, inventory: List<Paint>, catalog: List<Paint>): List<PaletteMatch> {
     // Los metálicos no se sugieren para colores de la foto: un tono parecido en gris o café no es metal
-    val inv = inventory.filter { it.hasColor && typeGroup(it.type) != "auxiliar" && typeGroup(it.type) != "metal" }
+    // La base, sombras y luces se pintan con pintura opaca; lavados, tintas y contrastes se proponen
+    // aparte, para lo que sirven: oscurecer sobre la base o dar color de una capa.
+    val inv = inventory.filter { it.hasColor && typeGroup(it.type) == "opaca" && it.type != "Imprimación" }
+    val glazes = inventory.filter { it.hasColor && (it.type == "Wash" || it.type == "Tinta" || it.type == "Contraste") }
+    val contrasts = inventory.filter { it.hasColor && it.type == "Contraste" }
     val ownedIds = inventory.map { it.id }.toHashSet()
     val buyable = catalog.filter { it.hasColor && it.type == "Opaca" && it.quality != "n" && it.id !in ownedIds }
     val brands = inventory.map { brandKey(it.brand) }.toSet()
@@ -508,7 +531,12 @@ fun matchPalette(palette: ImagePalette, inventory: List<Paint>, catalog: List<Pa
         val highlightMix = if (highlight == null && best != null) mixTone(best.paint, inv, darker = false) else null
         val shadowBuy = if (shadow == null && shadowMix == null) buyTone(baseLab, buyable, brands, darker = true) else null
         val highlightBuy = if (highlight == null && highlightMix == null) buyTone(baseLab, buyable, brands, darker = false) else null
-        PaletteMatch(c, best, alts, shadow, highlight, toBuy, toBuyD, shadowMix, highlightMix, shadowBuy, highlightBuy)
+        val washShadow = best?.paint?.let { washFor(it, glazes) }
+        val quick = contrasts.asSequence()
+            .map { it to deltaE2000(lab, it.lab) }
+            .filter { it.second < 9 && (best == null || it.second < best.distance + 3) }
+            .minByOrNull { it.second }?.first
+        PaletteMatch(c, best, alts, shadow, highlight, toBuy, toBuyD, shadowMix, highlightMix, shadowBuy, highlightBuy, washShadow, quick)
     }
 }
 

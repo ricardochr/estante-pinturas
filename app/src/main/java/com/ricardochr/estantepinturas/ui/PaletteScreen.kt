@@ -469,12 +469,31 @@ private fun ZoneCard(
                                     modifier = Modifier.clickable { onOpen(best.paint) },
                                 )
                                 Text(
-                                    listOf(best.paint.brand, best.paint.code.ifBlank { best.paint.line }).filter { it.isNotBlank() }.joinToString(" · ") +
+                                    listOf(best.paint.brand, best.paint.code.ifBlank { best.paint.line }, best.paint.type.lowercase()).filter { it.isNotBlank() }.joinToString(" · ") +
                                         " · " + similarityLabel(best.distance).lowercase(),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                            // Lavado para las sombras de la zona y contraste como atajo para la base
+                            val wash = mb.washShadow
+                            if (role.startsWith("Sombra") && wash != null && wash.id != m.best?.paint?.id) {
+                                Text(
+                                    "o lavado: ${wash.name} (${wash.type.lowercase()}) sobre la base",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.clickable { onOpen(wash) },
+                                )
+                            }
+                            val q = m.quick
+                            if (role == "Base" && q != null) {
+                                Text(
+                                    "Atajo: ${q.name} (contraste) de una capa",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.clickable { onOpen(q) },
                                 )
                             }
                             val buy = m.toBuy
@@ -506,7 +525,7 @@ private fun ZoneCard(
 
             // Si la imagen no trae sombra o luz para esta zona, se sugiere cómo lograrla desde la base
             if (mb.best != null && f.shadows.isEmpty()) {
-                ToneChip("Sombra", mb.shadow, mb.shadowMix, mb.shadowBuy, onOpen, onAddShopping, isInShopping)
+                ToneChip("Sombra", mb.shadow ?: mb.washShadow, if (mb.shadow == null && mb.washShadow != null) null else mb.shadowMix, mb.shadowBuy, onOpen, onAddShopping, isInShopping)
             }
             if (mb.best != null && f.lights.isEmpty()) {
                 ToneChip("Luz", mb.highlight, mb.highlightMix, mb.highlightBuy, onOpen, onAddShopping, isInShopping)
@@ -621,6 +640,7 @@ private fun ToneChip(
             Column(Modifier.weight(1f)) {
                 Text(
                     label + when {
+                        p != null && p.type != "Opaca" && p.type != "Aerógrafo" -> " · " + p.type.lowercase() + " sobre la base seca"
                         p != null -> ""
                         mix != null -> " · mezcla"
                         buy != null -> " · para comprar"
