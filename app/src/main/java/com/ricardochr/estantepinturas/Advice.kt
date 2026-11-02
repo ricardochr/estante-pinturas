@@ -170,11 +170,60 @@ fun buildAdvice(palette: ImagePalette, matches: List<PaletteMatch>, inventory: L
             colorName(cs[i]) + (matches.getOrNull(i)?.best?.paint?.name?.let { " ($it)" } ?: "")
         } + ".")
     }
-    if (groups.any { it.size > 1 }) plan.add("Sombras y luces por grupo de color: primero la sombra, después la luz, siempre en capas finas.")
+    plan.add("Orden: de lo más interno a lo más externo (piel y cara, luego ropa, luego armadura y equipo). Así si te sales, lo tapas con la capa siguiente.")
+    plan.add("Para cada color sigue su \"Paso a paso\" en la tarjeta: base → sombra → luz → punto de luz. Termina un color antes de pasar al siguiente.")
     val details = (0 until n).filter { advice[it]?.role == "Detalle" }
     if (details.isNotEmpty()) plan.add("Detalles al final con pincel fino: " + details.joinToString(", ") { colorName(cs[it]) } + ".")
     val varnish = inventory.firstOrNull { it.type == "Barniz" }
     plan.add("Barniz mate para proteger" + (varnish?.let { " (tienes ${it.name})" } ?: "") + "; si algo debe brillar (ojos, metal, joyas), barniz brillante solo ahí.")
 
     return PaletteAdvice(plan, advice.map { it ?: ZoneAdvice("Color base", "", "Pincel redondo talla 1–2.", emptyList()) })
+}
+
+/** Cómo conseguir la sombra o la luz, en palabras: pintura tuya, mezcla o compra. */
+fun toneText(p: Paint?, mix: ToneMix?, buy: Paint?, darker: Boolean): String = when {
+    p != null -> p.name
+    mix != null -> "mezcla ${mix.text}"
+    buy != null -> "${buy.name} de ${buy.brand} (no la tienes; está en sugerencias para comprar)"
+    darker -> "la base con una gota de un lavado oscuro o de su color complementario"
+    else -> "la base con un poco de blanco o blanco hueso, agregado de a poco"
+}
+
+/**
+ * Pasos concretos para pintar una zona: base, sombra, luz y punto de luz, con las pinturas
+ * (o mezclas) que corresponden, cuánto diluir y dónde va cada capa.
+ */
+fun paintingSteps(m: PaletteMatch, advice: ZoneAdvice?): List<String> {
+    val base = m.best?.paint
+    val baseName = base?.name ?: "un color parecido al de la muestra"
+    val brush = advice?.brush ?: "Pincel redondo talla 1–2."
+    val shadow = toneText(m.shadow, m.shadowMix, m.shadowBuy, darker = true)
+    val light = toneText(m.highlight, m.highlightMix, m.highlightBuy, darker = false)
+    val steps = ArrayList<String>()
+    if (advice?.role == "Detalle") {
+        steps.add("Base: $baseName, diluida a consistencia de leche. $brush Una o dos capas, sin salirte de la zona.")
+        steps.add("Si la zona es grande para un detalle, marca la parte de abajo con $shadow.")
+        steps.add("Un solo toque de luz con $light en el borde o punto más alto (o un punto blanco si brilla, como ojos o gemas).")
+        return steps
+    }
+    steps.add(
+        "Base: $baseName. Dilúyela con un poco de agua hasta que fluya como leche y aplica 2–3 capas finas, " +
+            "dejando secar entre capas, hasta que el color quede parejo. $brush"
+    )
+    steps.add(
+        "Sombra: $shadow. Va en los huecos, pliegues, debajo de partes que sobresalen y en el lado contrario a la luz. " +
+            "Dilúyela más (1 de pintura por 2–3 de agua: veladura) y aplica capas que se vayan juntando hacia lo más profundo; " +
+            "descarga el pincel en papel antes de tocar la figura."
+    )
+    steps.add(
+        "Luz: $light. Va en las caras que miran hacia arriba y en los bordes que sobresalen. " +
+            "Capas finas que cubran menos área que la base, para que se vea la transición."
+    )
+    steps.add(
+        "Punto de luz (opcional): mezcla la luz con un poco de blanco y marca solo las aristas y puntos más altos con la punta del pincel."
+    )
+    if (advice?.role == "Sombra" || advice?.role == "Luz") {
+        steps.add(0, "Este color es la ${advice.role.lowercase()} de un grupo: píntalo después de la base de ese grupo, como se indica abajo.")
+    }
+    return steps
 }

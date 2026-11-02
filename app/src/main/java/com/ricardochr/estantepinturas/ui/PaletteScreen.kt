@@ -62,6 +62,8 @@ import com.ricardochr.estantepinturas.Paint
 import com.ricardochr.estantepinturas.Lab
 import com.ricardochr.estantepinturas.MixRecipe
 import com.ricardochr.estantepinturas.PaletteMatch
+import com.ricardochr.estantepinturas.paintingSteps
+import com.ricardochr.estantepinturas.ToneMix
 import com.ricardochr.estantepinturas.Project
 import com.ricardochr.estantepinturas.ZoneAdvice
 import com.ricardochr.estantepinturas.renderHighlight
@@ -293,6 +295,7 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, onProjectCrea
                 mixFor = { lab -> vm.mixesFor(lab) },
                 inShopping = m.toBuy?.let { b -> vm.shopping.any { it.paintId == b.id } } ?: false,
                 onAddShopping = { b -> vm.addToShopping(b.id, "Para la paleta de una imagen") },
+                isInShopping = { b -> vm.shopping.any { it.paintId == b.id } },
             )
         }
         item {
@@ -365,6 +368,7 @@ private fun MatchCard(
     mixFor: suspend (Lab) -> List<MixRecipe>,
     inShopping: Boolean = false,
     onAddShopping: (Paint) -> Unit = {},
+    isInShopping: (Paint) -> Boolean = { false },
 ) {
     var showTips by remember { mutableStateOf(false) }
     var showMix by remember { mutableStateOf(false) }
@@ -449,10 +453,10 @@ private fun MatchCard(
                     m.alternatives.forEach { alt -> MiniPaint(alt.paint, onOpen, Modifier.weight(1f)) }
                 }
             }
-            if (m.shadow != null || m.highlight != null) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    ToneChip("Sombra", m.shadow, onOpen, Modifier.weight(1f))
-                    ToneChip("Luz", m.highlight, onOpen, Modifier.weight(1f))
+            if (m.best != null) {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    ToneChip("Sombra", m.shadow, m.shadowMix, m.shadowBuy, onOpen, onAddShopping, isInShopping)
+                    ToneChip("Luz", m.highlight, m.highlightMix, m.highlightBuy, onOpen, onAddShopping, isInShopping)
                 }
             }
             if (advice != null) {
@@ -466,11 +470,21 @@ private fun MatchCard(
                 ) {
                     Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("Cómo pintarlo", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                            Text("Paso a paso", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
                             Text(if (showTips) "▲" else "▼", style = MaterialTheme.typography.labelLarge)
                         }
-                        Text("Pincel: ${advice.brush}", style = MaterialTheme.typography.bodySmall)
-                        if (showTips) {
+                        val steps = remember(m, advice) { paintingSteps(m, advice) }
+                        (if (showTips) steps else steps.take(1)).forEachIndexed { i, step ->
+                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text("${i + 1}.", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+                                Text(step, style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                        if (!showTips && steps.size > 1) {
+                            Text("Toca para ver los ${steps.size} pasos y consejos", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                        }
+                        if (showTips && advice.tips.isNotEmpty()) {
+                            Text("Consejos", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
                             advice.tips.forEach { t ->
                                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                     Text("•", style = MaterialTheme.typography.bodySmall)
@@ -538,28 +552,67 @@ private fun MiniPaint(p: Paint, onOpen: (Paint) -> Unit, modifier: Modifier = Mo
 }
 
 @Composable
-private fun ToneChip(label: String, p: Paint?, onOpen: (Paint) -> Unit, modifier: Modifier = Modifier) {
+private fun ToneChip(
+    label: String,
+    p: Paint?,
+    mix: ToneMix?,
+    buy: Paint?,
+    onOpen: (Paint) -> Unit,
+    onAddShopping: (Paint) -> Unit,
+    isInShopping: (Paint) -> Boolean,
+) {
+    val darker = label == "Sombra"
     Surface(
         color = MaterialTheme.colorScheme.surface,
         contentColor = MaterialTheme.colorScheme.onSurface,
         shape = RoundedCornerShape(10.dp),
-        modifier = modifier.then(if (p != null) Modifier.clickable { onOpen(p) } else Modifier),
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(
+                when {
+                    p != null -> Modifier.clickable { onOpen(p) }
+                    buy != null -> Modifier.clickable { onOpen(buy) }
+                    else -> Modifier
+                }
+            ),
     ) {
         Row(
             Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            if (p != null) Swatch(p.hex, size = 22.dp, metallic = p.type == "Metálica")
+            when {
+                p != null -> Swatch(p.hex, size = 26.dp, metallic = p.type == "Metálica")
+                mix != null -> ColorChip(mix.argb, 26.dp)
+                buy != null -> Swatch(buy.hex, size = 26.dp, metallic = false)
+            }
             Column(Modifier.weight(1f)) {
-                Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text(
-                    p?.name ?: "No tienes una adecuada",
+                    label + when {
+                        p != null -> ""
+                        mix != null -> " · mezcla"
+                        buy != null -> " · para comprar"
+                        else -> " · sin pintura"
+                    },
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    when {
+                        p != null -> p.name
+                        mix != null -> mix.text
+                        buy != null -> buy.name + " · " + buy.brand + if (buy.code.isNotBlank()) " " + buy.code else ""
+                        darker -> "Oscurece la base con un lavado oscuro o una gota de su complementario"
+                        else -> "Aclara la base agregando blanco o blanco hueso poco a poco"
+                    },
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (p != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
+                    maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
                 )
+            }
+            if (p == null && mix == null && buy != null) {
+                if (isInShopping(buy)) Text("✓", style = MaterialTheme.typography.labelLarge)
+                else TextButton(onClick = { onAddShopping(buy) }) { Text("+ Lista") }
             }
         }
     }

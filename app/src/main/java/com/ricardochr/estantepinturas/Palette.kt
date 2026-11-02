@@ -46,7 +46,17 @@ data class PaletteMatch(
     val highlight: Paint?,
     val toBuy: Paint?,
     val toBuyDistance: Double,
+    /** Si no tienes una pintura para la sombra o la luz: cómo lograrla mezclando, o cuál comprar. */
+    val shadowMix: ToneMix? = null,
+    val highlightMix: ToneMix? = null,
+    val shadowBuy: Paint? = null,
+    val highlightBuy: Paint? = null,
 )
+
+/** Mezcla de la pintura base con otra para sacar la sombra o la luz: partes de cada una y color que resulta. */
+data class ToneMix(val base: Paint, val other: Paint, val baseParts: Int, val otherParts: Int, val argb: Int) {
+    val text: String get() = "$baseParts ${if (baseParts == 1) "parte" else "partes"} de ${base.name} + $otherParts de ${other.name}"
+}
 
 // ---------------------------------------------------------------- color
 
@@ -405,8 +415,51 @@ private fun matchPenalty(p: Paint): Double = when (typeGroup(p.type)) {
     else -> if (p.type == "Imprimación") 3.0 else 0.0
 }
 
+/** Tono objetivo: la sombra baja la luz y se enfría un poco; la luz sube, pierde saturación y se calienta un poco. */
+private fun toneTarget(base: Lab, darker: Boolean): Lab =
+    if (darker) Lab(base.l - 20, base.a * 0.95, base.b * 0.95 - 3) else Lab(base.l + 18, base.a * 0.85, base.b * 0.85 + 3)
+
+private fun argbLab(argb: Int): Lab = hexToLab(String.format("#%06X", argb and 0xFFFFFF))
+
+/** Mejor mezcla de [base] con otra pintura tuya para llegar a la sombra o la luz. */
+private fun mixTone(base: Paint, candidates: List<Paint>, darker: Boolean): ToneMix? {
+    val target = toneTarget(base.lab, darker)
+    val ratios = listOf(3 to 1, 2 to 1, 1 to 1)
+    var best: ToneMix? = null
+    var bestScore = Double.MAX_VALUE
+    for (o in candidates) {
+        if (o.id == base.id || typeGroup(o.type) != "opaca") continue
+        if (darker && o.lab.l > base.lab.l - 8) continue
+        if (!darker && o.lab.l < base.lab.l + 8) continue
+        for ((wb, wo) in ratios) {
+            val argb = mixTwo(base, o, wb, wo)
+            val lab = argbLab(argb)
+            val moved = if (darker) base.lab.l - lab.l else lab.l - base.lab.l
+            if (moved < 8) continue
+            val d = deltaE2000(target, lab)
+            // A igual parecido, menos pintura añadida
+            val score = d + wo.toDouble() / (wb + wo) * 2
+            if (d < 12 && score < bestScore) {
+                bestScore = score
+                best = ToneMix(base, o, wb, wo, argb)
+            }
+        }
+    }
+    return best
+}
+
+/** La pintura del catálogo más cercana al tono objetivo, prefiriendo marcas que ya usas. */
+private fun buyTone(base: Lab, buyable: List<Paint>, brands: Set<String>, darker: Boolean): Paint? {
+    val target = toneTarget(base, darker)
+    return buyable.asSequence()
+        .map { it to deltaE2000(target, it.lab) }
+        .filter { it.second < 12 }
+        .minByOrNull { it.second + if (brandKey(it.first.brand) in brands) 0.0 else 3.0 }
+        ?.first
+}
+
 private fun pickTone(base: Lab, candidates: List<Paint>, exclude: String?, darker: Boolean): Paint? {
-    val target = if (darker) Lab(base.l - 20, base.a, base.b) else Lab(base.l + 18, base.a * 0.85, base.b * 0.85)
+    val target = toneTarget(base, darker)
     return candidates
         .asSequence()
         .filter { it.id != exclude && typeGroup(it.type) == "opaca" }
@@ -426,7 +479,8 @@ fun matchPalette(palette: ImagePalette, inventory: List<Paint>, catalog: List<Pa
     // Los metálicos no se sugieren para colores de la foto: un tono parecido en gris o café no es metal
     val inv = inventory.filter { it.hasColor && typeGroup(it.type) != "auxiliar" && typeGroup(it.type) != "metal" }
     val ownedIds = inventory.map { it.id }.toHashSet()
-    val buyable = catalog.filter { it.hasColor && it.type == "Opaca" && it.id !in ownedIds }
+    val buyable = catalog.filter { it.hasColor && it.type == "Opaca" && it.quality != "n" && it.id !in ownedIds }
+    val brands = inventory.map { brandKey(it.brand) }.toSet()
     return palette.clusters.map { c ->
         val lab = c.lab
         val ranked = inv
@@ -450,19 +504,30 @@ fun matchPalette(palette: ImagePalette, inventory: List<Paint>, catalog: List<Pa
             }
             if (best != null && toBuyD > best.distance - 3) toBuy = null
         }
-        PaletteMatch(c, best, alts, shadow, highlight, toBuy, toBuyD)
+        val shadowMix = if (shadow == null && best != null) mixTone(best.paint, inv, darker = true) else null
+        val highlightMix = if (highlight == null && best != null) mixTone(best.paint, inv, darker = false) else null
+        val shadowBuy = if (shadow == null && shadowMix == null) buyTone(baseLab, buyable, brands, darker = true) else null
+        val highlightBuy = if (highlight == null && highlightMix == null) buyTone(baseLab, buyable, brands, darker = false) else null
+        PaletteMatch(c, best, alts, shadow, highlight, toBuy, toBuyD, shadowMix, highlightMix, shadowBuy, highlightBuy)
     }
 }
 
 /** Imagen de la figura pintada con las pinturas sugeridas (fondo transparente). */
-fun renderPreview(palette: ImagePalette, matches: List<PaletteMatch>): Bitmap {
+fun renderPreview(palette: ImagePalette, matches: List<PaletteMatch>, source: Bitmap): Bitmap {
     val colors = IntArray(matches.size) { i ->
         matches[i].best?.paint?.argb?.toInt() ?: matches[i].cluster.argb
     }
-    val out = IntArray(palette.width * palette.height)
+    val w = palette.width
+    val h = palette.height
+    // Lo que se tomó como fondo se deja como en la foto, para que no desaparezca ninguna parte de la figura
+    val src = IntArray(w * h)
+    val scaled = if (source.width == w && source.height == h) source else Bitmap.createScaledBitmap(source, w, h, true)
+    scaled.getPixels(src, 0, w, 0, 0, w, h)
+    if (scaled !== source) scaled.recycle()
+    val out = IntArray(w * h)
     for (i in out.indices) {
         val lbl = palette.labels[i]
-        out[i] = if (lbl < 0) 0 else colors[lbl]
+        out[i] = if (lbl < 0 || lbl >= colors.size) (src[i] or 0xFF000000.toInt()) else colors[lbl]
     }
     return Bitmap.createBitmap(out, palette.width, palette.height, Bitmap.Config.ARGB_8888)
 }
