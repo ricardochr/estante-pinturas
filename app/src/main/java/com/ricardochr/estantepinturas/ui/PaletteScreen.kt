@@ -141,18 +141,6 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, onProjectCrea
     val highlightImg = remember(view, sel) {
         if (sel == null) null else renderHighlight(view.palette, view.source, sel).asImageBitmap()
     }
-    val highlightFill = remember(view, sel) {
-        if (sel == null) null else renderHighlight(view.palette, view.source, sel, fill = true).asImageBitmap()
-    }
-    // Parpadeo entre el color real y el color marcador para que se noten hasta las zonas pequeñas
-    var blinkOn by remember { mutableStateOf(false) }
-    LaunchedEffect(sel) {
-        blinkOn = false
-        if (sel != null) while (true) {
-            delay(650)
-            blinkOn = !blinkOn
-        }
-    }
     var zoom by remember(view) { mutableStateOf(1f) }
     var pan by remember(view) { mutableStateOf(Offset.Zero) }
     var showPlan by rememberSaveable { mutableStateOf(true) }
@@ -172,18 +160,18 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, onProjectCrea
                         .fillMaxWidth()
                         .height(260.dp)
                         .clip(RoundedCornerShape(14.dp))
-                        .background(if (sel != null) Color(0xFF15171B) else MaterialTheme.colorScheme.surfaceContainer),
+                        .background(if (sel != null) Color(0xFFE6E6E6) else MaterialTheme.colorScheme.surfaceContainer),
                     contentAlignment = Alignment.Center,
                 ) {
                     Image(
-                        bitmap = (if (blinkOn) highlightFill else highlightImg) ?: if (showPreview) previewImg else sourceImg,
+                        bitmap = highlightImg ?: if (showPreview) previewImg else sourceImg,
                         contentDescription = when {
                             sel != null -> "Dónde va el color seleccionado"
                             showPreview -> "Figura con tus pinturas"
                             else -> "Imagen original"
                         },
                         contentScale = ContentScale.Fit,
-                        filterQuality = if (sel != null) FilterQuality.None else FilterQuality.Low,
+                        filterQuality = FilterQuality.Low,
                         modifier = Modifier
                             .fillMaxSize()
                             .pointerInput(view) {

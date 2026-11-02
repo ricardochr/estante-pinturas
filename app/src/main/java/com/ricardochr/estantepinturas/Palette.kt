@@ -547,46 +547,38 @@ fun markerFor(c: ColorCluster): Int {
 }
 
 /**
- * Imagen para ver dónde va el color [selected]: el resto de la figura queda oscuro y en gris,
- * la zona elegida conserva su color y lleva un contorno de color marcador alrededor.
- * Con [fill] = true la zona se pinta entera del color marcador (para que destaquen zonas pequeñas).
+ * Imagen para ver dónde va el color [selected]: la zona elegida conserva su color y todo lo demás
+ * (figura y fondo) queda en gris muy claro y desvaído, con un contorno fino gris oscuro alrededor
+ * de la zona para que se encuentren también las partes pequeñas.
  */
-fun renderHighlight(palette: ImagePalette, source: Bitmap, selected: Int, fill: Boolean = false): Bitmap {
+fun renderHighlight(palette: ImagePalette, source: Bitmap, selected: Int): Bitmap {
     val w = palette.width
     val h = palette.height
     val n = w * h
     val src = IntArray(n)
     val scaled = if (source.width == w && source.height == h) source else Bitmap.createScaledBitmap(source, w, h, true)
     scaled.getPixels(src, 0, w, 0, 0, w, h)
-    val marker = palette.clusters.getOrNull(selected)?.let { markerFor(it) } ?: 0xFFFFE600.toInt()
+    if (scaled !== source) scaled.recycle()
     val lbl = palette.labels
-
-    // Contorno: píxeles a 1–2 px de la zona elegida que no son de la zona
-    val near = BooleanArray(n)
-    for (i in 0 until n) {
-        if (lbl[i] != selected) continue
-        val x = i % w
-        val y = i / w
-        for (dy in -2..2) for (dx in -2..2) {
-            val xx = x + dx
-            val yy = y + dy
-            if (xx < 0 || yy < 0 || xx >= w || yy >= h) continue
-            val j = yy * w + xx
-            if (lbl[j] != selected) near[j] = true
-        }
-    }
     val out = IntArray(n)
     for (i in 0 until n) {
-        val l = lbl[i]
-        out[i] = when {
-            l == selected -> if (fill) marker else src[i] or (0xFF shl 24)
-            near[i] -> marker
-            l < 0 -> 0
-            else -> {
-                val c = src[i]
-                val g = (((c shr 16) and 0xFF) * 30 + ((c shr 8) and 0xFF) * 59 + (c and 0xFF) * 11) / 100 * 35 / 100
-                (0xFF shl 24) or (g shl 16) or (g shl 8) or g
-            }
+        if (lbl[i] == selected) {
+            out[i] = src[i] or (0xFF shl 24)
+            continue
+        }
+        // Contorno de 1 px junto a la zona elegida
+        val x = i % w
+        val y = i / w
+        val edge = (x > 0 && lbl[i - 1] == selected) || (x < w - 1 && lbl[i + 1] == selected) ||
+            (y > 0 && lbl[i - w] == selected) || (y < h - 1 && lbl[i + w] == selected)
+        out[i] = if (edge) {
+            0xFF505050.toInt()
+        } else {
+            val c = src[i]
+            val lum = (((c shr 16) and 0xFF) * 30 + ((c shr 8) and 0xFF) * 59 + (c and 0xFF) * 11) / 100
+            // Gris claro que conserva un poco de la forma de la figura
+            val g = 200 + lum * 45 / 255
+            (0xFF shl 24) or (g shl 16) or (g shl 8) or g
         }
     }
     return Bitmap.createBitmap(out, w, h, Bitmap.Config.ARGB_8888)
