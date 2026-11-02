@@ -416,7 +416,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun setPaletteBrighten(on: Boolean) {
+    fun changePaletteBrighten(on: Boolean) {
         if (paletteBrighten == on) return
         paletteBrighten = on
         refreshPaletteMatches()

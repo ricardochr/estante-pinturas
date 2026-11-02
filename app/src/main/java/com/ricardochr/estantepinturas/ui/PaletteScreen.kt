@@ -251,8 +251,8 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, onProjectCrea
                                 style = MaterialTheme.typography.bodySmall,
                             )
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                FilterChip(selected = vm.paletteBrighten, onClick = { vm.setPaletteBrighten(true) }, label = { Text("Corregir luz") })
-                                FilterChip(selected = !vm.paletteBrighten, onClick = { vm.setPaletteBrighten(false) }, label = { Text("Colores de la foto") })
+                                FilterChip(selected = vm.paletteBrighten, onClick = { vm.changePaletteBrighten(true) }, label = { Text("Corregir luz") })
+                                FilterChip(selected = !vm.paletteBrighten, onClick = { vm.changePaletteBrighten(false) }, label = { Text("Colores de la foto") })
                             }
                         }
                     }
