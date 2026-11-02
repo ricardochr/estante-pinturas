@@ -34,6 +34,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.runtime.produceState
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import com.ricardochr.estantepinturas.Recommendation
 import com.ricardochr.estantepinturas.MainViewModel
 import com.ricardochr.estantepinturas.Paint
 
@@ -42,6 +50,7 @@ import com.ricardochr.estantepinturas.Paint
 fun ShoppingScreen(vm: MainViewModel, onClose: () -> Unit, onOpenPaint: (Paint) -> Unit, say: (String) -> Unit) {
     val context = LocalContext.current
     var picking by remember { mutableStateOf(false) }
+    val recs by produceState<List<Recommendation>?>(null, vm.owned, vm.catalog) { value = vm.recommendations() }
     val low = vm.lowPaints
     val toBuy = vm.shopping.mapNotNull { s -> vm.byId[s.paintId]?.let { it to s } }
         .filter { (p, _) -> low.none { it.id == p.id } }
@@ -70,13 +79,16 @@ fun ShoppingScreen(vm: MainViewModel, onClose: () -> Unit, onOpenPaint: (Paint) 
                 TextButton(onClick = { picking = true }, modifier = Modifier.padding(horizontal = 8.dp)) {
                     Text("+ Agregar una pintura del catálogo")
                 }
-                if (low.isEmpty() && toBuy.isEmpty()) {
-                    EmptyState(
-                        "Tu lista está vacía",
-                        "En la ficha de una pintura activa “Se está acabando”, o agrega las que te sugiere Paleta y el círculo cromático.",
-                    )
-                } else {
+                run {
                     LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(bottom = 24.dp)) {
+                        if (low.isEmpty() && toBuy.isEmpty()) {
+                            item {
+                                EmptyState(
+                                    "Tu lista está vacía",
+                                    "En la ficha de una pintura activa “Se está acabando”, o agrega las recomendaciones de abajo.",
+                                )
+                            }
+                        }
                         if (low.isNotEmpty()) {
                             item { SectionTitle("Se están acabando (${low.size})") }
                             items(low, key = { "low-" + it.id }) { p ->
@@ -99,6 +111,7 @@ fun ShoppingScreen(vm: MainViewModel, onClose: () -> Unit, onOpenPaint: (Paint) 
                                 }
                             }
                         }
+                        recommendationItems(vm, recs, onOpenPaint, say)
                         item {
                             Text(
                                 "“Comprada” suma un bote a tu inventario y la quita de la lista.",
@@ -116,6 +129,74 @@ fun ShoppingScreen(vm: MainViewModel, onClose: () -> Unit, onOpenPaint: (Paint) 
                 picking = false
                 vm.addToShopping(p.id, "")
                 say("En tu lista: ${p.name}")
+            }
+        }
+    }
+}
+
+/** Sección "Te recomiendo": pinturas para completar sombras, luces, básicos, lavados y metálicos. */
+private fun LazyListScope.recommendationItems(
+    vm: MainViewModel,
+    recs: List<Recommendation>?,
+    onOpenPaint: (Paint) -> Unit,
+    say: (String) -> Unit,
+) {
+    item {
+        Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 18.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text("Te recomiendo", style = MaterialTheme.typography.titleLarge)
+            Text(
+                when {
+                    vm.owned.values.none { it.qty > 0 } -> "Agrega tus pinturas al inventario y te digo cuáles te faltan."
+                    recs == null -> "Revisando tu inventario…"
+                    recs.isEmpty() -> "Tu inventario está muy completo: tienes básicos, sombras y luces para tus colores."
+                    else -> "Revisé tus colores: para cada uno busqué una pintura más oscura para sombra y una más clara para luz del mismo tono. " +
+                        "También los básicos, lavados y metálicos que conviene tener. Prefiero las marcas que más usas."
+                },
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+    if (recs.isNullOrEmpty() || vm.owned.values.none { it.qty > 0 }) return
+    val pending = recs.filter { r -> vm.shopping.none { it.paintId == r.paint.id } }
+    if (pending.size > 1) {
+        item {
+            TextButton(onClick = {
+                pending.forEach { vm.addToShopping(it.paint.id, "Recomendada · " + it.kind.label.lowercase()) }
+                say("${pending.size} recomendaciones agregadas a tu lista")
+            }, modifier = Modifier.padding(horizontal = 8.dp)) { Text("Agregar las ${pending.size} a la lista") }
+        }
+    }
+    recs.groupBy { it.kind }.forEach { (kind, list) ->
+        item(key = "rec-title-" + kind.name) { SectionTitle(kind.label) }
+        items(list, key = { "rec-" + it.paint.id }) { r ->
+            val inList = vm.shopping.any { it.paintId == r.paint.id }
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .clickable { onOpenPaint(r.paint) }
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Swatch(r.paint.hex, metallic = r.paint.type == "Metálica")
+                    Column(Modifier.weight(1f)) {
+                        Text(r.paint.name, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(
+                            listOf(r.paint.brand, r.paint.line, r.paint.code).filter { it.isNotBlank() }.joinToString(" · "),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    if (inList) {
+                        Text("✓ En lista", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                    } else {
+                        TextButton(onClick = { vm.addToShopping(r.paint.id, "Recomendada · " + r.kind.label.lowercase()) }) { Text("+ Lista") }
+                    }
+                }
+                Text(r.reason, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }

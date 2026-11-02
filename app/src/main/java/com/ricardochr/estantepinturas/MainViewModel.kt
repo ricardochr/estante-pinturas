@@ -835,6 +835,13 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             .toList()
     }
 
+    /** Pinturas que te recomiendo comprar para tener sombras, luces, lavados y básicos. */
+    suspend fun recommendations(): List<Recommendation> {
+        val inv = inventoryPaints()
+        val cat = extra + catalog
+        return withContext(Dispatchers.Default) { recommendPaints(inv, cat) }
+    }
+
     // ---------- proyectos ----------
 
     var projects by mutableStateOf<List<Project>>(emptyList())
