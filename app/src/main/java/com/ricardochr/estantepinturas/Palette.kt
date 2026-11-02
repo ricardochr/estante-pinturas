@@ -426,8 +426,11 @@ private fun toneTarget(base: Lab, darker: Boolean): Lab =
 private fun argbLab(argb: Int): Lab = hexToLab(String.format("#%06X", argb and 0xFFFFFF))
 
 /** Mejor mezcla de [base] con otra pintura tuya para llegar a la sombra o la luz. */
-private fun mixTone(base: Paint, candidates: List<Paint>, darker: Boolean): ToneMix? {
-    val target = toneTarget(base.lab, darker)
+private fun mixTone(base: Paint, candidates: List<Paint>, darker: Boolean): ToneMix? =
+    mixToward(base, candidates, toneTarget(base.lab, darker), darker)
+
+/** Mejor mezcla de [base] con otra pintura tuya para acercarse a [target] (más oscuro o más claro que la base). */
+private fun mixToward(base: Paint, candidates: List<Paint>, target: Lab, darker: Boolean): ToneMix? {
     val ratios = listOf(3 to 1, 2 to 1, 1 to 1)
     var best: ToneMix? = null
     var bestScore = Double.MAX_VALUE
@@ -612,4 +615,65 @@ fun renderHighlight(palette: ImagePalette, source: Bitmap, selected: Set<Int>): 
         }
     }
     return Bitmap.createBitmap(out, w, h, Bitmap.Config.ARGB_8888)
+}
+
+/**
+ * Corrige las pinturas dentro de cada zona: la sombra, la luz y el punto de luz no pueden ser la
+ * misma pintura que la base, y deben ir de más oscura a más clara. Si no tienes una pintura que
+ * cumpla, propone una mezcla con la base o una para comprar.
+ */
+fun refineZones(matches: List<PaletteMatch>, families: List<PaletteFamily>, inventory: List<Paint>, catalog: List<Paint>): List<PaletteMatch> {
+    val inv = inventory.filter { it.hasColor && typeGroup(it.type) == "opaca" && it.type != "Imprimación" }
+    val ownedIds = inventory.map { it.id }.toHashSet()
+    val buyable = catalog.filter { it.hasColor && it.type == "Opaca" && it.quality != "n" && it.id !in ownedIds }
+    val brands = inventory.map { brandKey(it.brand) }.toSet()
+    val out = matches.toMutableList()
+    for (f in families) {
+        if (f.members.size < 2) continue
+        val base = matches.getOrNull(f.base)?.best?.paint ?: continue
+        val used = hashSetOf(base.id)
+        val darker = f.members.filter { it != f.base && matches[it].cluster.l < matches[f.base].cluster.l }.sortedByDescending { matches[it].cluster.l }
+        val lighter = f.members.filter { it != f.base && matches[it].cluster.l >= matches[f.base].cluster.l }.sortedBy { matches[it].cluster.l }
+        for ((list, isDark) in listOf(darker to true, lighter to false)) {
+            var prevL = base.lab.l
+            for (i in list) {
+                val m = matches[i]
+                val ok: (Paint) -> Boolean = { p -> if (isDark) p.lab.l < prevL - 3 else p.lab.l > prevL + 3 }
+                val ranked = inv.asSequence()
+                    .filter { it.id !in used && ok(it) }
+                    .map { it to deltaE2000(m.cluster.lab, it.lab) }
+                    .filter { it.second < 20 }
+                    .sortedBy { it.second }
+                    .take(3)
+                    .toList()
+                val pick = ranked.firstOrNull()
+                if (pick != null) {
+                    used.add(pick.first.id)
+                    prevL = pick.first.lab.l
+                    out[i] = m.copy(
+                        best = SimilarPaint(pick.first, pick.second, true),
+                        alternatives = ranked.drop(1).map { SimilarPaint(it.first, it.second, true) },
+                        toBuy = null,
+                    )
+                } else {
+                    val mix = mixToward(base, inv, m.cluster.lab, isDark)
+                    val buy = buyable.asSequence()
+                        .filter { ok(it) }
+                        .map { it to deltaE2000(m.cluster.lab, it.lab) }
+                        .filter { it.second < 15 }
+                        .minByOrNull { it.second + if (brandKey(it.first.brand) in brands) 0.0 else 3.0 }
+                    mix?.let { prevL = argbLab(it.argb).l }
+                    out[i] = m.copy(
+                        best = null,
+                        alternatives = emptyList(),
+                        toBuy = buy?.first,
+                        toBuyDistance = buy?.second ?: Double.MAX_VALUE,
+                        shadowMix = if (isDark) mix else null,
+                        highlightMix = if (isDark) null else mix,
+                    )
+                }
+            }
+        }
+    }
+    return out
 }

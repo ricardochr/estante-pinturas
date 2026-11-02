@@ -240,7 +240,9 @@ fun familySteps(f: PaletteFamily, matches: List<PaletteMatch>, zones: List<ZoneA
     val baseAdvice = zones.getOrNull(f.base)
     val baseName = mb.best?.paint?.name ?: "un color parecido al de la muestra"
     val brush = baseAdvice?.brush ?: "Pincel redondo talla 1–2."
-    fun paintOf(i: Int): String? = matches.getOrNull(i)?.best?.paint?.name
+    fun paintOf(i: Int): String? = matches.getOrNull(i)?.let { m ->
+        m.best?.paint?.name ?: (m.shadowMix ?: m.highlightMix)?.let { "mezcla ${it.text}" } ?: m.toBuy?.let { "${it.name} de ${it.brand} (para comprar)" }
+    }
     val shadowMembers = f.members.filter { f.roles[it] == "Sombra" }
     val deepMembers = f.members.filter { f.roles[it] == "Sombra profunda" }
     val lightMembers = f.members.filter { f.roles[it] == "Luz" }

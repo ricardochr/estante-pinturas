@@ -458,7 +458,17 @@ private fun ZoneCard(
                             Text(role.uppercase(), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.tertiary)
                             val best = m.best
                             if (best == null) {
-                                Text("Nada parecido en tu inventario", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                val rowMix = if (f.members.size > 1 && role != "Base") (m.shadowMix ?: m.highlightMix) else null
+                                if (rowMix != null) {
+                                    Text("Mezcla", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                                    Text(rowMix.text, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                } else {
+                                    Text(
+                                        if (f.members.size > 1 && role != "Base") "No tienes una distinta de la base para este tono" else "Nada parecido en tu inventario",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
                             } else {
                                 Text(
                                     best.paint.name,
@@ -518,7 +528,10 @@ private fun ZoneCard(
                                 }
                             }
                         }
-                        m.best?.let { Swatch(it.paint.hex, size = 34.dp, metallic = it.paint.type == "Metálica") }
+                        val bestPaint = m.best?.paint
+                        val mixShown = if (f.members.size > 1 && role != "Base") (m.shadowMix ?: m.highlightMix) else null
+                        if (bestPaint != null) Swatch(bestPaint.hex, size = 34.dp, metallic = bestPaint.type == "Metálica")
+                        else if (mixShown != null) ColorChip(mixShown.argb, 34.dp)
                     }
                 }
             }

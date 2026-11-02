@@ -373,8 +373,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 } else {
                     try {
                         val ip = analyzeImage(bmp, detail)
-                        val matches = matchPalette(ip, inv, cat)
-                        PaletteView(uri, detail, bmp, ip, matches, renderPreview(ip, matches, bmp), buildAdvice(ip, matches, inv))
+                        val raw = matchPalette(ip, inv, cat)
+                        val advice = buildAdvice(ip, raw, inv)
+                        val matches = refineZones(raw, advice.families, inv, cat)
+                        PaletteView(uri, detail, bmp, ip, matches, renderPreview(ip, matches, bmp), advice)
                     } catch (e: Throwable) {
                         error = "Abrí la imagen pero falló el análisis (${e.javaClass.simpleName}: ${e.message}). Envíame este mensaje."
                         null
@@ -394,10 +396,12 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val cat = extra + catalog
         viewModelScope.launch {
             val updated = withContext(Dispatchers.Default) {
-                val matches = matchPalette(current.palette, inv, cat)
+                val raw = matchPalette(current.palette, inv, cat)
+                val advice = buildAdvice(current.palette, raw, inv)
+                val matches = refineZones(raw, advice.families, inv, cat)
                 PaletteView(
                     current.uri, current.detail, current.source, current.palette, matches,
-                    renderPreview(current.palette, matches, current.source), buildAdvice(current.palette, matches, inv),
+                    renderPreview(current.palette, matches, current.source), advice,
                 )
             }
             if (palette === current) palette = updated
