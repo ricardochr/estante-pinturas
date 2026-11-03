@@ -47,6 +47,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
 import kotlinx.coroutines.delay
@@ -142,6 +143,8 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, onProjectCrea
     val highlightImg = remember(view, sel) {
         if (sel == null) null else renderHighlight(view.palette, view.source, sel.ids).asImageBitmap()
     }
+    var picked by remember(view) { mutableStateOf<MainViewModel.PointPick?>(null) }
+    var boxSize by remember { mutableStateOf(androidx.compose.ui.unit.IntSize.Zero) }
     var zoom by remember(view) { mutableStateOf(1f) }
     var pan by remember(view) { mutableStateOf(Offset.Zero) }
     var showPlan by rememberSaveable { mutableStateOf(true) }
@@ -161,9 +164,21 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, onProjectCrea
                         .fillMaxWidth()
                         .height(260.dp)
                         .clip(RoundedCornerShape(14.dp))
-                        .background(if (sel != null) Color(0xFFE6E6E6) else MaterialTheme.colorScheme.surfaceContainer),
+                        .background(if (sel != null) Color(0xFFE6E6E6) else MaterialTheme.colorScheme.surfaceContainer)
+                        .onSizeChanged { boxSize = it },
                     contentAlignment = Alignment.Center,
                 ) {
+                    // Geometría de la imagen dentro del recuadro (ajustada, centrada, con zoom y desplazamiento)
+                    val iw = view.palette.width.toFloat()
+                    val ih = view.palette.height.toFloat()
+                    val bw = boxSize.width.toFloat()
+                    val bh = boxSize.height.toFloat()
+                    val fit = if (iw > 0 && ih > 0 && bw > 0 && bh > 0) minOf(bw / iw, bh / ih) else 1f
+                    val dw = iw * fit
+                    val dh = ih * fit
+                    val ox = (bw - dw) / 2f
+                    val oy = (bh - dh) / 2f
+                    val center = Offset(bw / 2f, bh / 2f)
                     Image(
                         bitmap = highlightImg ?: if (showPreview) previewImg else sourceImg,
                         contentDescription = when {
@@ -181,8 +196,16 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, onProjectCrea
                                     pan = if (zoom == 1f) Offset.Zero else pan + p
                                 }
                             }
-                            .pointerInput(view) {
-                                detectTapGestures(onDoubleTap = { zoom = 1f; pan = Offset.Zero })
+                            .pointerInput(view, boxSize) {
+                                detectTapGestures(
+                                    onDoubleTap = { zoom = 1f; pan = Offset.Zero },
+                                    onTap = { pos ->
+                                        val local = center + (pos - center - pan) / zoom
+                                        val nx = (local.x - ox) / dw
+                                        val ny = (local.y - oy) / dh
+                                        if (dw > 0 && dh > 0 && nx in 0f..1f && ny in 0f..1f) picked = vm.pickPoint(nx, ny)
+                                    },
+                                )
                             }
                             .graphicsLayer {
                                 scaleX = zoom
@@ -191,10 +214,18 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, onProjectCrea
                                 translationY = pan.y
                             },
                     )
+                    picked?.let { pk ->
+                        androidx.compose.foundation.Canvas(Modifier.fillMaxSize()) {
+                            val local = Offset(ox + pk.x * dw, oy + pk.y * dh)
+                            val pt = center + pan + (local - center) * zoom
+                            drawCircle(Color.Black, 9.dp.toPx(), pt, style = androidx.compose.ui.graphics.drawscope.Stroke(3.dp.toPx()))
+                            drawCircle(Color.White, 9.dp.toPx(), pt, style = androidx.compose.ui.graphics.drawscope.Stroke(1.5f.dp.toPx()))
+                        }
+                    }
                     if (vm.paletteBusy) CircularProgressIndicator()
-                    if (zoom == 1f) {
+                    if (zoom == 1f && picked == null) {
                         Text(
-                            "Pellizca para acercar",
+                            "Toca un punto para ver su color · pellizca para acercar",
                             style = MaterialTheme.typography.labelSmall,
                             color = Color.White,
                             modifier = Modifier
@@ -204,6 +235,20 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, onProjectCrea
                                 .padding(horizontal = 6.dp, vertical = 2.dp),
                         )
                     }
+                }
+                picked?.let { pk ->
+                    val zoneIdx = view.advice.families.indexOfFirst { pk.label in it.members }
+                    val fam = view.advice.families.getOrNull(zoneIdx)
+                    PickCard(
+                        pk = pk,
+                        corrected = view.brightened,
+                        zoneText = fam?.let { "Zona ${zoneIdx + 1} · ${it.name} (${(it.roles[pk.label] ?: "Base").lowercase()})" },
+                        onShowZone = fam?.let { f -> { selected = Highlight(f.members.toSet(), "Zona ${zoneIdx + 1} · ${f.name}: resaltada en la imagen") } },
+                        onOpen = onOpenPaint,
+                        onAddShopping = { b -> vm.addToShopping(b.id, "Color de un punto de la foto") },
+                        inShopping = { b -> vm.shopping.any { it.paintId == b.id } },
+                        onClose = { picked = null },
+                    )
                 }
                 if (sel != null) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -723,4 +768,98 @@ fun ProjectNameDialog(onDismiss: () -> Unit, onSave: (String) -> Unit, initial: 
         confirmButton = { TextButton(onClick = { onSave(name) }, enabled = name.isNotBlank()) { Text("Guardar") } },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } },
     )
+}
+
+/** Color del punto que tocaste en la foto y tus pinturas más parecidas. */
+@Composable
+private fun PickCard(
+    pk: MainViewModel.PointPick,
+    corrected: Boolean,
+    zoneText: String?,
+    onShowZone: (() -> Unit)?,
+    onOpen: (Paint) -> Unit,
+    onAddShopping: (Paint) -> Unit,
+    inShopping: (Paint) -> Boolean,
+    onClose: () -> Unit,
+) {
+    val shown = com.ricardochr.estantepinturas.labToArgb(pk.lab.l, pk.lab.a, pk.lab.b)
+    val name = com.ricardochr.estantepinturas.colorName(com.ricardochr.estantepinturas.ColorCluster(pk.lab.l, pk.lab.a, pk.lab.b, 0.0))
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                ColorChip(pk.photoArgb, 30.dp)
+                if (corrected) ColorChip(shown, 30.dp)
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        "Punto elegido: ${name}" + String.format(" · #%06X", shown and 0xFFFFFF),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        listOfNotNull(if (corrected) "foto → con luz corregida" else null, zoneText).joinToString(" · ").ifBlank { "Fondo o zona sin analizar" },
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                if (onShowZone != null) TextButton(onClick = onShowZone) { Text("Zona") }
+                androidx.compose.material3.IconButton(onClick = onClose) { androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Default.Close, contentDescription = "Cerrar") }
+            }
+            val best = pk.matches.firstOrNull()
+            if (best != null) {
+                Row(
+                    Modifier.fillMaxWidth().clickable { onOpen(best.paint) },
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Swatch(best.paint.hex, size = 28.dp, metallic = best.paint.type == "Metálica")
+                    Column(Modifier.weight(1f)) {
+                        Text(best.paint.name, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(
+                            listOf(best.paint.brand, best.paint.code, best.paint.type.lowercase(), similarityLabel(best.distance).lowercase()).filter { it.isNotBlank() }.joinToString(" · "),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
+                if (pk.matches.size > 1) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text("También:", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        pk.matches.drop(1).take(3).forEach { m -> MiniPaint(m.paint, onOpen, Modifier.weight(1f)) }
+                    }
+                }
+            } else {
+                Text("No tienes pinturas parecidas.", style = MaterialTheme.typography.bodySmall)
+            }
+            val buy = pk.toBuy
+            if (buy != null && pk.toBuyDistance < (best?.distance ?: 99.0) - 3) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Swatch(buy.hex, size = 18.dp, metallic = false)
+                    Text(
+                        "Más parecida para comprar: ${buy.name} · ${buy.brand}",
+                        style = MaterialTheme.typography.labelSmall,
+                        modifier = Modifier.weight(1f).clickable { onOpen(buy) },
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    if (inShopping(buy)) Text("✓", style = MaterialTheme.typography.labelMedium)
+                    else Text(
+                        "+ Lista",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.clickable { onAddShopping(buy) }.padding(4.dp),
+                    )
+                }
+            }
+        }
+    }
 }

@@ -423,6 +423,68 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         refreshPaletteMatches()
     }
 
+    /** Color de un punto de la foto y las pinturas tuyas que más se le parecen. */
+    class PointPick(
+        val x: Float,
+        val y: Float,
+        val photoArgb: Int,
+        val lab: Lab,
+        val label: Int,
+        val matches: List<SimilarPaint>,
+        val toBuy: Paint?,
+        val toBuyDistance: Double,
+    )
+
+    /**
+     * Lee el color en el punto ([x], [y] de 0 a 1) promediando un cuadrito de la foto, aplica la
+     * misma corrección de luz que la paleta y busca tus pinturas más parecidas.
+     */
+    fun pickPoint(x: Float, y: Float): PointPick? {
+        val view = palette ?: return null
+        val src = view.source
+        val px = (x * src.width).toInt().coerceIn(0, src.width - 1)
+        val py = (y * src.height).toInt().coerceIn(0, src.height - 1)
+        val r = maxOf(1, minOf(src.width, src.height) / 200)
+        var sr = 0L; var sg = 0L; var sb = 0L; var n = 0
+        for (yy in (py - r)..(py + r)) for (xx in (px - r)..(px + r)) {
+            if (xx < 0 || yy < 0 || xx >= src.width || yy >= src.height) continue
+            val c = src.getPixel(xx, yy)
+            sr += (c shr 16) and 0xFF; sg += (c shr 8) and 0xFF; sb += c and 0xFF; n++
+        }
+        if (n == 0) return null
+        val argb = (0xFF shl 24) or ((sr / n).toInt() shl 16) or ((sg / n).toInt() shl 8) or (sb / n).toInt()
+        var lab = hexToLab(String.format("#%06X", argb and 0xFFFFFF))
+        val ip = view.palette
+        val lx = (x * ip.width).toInt().coerceIn(0, ip.width - 1)
+        val ly = (y * ip.height).toInt().coerceIn(0, ip.height - 1)
+        val label = ip.labels[ly * ip.width + lx]
+        // Misma corrección de luz que se aplicó a la paleta (si la foto era oscura)
+        if (view.brightened && label >= 0) {
+            val o = view.original.clusters.getOrNull(label)
+            val a = ip.clusters.getOrNull(label)
+            if (o != null && a != null && o.l > 1) {
+                val chromaO = kotlin.math.sqrt(o.a * o.a + o.b * o.b).coerceAtLeast(1.0)
+                val chromaA = kotlin.math.sqrt(a.a * a.a + a.b * a.b)
+                val k = (chromaA / chromaO).coerceIn(0.5, 2.0)
+                lab = Lab((lab.l * a.l / o.l).coerceIn(0.0, 100.0), lab.a * k, lab.b * k)
+            }
+        }
+        val inv = inventoryPaints().filter { it.hasColor && typeGroup(it.type) != "auxiliar" && typeGroup(it.type) != "metal" && it.type != "Imprimación" }
+        val ranked = inv.map { it to deltaE2000(lab, it.lab) }.sortedBy { it.second + if (typeGroup(it.first.type) == "opaca") 0.0 else 3.0 }.take(4)
+        val matches = ranked.map { SimilarPaint(it.first, it.second, typeGroup(it.first.type) == "opaca") }
+        var buy: Paint? = null
+        var buyD = Double.MAX_VALUE
+        if ((matches.firstOrNull()?.distance ?: 99.0) > 8) {
+            val ownedIds = owned.keys
+            for (p in extra + catalog) {
+                if (!p.hasColor || p.type != "Opaca" || p.quality == "n" || p.id in ownedIds) continue
+                val d = deltaE2000(lab, p.lab)
+                if (d < buyD) { buyD = d; buy = p }
+            }
+        }
+        return PointPick(x, y, argb, lab, label, matches, buy, buyD)
+    }
+
     fun clearPalette() {
         palette = null
         paletteError = null
