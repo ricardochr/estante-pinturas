@@ -44,6 +44,12 @@ data class OwnedEntry(
     val low: Boolean = false,
 )
 
+/**
+ * Equipo de pintura: un aerógrafo (con su boquilla en mm) o un compresor (con o sin tanque).
+ * [kind] = "airbrush" o "compressor".
+ */
+data class Gear(val id: String, val kind: String, val name: String, val nozzle: Double = 0.0, val tank: Boolean = false)
+
 /** Algo por comprar: una pintura del catálogo y por qué. */
 data class ShopItem(val paintId: String, val reason: String, val addedAt: Long)
 

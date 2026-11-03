@@ -76,7 +76,7 @@ private fun sameFamily(a: ColorCluster, b: ColorCluster): Boolean {
     return hueDiff(a, b) < 24 && maxOf(ca, cb) / minOf(ca, cb) < 1.75
 }
 
-fun buildAdvice(palette: ImagePalette, matches: List<PaletteMatch>, inventory: List<Paint>): PaletteAdvice {
+fun buildAdvice(palette: ImagePalette, matches: List<PaletteMatch>, inventory: List<Paint>, kit: GearKit = GearKit(emptyList(), null)): PaletteAdvice {
     val cs = palette.clusters
     val zones = palette.zones
     val n = cs.size
@@ -210,6 +210,15 @@ fun buildAdvice(palette: ImagePalette, matches: List<PaletteMatch>, inventory: L
             colorName(cs[i]) + (matches.getOrNull(i)?.best?.paint?.name?.let { " ($it)" } ?: "")
         } + ".")
     }
+    if (kit.hasAirbrush) {
+        val wide = kit.wide
+        plan.add(
+            "Con aerógrafo: imprima con tu ${wide?.let { gearLabel(it) } ?: "aerógrafo"} a 25–30 psi. Zenital: todo en negro y luego blanco solo desde arriba a 45°; " +
+                "las zonas grandes (en cada tarjeta lo indico) se pueden basear y degradar con aerógrafo, y los detalles se terminan a pincel."
+        )
+    } else {
+        plan.add("Si tienes aerógrafo, regístralo en el menú → Mi equipo: te diré en qué zonas usarlo, con qué boquilla, presión y dilución.")
+    }
     plan.add("Orden: de lo más interno a lo más externo (piel y cara, luego ropa, luego armadura y equipo). Así si te sales, lo tapas con la capa siguiente.")
     plan.add("Cada zona tiene su \"Paso a paso\": base → sombra → luz → punto de luz. Termina una zona antes de pasar a la siguiente.")
     val details = (0 until n).filter { advice[it]?.role == "Detalle" }
@@ -235,7 +244,7 @@ fun toneText(p: Paint?, mix: ToneMix?, buy: Paint?, darker: Boolean): String = w
  * colores de la imagen que forman esa zona (o, si la imagen no los tiene, una pintura, mezcla o
  * compra sugerida), con cuánto diluir y dónde va cada capa.
  */
-fun familySteps(f: PaletteFamily, matches: List<PaletteMatch>, zones: List<ZoneAdvice>): List<String> {
+fun familySteps(f: PaletteFamily, matches: List<PaletteMatch>, zones: List<ZoneAdvice>, kit: GearKit = GearKit(emptyList(), null)): List<String> {
     val mb = matches.getOrNull(f.base) ?: return emptyList()
     val baseAdvice = zones.getOrNull(f.base)
     val baseName = mb.best?.paint?.name ?: "un color parecido al de la muestra"
@@ -267,6 +276,12 @@ fun familySteps(f: PaletteFamily, matches: List<PaletteMatch>, zones: List<ZoneA
         "Base: $baseName (${mb.best?.paint?.type?.lowercase() ?: "opaca"}) en toda la zona. Dilúyela con un poco de agua hasta que fluya como leche " +
             "y aplica 2–3 capas finas, dejando secar entre capas, hasta que quede pareja. $brush"
     )
+    // Zonas grandes y lisas: el aerógrafo da bases parejas y degradados suaves
+    val zoneFraction = f.members.sumOf { matches.getOrNull(it)?.cluster?.fraction ?: 0.0 }
+    val isBigZone = zoneFraction >= 0.06 && baseAdvice?.role != "Detalle" && (baseAdvice?.tips?.none { it.contains("textura") } ?: true)
+    if (kit.hasAirbrush && isBigZone) {
+        airbrushStep(kit, mb.best?.paint, shadow ?: wash?.name ?: "la sombra", light)?.let { steps.add(it) }
+    }
     mb.quick?.let { q ->
         steps.add(
             "Atajo: en vez de base + sombra + luz, puedes usar ${q.name} (${q.brand}, contraste/speedpaint) en una sola capa sobre imprimación blanca o gris claro: " +

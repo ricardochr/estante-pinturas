@@ -15,6 +15,7 @@ data class SavedState(
     /** Colores que corregiste a mano: id de pintura -> #RRGGBB. */
     val colorFixes: Map<String, String> = emptyMap(),
     val shopping: List<ShopItem> = emptyList(),
+    val gear: List<Gear> = emptyList(),
 )
 
 /** Un lugar donde guardas pinturas (gaveta, estante), con su foto. */
@@ -188,7 +189,13 @@ class Store(private val context: Context) {
                 val e = sha.getJSONObject(i)
                 shopping.add(ShopItem(e.getString("paintId"), e.optString("reason", ""), e.optLong("addedAt", 0L)))
             }
-            return SavedState(owned, custom, barcodes, spots, locations, fixes, shopping)
+            val gear = ArrayList<Gear>()
+            val ga = o.optJSONArray("gear") ?: JSONArray()
+            for (i in 0 until ga.length()) {
+                val e = ga.getJSONObject(i)
+                gear.add(Gear(e.getString("id"), e.optString("kind", "airbrush"), e.optString("name", ""), e.optDouble("nozzle", 0.0), e.optBoolean("tank", false)))
+            }
+            return SavedState(owned, custom, barcodes, spots, locations, fixes, shopping, gear)
         }
 
         fun stateToJson(state: SavedState): JSONObject {
@@ -237,6 +244,9 @@ class Store(private val context: Context) {
             val sha = JSONArray()
             state.shopping.forEach { sha.put(JSONObject().put("paintId", it.paintId).put("reason", it.reason).put("addedAt", it.addedAt)) }
             o.put("shopping", sha)
+            val ga = JSONArray()
+            state.gear.forEach { ga.put(JSONObject().put("id", it.id).put("kind", it.kind).put("name", it.name).put("nozzle", it.nozzle).put("tank", it.tank)) }
+            o.put("gear", ga)
             return o
         }
     }

@@ -114,6 +114,7 @@ private fun App(vm: MainViewModel = viewModel()) {
     var openProject by rememberSaveable { mutableStateOf<String?>(null) }
     var showShopping by rememberSaveable { mutableStateOf(false) }
     var showBackup by rememberSaveable { mutableStateOf(false) }
+    var showGear by rememberSaveable { mutableStateOf(false) }
     fun goCatalog() { tab = Tab.Inventario; invMode = 1 }
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -171,6 +172,9 @@ private fun App(vm: MainViewModel = viewModel()) {
                         })
                         DropdownMenuItem(text = { Text("Encontrar una pintura") }, onClick = {
                             menuOpen = false; storage = StorageRequest()
+                        })
+                        DropdownMenuItem(text = { Text("Mi equipo (aerógrafos)") }, onClick = {
+                            menuOpen = false; showGear = true
                         })
                         DropdownMenuItem(text = { Text("Respaldo") }, onClick = {
                             menuOpen = false; showBackup = true
@@ -270,7 +274,7 @@ private fun App(vm: MainViewModel = viewModel()) {
                 Tab.Escanear -> ScanScreen(
                     vm,
                     active = linking == null && editing == null && !creating && storage == null && liveFind == null &&
-                        openProject == null && !showShopping && !showBackup,
+                        openProject == null && !showShopping && !showBackup && !showGear,
                     onLinkBarcode = { linking = it },
                     onNotFound = { goCatalog() },
                     onAdded = { say(it) },
@@ -388,6 +392,10 @@ private fun App(vm: MainViewModel = viewModel()) {
 
     if (showShopping) {
         ShoppingScreen(vm, onClose = { showShopping = false }, onOpenPaint = { editing = it }, say = { say(it) })
+    }
+
+    if (showGear) {
+        com.ricardochr.estantepinturas.ui.GearScreen(vm, onClose = { showGear = false }, say = { say(it) })
     }
 
     if (showBackup) {

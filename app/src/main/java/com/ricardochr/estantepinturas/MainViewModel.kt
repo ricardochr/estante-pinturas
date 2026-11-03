@@ -71,6 +71,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             locations = saved.locations
             colorFixes = saved.colorFixes
             shopping = saved.shopping
+            gear = saved.gear
             projects = withContext(Dispatchers.IO) { projectStore.load() }
             if (colorFixes.isNotEmpty()) {
                 catalog = catalog.map { p -> colorFixes[p.id]?.let { p.copy(hex = it, quality = "u") } ?: p }
@@ -207,7 +208,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private fun persist() {
-        val snapshot = SavedState(owned, custom, barcodes, spots, locations, colorFixes, shopping)
+        val snapshot = SavedState(owned, custom, barcodes, spots, locations, colorFixes, shopping, gear)
         viewModelScope.launch(Dispatchers.IO) { store.saveState(snapshot) }
         scheduleAutoBackup()
     }
@@ -364,7 +365,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val fixed = brightenedPalette(original)
         val ip = if (paletteBrighten && fixed != null) fixed else original
         val raw = matchPalette(ip, inv, cat)
-        val advice = buildAdvice(ip, raw, inv)
+        val advice = buildAdvice(ip, raw, inv, gearKit)
         val matches = refineZones(raw, advice.families, inv, cat)
         return PaletteView(uri, detail, bmp, ip, matches, renderPreview(ip, matches, bmp), advice, original, fixed != null, ip !== original)
     }
@@ -835,6 +836,25 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    // ---------- equipo (aerógrafos y compresor) ----------
+
+    var gear by mutableStateOf<List<Gear>>(emptyList())
+        private set
+
+    val gearKit: GearKit get() = GearKit.of(gear)
+
+    fun addGear(kind: String, name: String, nozzle: Double, tank: Boolean) {
+        gear = gear + Gear(UUID.randomUUID().toString(), kind, name.trim(), nozzle, tank)
+        persist()
+        refreshPaletteMatches()
+    }
+
+    fun removeGear(id: String) {
+        gear = gear.filterNot { it.id == id }
+        persist()
+        refreshPaletteMatches()
+    }
+
     // ---------- lista de compras ----------
 
     var shopping by mutableStateOf<List<ShopItem>>(emptyList())
@@ -1071,7 +1091,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun projectsRoot(): File = File(getApplication<Application>().filesDir, "projects")
 
-    private fun currentState() = SavedState(owned, custom, barcodes, spots, locations, colorFixes, shopping)
+    private fun currentState() = SavedState(owned, custom, barcodes, spots, locations, colorFixes, shopping, gear)
 
     private fun writeBackup(uri: Uri): String? = try {
         val out = getApplication<Application>().contentResolver.openOutputStream(uri, "wt")
@@ -1179,6 +1199,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 extra = extra.map { p -> fixes[p.id]?.let { p.copy(hex = it, quality = "u") } ?: p }
             }
             shopping = shopping + b.shopping.filter { s -> shopping.none { it.paintId == s.paintId } }
+            gear = gear + b.gear.filter { g -> gear.none { it.id == g.id } }
             val knownProjects = projects.map { it.id }.toHashSet()
             val newProjects = content.projects.filter { it.id !in knownProjects }
             projects = projects + newProjects

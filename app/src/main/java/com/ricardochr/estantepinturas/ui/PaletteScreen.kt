@@ -307,6 +307,7 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, onProjectCrea
                 mixFor = { lab -> vm.mixesFor(lab) },
                 onAddShopping = { b -> vm.addToShopping(b.id, "Para la paleta de una imagen") },
                 isInShopping = { b -> vm.shopping.any { it.paintId == b.id } },
+                kit = vm.gearKit,
             )
         }
         item {
@@ -390,6 +391,7 @@ private fun ZoneCard(
     mixFor: suspend (Lab) -> List<MixRecipe>,
     onAddShopping: (Paint) -> Unit,
     isInShopping: (Paint) -> Boolean,
+    kit: com.ricardochr.estantepinturas.GearKit,
 ) {
     val mb = matches.getOrNull(f.base) ?: return
     val baseAdvice = zones.getOrNull(f.base)
@@ -401,7 +403,7 @@ private fun ZoneCard(
     val zoneHighlight = Highlight(f.members.toSet(), "Zona $number · ${f.name}: resaltada en la imagen")
     val zoneSelected = selected?.ids == zoneHighlight.ids
     val members = f.members.sortedBy { ROLE_ORDER.indexOf(f.roles[it] ?: "Base").let { r -> if (r < 0) 0 else r } }
-    val steps = remember(f, matches) { familySteps(f, matches, zones) }
+    val steps = remember(f, matches, kit) { familySteps(f, matches, zones, kit) }
     val title = when {
         f.members.size == 1 && baseAdvice?.role == "Detalle" -> "Detalle · ${f.name}"
         else -> f.name.replaceFirstChar { it.uppercase() }
