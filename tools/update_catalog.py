@@ -67,9 +67,11 @@ def guess_type(name, line):
     s = (name + " " + line).lower()
     if "primer" in s or "prime " in s or s.startswith("prime") or "imprim" in s: return "Imprimación"
     if "varnish" in s or "barniz" in s: return "Barniz"
-    if "medium" in s or "thinner" in s or "reducer" in s or "retarder" in s: return "Médium"
+    # "Medium Fleshtone", "Medium Grey"… son colores; "Metallic Medium", "Glaze Medium" son auxiliares
+    if re.search(r"\b(thinner|reducer|retarder)\b", s) or ("medium" in s and not re.match(r"\s*medium\s+\w", name.lower())): return "Médium"
     if "contrast" in s or "speedpaint" in s or "xpress" in s or "1-step" in s or "instant" in s or "quick gen" in s: return "Contraste"
-    if "wash" in s or "shade" in s or "tone" in s.split(): return "Wash"
+    # "Skin Tone", "Fleshtone" son colores de piel, no lavados (como "Soft Tone" o "Dark Tone")
+    if "wash" in s or "shade" in s or ("tone" in s.split() and not re.search(r"skin|flesh", s)): return "Wash"
     if re.search(r"\bink\b|tinta|transparent|glaze", s): return "Tinta"
     if re.search(r"\b(metal|metallic|metallics|gold|silver|bronze|copper|brass|steel|iron|chrome|gunmetal|aluminium|aluminum|pewter)\b|alchemy", s) and "oxide" not in s:
         return "Metálica"
