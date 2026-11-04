@@ -50,6 +50,9 @@ data class OwnedEntry(
  */
 data class Gear(val id: String, val kind: String, val name: String, val nozzle: Double = 0.0, val tank: Boolean = false)
 
+/** Un set de pinturas de una tienda (por ejemplo "PRO Acryl Intro Set") y las pinturas que trae. */
+data class PaintSet(val brand: String, val name: String, val code: String, val paintIds: List<String>)
+
 /** Algo por comprar: una pintura del catálogo y por qué. */
 data class ShopItem(val paintId: String, val reason: String, val addedAt: Long)
 

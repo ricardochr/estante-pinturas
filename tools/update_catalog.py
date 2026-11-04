@@ -81,8 +81,11 @@ def guess_type(name, line):
     return "Opaca"
 
 
-def get(url, tries=3):
-    req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "application/json,*/*", "Accept-Language": "en"})
+def get(url, tries=3, headers=None):
+    h = {"User-Agent": UA, "Accept": "application/json,*/*", "Accept-Language": "en"}
+    if headers:
+        h.update(headers)
+    req = urllib.request.Request(url, headers=h)
     for i in range(tries):
         try:
             with urllib.request.urlopen(req, timeout=60) as r:
@@ -146,6 +149,37 @@ def fetch_wc_search(base, terms):
     return out
 
 
+GSW_CATEGORIES = ["122-acrylic-paints", "126-metallic-acrylic-paints", "129-acrylic-inks", "153-chameleon-acrylic-paints",
+                  "187-fluorescent-acrylic-paints", "259-military-acrylic-paints", "264-effect-paints", "123-paint-sets"]
+
+
+def fetch_gsw():
+    """Green Stuff World (PrestaShop): listado de cada categoría en JSON (?from-xhr), página por página."""
+    out, ids = [], set()
+    hdr = {"Accept": "application/json, text/javascript, */*; q=0.01", "X-Requested-With": "XMLHttpRequest"}
+    for cat in GSW_CATEGORIES:
+        for page in range(1, 60):
+            b = get(f"https://www.greenstuffworld.com/en/{cat}?page={page}&from-xhr", headers=hdr)
+            if not b:
+                break
+            try:
+                d = json.loads(b)
+            except Exception:
+                break
+            prods = d.get("products") or []
+            for p in prods:
+                if p.get("id_product") not in ids:
+                    ids.add(p.get("id_product"))
+                    p["_cat"] = cat
+                    out.append(p)
+            pg = d.get("pagination") or {}
+            if not prods or page >= int(pg.get("pages_count") or 1):
+                break
+            time.sleep(0.7)
+    print(f"  greenstuffworld.com: {len(out)} productos")
+    return out
+
+
 def load_sources(args):
     if args.fetch:
         print("Descargando tiendas…")
@@ -164,6 +198,7 @@ def load_sources(args):
             b = get(f"https://hobbyisthaven.com/products/{h}.json")
             if b: ds.append(json.loads(b)["product"])
         src["dspiae"] = ds
+        src["gsw"] = fetch_gsw()
         if args.save_raw:
             os.makedirs(args.save_raw, exist_ok=True)
             for k, v in src.items():
@@ -171,7 +206,7 @@ def load_sources(args):
                     json.dump(v, f)
         return src
     src = {}
-    for k in ["monument", "armypainter", "scale75", "gaahleri", "vallejo", "ak", "dspiae"]:
+    for k in ["monument", "armypainter", "scale75", "gaahleri", "vallejo", "ak", "dspiae", "gsw"]:
         fn = os.path.join(args.raw, k + ".json.gz")
         src[k] = json.load(gzip.open(fn, "rt", encoding="utf-8")) if os.path.exists(fn) else []
     return src
@@ -399,6 +434,39 @@ def parse_kaleido(prods):
     return out
 
 
+GSW_PREFIX = re.compile(
+    r"^(acrylic colou?r|acrylic paint|metallic paint|metallic colou?r|dipping ink|chameleon(?: colorshift)?(?: paint)?|"
+    r"fluor(?:escent)? metallic|fluor(?:escent)?(?: paint| colou?r)?|candy ink|intensity ink|wash ink|effect paint|paint)\s*[-–:]?\s*", re.I)
+
+
+def parse_gsw(prods):
+    out = []
+    for p in prods:
+        title = html.unescape(p.get("name") or "").strip()
+        if p.get("_cat") == "123-paint-sets" or re.search(r"\bset\b|pack|kit\b|bundle|empty|bottle|dropper|brush", title, re.I):
+            continue
+        low = title.lower()
+        if "dipping" in low: line, t = "Dipping Inks", "Wash"
+        elif "intensity" in low: line, t = "Intensity Ink", "Tinta"
+        elif "candy" in low: line, t = "Candy Ink Metallic", "Tinta"
+        elif "wash ink" in low: line, t = "Wash Ink", "Wash"
+        elif "chameleon" in low: line, t = "Chameleon Colorshift Metallic", "Metálica"
+        elif "fluor" in low and "metallic" in low: line, t = "Fluor Metallic", "Metálica"
+        elif "fluor" in low: line, t = "Fluor Colors", "Opaca"
+        elif "metallic" in low or p.get("_cat") == "126-metallic-acrylic-paints": line, t = "Metallic Colors", "Metálica"
+        elif p.get("_cat") == "264-effect-paints": line, t = "Effect Paints", "Otro"
+        else: line, t = "Acrylic Colors", "Opaca"
+        name = GSW_PREFIX.sub("", title)
+        name = re.sub(r"\s*\d+\s?ml\b.*$", "", name, flags=re.I).strip(" -")
+        if not name:
+            continue
+        name = titlecase(name)
+        cover = p.get("cover") or {}
+        img = [((cover.get("bySize") or {}).get("home_default") or {}).get("url") or (cover.get("medium") or {}).get("url")]
+        out.append(dict(brand="Green Stuff World", line=line, name=name, code="", type=t, img=[i for i in img if i]))
+    return out
+
+
 def parse_dspiae(prods):
     out = []
     for p in prods:
@@ -531,6 +599,7 @@ def build(args):
         "AK Interactive": parse_ak(src["ak"]),
         "Kaleido Colorworks": parse_kaleido(src["gaahleri"]),
         "DSPIAE": parse_dspiae(src["dspiae"]),
+        "Green Stuff World": parse_gsw(src.get("gsw", [])),
     }
     for b, rs in store.items():
         print(f"Tienda {b}: {len(rs)} pinturas")

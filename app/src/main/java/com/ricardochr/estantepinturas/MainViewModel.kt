@@ -62,6 +62,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             val (cat, saved) = withContext(Dispatchers.IO) { store.loadCatalog() to store.loadState() }
             val ext = withContext(Dispatchers.IO) { store.loadExtraCatalog() }
+            sets = withContext(Dispatchers.IO) { store.loadSets() }
             catalog = cat
             extra = ext
             custom = saved.custom
@@ -896,6 +897,40 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             }
             onDone("Importadas ${matched + created}: $matched del catálogo, $created nuevas")
         }
+    }
+
+    // ---------- sets de pinturas ----------
+
+    var sets by mutableStateOf<List<PaintSet>>(emptyList())
+        private set
+
+    /** Pinturas del set que están en el catálogo (con su color), en el orden del set. */
+    fun paintsOf(set: PaintSet): List<Paint> = set.paintIds.mapNotNull { byId[it] }
+
+    /** Agrega a la lista de compras las pinturas del set que no tienes. Devuelve cuántas agregó. */
+    fun addMissingToShopping(set: PaintSet): Int {
+        val missing = paintsOf(set).filter { qtyOf(it.id) == 0 && !inShopping(it.id) }
+        if (missing.isEmpty()) return 0
+        val now = System.currentTimeMillis()
+        shopping = shopping + missing.map { ShopItem(it.id, "Del set ${set.name}", now) }
+        persist()
+        return missing.size
+    }
+
+    /** Compraste el set: suma un bote de cada pintura al inventario y las quita de la lista de compras. */
+    fun boughtSet(set: PaintSet): Int {
+        val ps = paintsOf(set)
+        val now = System.currentTimeMillis()
+        var o = owned
+        for (p in ps) {
+            val cur = o[p.id]
+            o = o + (p.id to OwnedEntry(p.id, (cur?.qty ?: 0) + 1, cur?.notes ?: "", now, low = false))
+        }
+        owned = o
+        val ids = ps.map { it.id }.toHashSet()
+        shopping = shopping.filterNot { it.paintId in ids }
+        persist()
+        return ps.size
     }
 
     // ---------- equipo (aerógrafos y compresor) ----------

@@ -28,6 +28,18 @@ class Store(private val context: Context) {
 
     private val file: File get() = File(context.filesDir, "inventario.json")
 
+    /** Sets de pinturas conocidos (assets/sets.json), generado junto con el catálogo. */
+    fun loadSets(): List<PaintSet> = try {
+        val arr = JSONArray(context.assets.open("sets.json").bufferedReader(Charsets.UTF_8).use { it.readText() })
+        (0 until arr.length()).map { i ->
+            val o = arr.getJSONObject(i)
+            val ps = o.getJSONArray("paints")
+            PaintSet(o.getString("brand"), o.getString("name"), o.optString("code", ""), (0 until ps.length()).map { ps.getString(it) })
+        }
+    } catch (e: Exception) {
+        emptyList()
+    }
+
     fun loadCatalog(): List<Paint> {
         val text = context.assets.open("catalog.json").bufferedReader(Charsets.UTF_8).use { it.readText() }
         val arr = JSONArray(text)
