@@ -55,9 +55,11 @@ fun SetsScreen(vm: MainViewModel, onClose: () -> Unit, onOpenPaint: (Paint) -> U
     var openKey by rememberSaveable { mutableStateOf<String?>(null) }
     val all = vm.sets
     val brands = remember(all) { all.groupingBy { it.brand }.eachCount().toList().sortedBy { it.first } }
-    val shown = remember(all, query, brand) {
+    // Texto de búsqueda de cada set: marca, nombre, código y línea ("Squidmar Color", "Game Color"…)
+    val searchText = remember(all, vm.byId) { all.associateWith { s -> norm(s.brand + " " + vm.lineOf(s) + " " + s.name + " " + s.code) } }
+    val shown = remember(all, query, brand, searchText) {
         val words = queryWords(query)
-        all.filter { s -> (brand == null || s.brand == brand) && (words.isEmpty() || matchesWords(norm(s.brand + " " + s.name + " " + s.code), words)) }
+        all.filter { s -> (brand == null || s.brand == brand) && (words.isEmpty() || matchesWords(searchText[s] ?: "", words)) }
     }
     val open = openKey?.let { k -> all.firstOrNull { it.brand + "|" + it.name == k } }
 
@@ -108,7 +110,7 @@ private fun SetRow(vm: MainViewModel, s: PaintSet, onClick: () -> Unit) {
     ) {
         Text(s.name, fontWeight = FontWeight.Bold, maxLines = 2, overflow = TextOverflow.Ellipsis)
         Text(
-            s.brand + " · " + when {
+            listOf(s.brand, vm.lineOf(s)).filter { it.isNotBlank() }.distinct().joinToString(" · ") + " · " + when {
                 paints.isEmpty() -> "sin pinturas reconocidas"
                 have == paints.size -> "las tienes todas (${paints.size})"
                 have == 0 -> "no tienes ninguna de sus ${paints.size}"
@@ -135,7 +137,7 @@ private fun SetDetail(vm: MainViewModel, s: PaintSet, onOpenPaint: (Paint) -> Un
         item {
             Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    s.brand + (if (s.code.isNotBlank()) " · " + s.code else "") + " · ${paints.size} pinturas",
+                    listOf(s.brand, vm.lineOf(s), s.code).filter { it.isNotBlank() }.distinct().joinToString(" · ") + " · ${paints.size} pinturas",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

@@ -904,6 +904,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     var sets by mutableStateOf<List<PaintSet>>(emptyList())
         private set
 
+    /** Línea principal del set (la de la mayoría de sus pinturas), p. ej. "Squidmar Color" o "Game Color". */
+    fun lineOf(set: PaintSet): String =
+        paintsOf(set).groupingBy { it.line }.eachCount().maxByOrNull { it.value }?.key ?: ""
+
     /** Pinturas del set que están en el catálogo (con su color), en el orden del set. */
     fun paintsOf(set: PaintSet): List<Paint> = set.paintIds.mapNotNull { byId[it] }
 

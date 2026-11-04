@@ -199,6 +199,7 @@ def load_sources(args):
             if b: ds.append(json.loads(b)["product"])
         src["dspiae"] = ds
         src["gsw"] = fetch_gsw()
+        src["turbodork"] = fetch_shopify("turbodork.com")
         if args.save_raw:
             os.makedirs(args.save_raw, exist_ok=True)
             for k, v in src.items():
@@ -206,7 +207,7 @@ def load_sources(args):
                     json.dump(v, f)
         return src
     src = {}
-    for k in ["monument", "armypainter", "scale75", "gaahleri", "vallejo", "ak", "dspiae", "gsw"]:
+    for k in ["monument", "armypainter", "scale75", "gaahleri", "vallejo", "ak", "dspiae", "gsw", "turbodork"]:
         fn = os.path.join(args.raw, k + ".json.gz")
         src[k] = json.load(gzip.open(fn, "rt", encoding="utf-8")) if os.path.exists(fn) else []
     return src
@@ -800,6 +801,7 @@ def build(args):
 SET_SOURCES = {
     "monument": "Pro Acryl", "armypainter": "The Army Painter", "scale75": "Scale75",
     "gaahleri": "Kaleido Colorworks", "vallejo": "Vallejo", "ak": "AK Interactive", "gsw": "Green Stuff World",
+    "turbodork": "Turbo Dork",
 }
 SET_TITLE = re.compile(r"\b(set|sets|bundle|collection|kit|box|range|case|pack)\b", re.I)
 SET_EXCLUDE = re.compile(r"brush|pincel|rack|organi[sz]er|empty|palette|paleta|display|book|magazine|\[pdf\]|guide|airbrush|aer[oó]grafo|tool|herramienta|model kit|1/\d+|maqueta|figure|figura|terrain|basing|texture|decal|calcas", re.I)
