@@ -892,6 +892,16 @@ def retail_brand(vendor, title):
     return None
 
 
+def clean_retail_title(title, brand):
+    """Quita del título de un minorista la marca, tamaños y avisos ("(runout sale)", "17mL acrylic"…)."""
+    t = re.sub(r"\((?:[^)]*sale|x?\d+)\)|\b\d+\s?ml\b|acrylic paint set|acrylic|\brunout\b", " ", title, flags=re.I)
+    for rx, b in RETAIL_BRANDS:
+        if b == brand:
+            t = re.sub(r"^\s*(?:%s)[\s:–-]*" % rx, "", t, flags=re.I)
+    t = re.sub(r"^\s*[-–:]\s*|\s*[-–:]\s*$", "", re.sub(r"\s+", " ", t)).strip()
+    return t or title
+
+
 def _strip_html(t):
     t = re.sub(r"<[^>]+>", " ", t or "")
     return re.sub(r"\s+", " ", html.unescape(t))
@@ -1016,10 +1026,16 @@ def build_sets(src, final):
                 if refs:
                     pending.append((brand, title, sku, [norm(x).replace("set", "") for x in refs]))
                 continue
+            if key == "retail":
+                title = clean_retail_title(title, brand)
             k = (brand, norm(title))
-            pk = (brand, frozenset(f"{r[0]}|{r[1]}|{r[2]}|{r[3]}" for r in found))
-            # El mismo set publicado por la tienda oficial y por minoristas (o por varios minoristas) va una sola vez
+            ids = frozenset(f"{r[0]}|{r[1]}|{r[2]}|{r[3]}" for r in found)
+            pk = (brand, ids)
+            # El mismo set publicado por la tienda oficial y por minoristas (o por varios minoristas) va una sola vez:
+            # mismo nombre, mismas pinturas, o casi las mismas (≥75 % en común) en la misma marca
             if k in seen or pk in paint_sets_seen:
+                continue
+            if any(b == brand and len(ids & other) >= 0.75 * max(len(ids), len(other)) for b, other in paint_sets_seen):
                 continue
             seen.add(k)
             paint_sets_seen.add(pk)
