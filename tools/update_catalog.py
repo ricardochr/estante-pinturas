@@ -836,7 +836,14 @@ def _set_items(key, prods):
         if key == "ak" and re.search(r"[áéíóúñ]|\bSET DE\b|LAVADOS|COLORES", title, re.I):
             continue
         out.append((title.strip(), sku, text))
-    return out
+    # Mismo producto publicado en dos idiomas (mismo SKU): se queda el título en inglés
+    spanish = re.compile(r"\b(SET DE|CAMUFLAJE|COLORES|ENANOS|HUMANOS|ORCOS|ELFOS|LAVADOS|PINTURAS|COLOR REAL|Y|CON|PARA|DEL|LOS|LAS)\b|[áéíóúñ]", re.I)
+    best = {}
+    for t in out:
+        k = t[1] or t[0]
+        if k not in best or (spanish.search(best[k][0]) and not spanish.search(t[0])):
+            best[k] = t
+    return [t for t in best.values() if not (key == "ak" and spanish.search(t[0]))]
 
 
 def build_sets(src, final):
