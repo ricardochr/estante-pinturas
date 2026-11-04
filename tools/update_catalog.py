@@ -180,6 +180,62 @@ def fetch_gsw():
     return out
 
 
+# Tiendas minoristas que venden muchas marcas: sirven para saber qué trae cada set de las marcas
+# cuya tienda oficial no se puede leer (Citadel, Ammo, Mission Models, Reaper…) o que ya no lo listan.
+RETAIL_SHOPIFY = ["hobbyisthaven.com", "www.gapgames.com.au", "www.goblingaming.co.uk", "www.thecombatcompany.com",
+                  "goodgames.com.au", "www.gameology.com.au", "www.tistaminis.com"]
+RETAIL_WC = ["https://www.scalemodelshop.co.uk", "https://www.redgrassgames.com"]
+RETAIL_SET = re.compile(r"\b(set|sets|bundle|collection|box|kit|case|pack|triad)\b", re.I)
+RETAIL_PAINT = re.compile(r"paint|colou?r|acrylic|wash|shade|speedpaint|contrast|xpress|ink|metallic|warpaint|game color|model color|primer", re.I)
+
+
+def fetch_retail_sets():
+    """Solo los productos que parecen sets de pintura, con su marca (vendor) y descripción."""
+    out = []
+    for host in RETAIL_SHOPIFY:
+        n = 0
+        for page in range(1, 120):
+            b = get(f"https://{host}/products.json?limit=250&page={page}")
+            if not b:
+                break
+            try:
+                prods = json.loads(b).get("products", [])
+            except Exception:
+                break
+            if not prods:
+                break
+            for p in prods:
+                t = p.get("title") or ""
+                if RETAIL_SET.search(t) and RETAIL_PAINT.search(t + " " + (p.get("product_type") or "")):
+                    out.append({"title": t, "vendor": p.get("vendor") or "", "sku": ((p.get("variants") or [{}])[0].get("sku") or ""),
+                                "text": p.get("body_html") or "", "src": host})
+                    n += 1
+            time.sleep(0.5)
+        print(f"  {host}: {n} sets de pintura")
+    for base in RETAIL_WC:
+        n = 0
+        for page in range(1, 200):
+            b = get(f"{base}/wp-json/wc/store/v1/products?per_page=100&page={page}&search=set")
+            if not b:
+                break
+            try:
+                prods = json.loads(b)
+            except Exception:
+                break
+            if not prods:
+                break
+            for p in prods:
+                t = html.unescape(p.get("name") or "")
+                if RETAIL_SET.search(t) and RETAIL_PAINT.search(t):
+                    brands = " ".join(x.get("name", "") for x in (p.get("brands") or []))
+                    out.append({"title": t, "vendor": brands, "sku": p.get("sku") or "",
+                                "text": (p.get("description") or "") + " " + (p.get("short_description") or ""), "src": base})
+                    n += 1
+            time.sleep(0.5)
+        print(f"  {base}: {n} sets de pintura")
+    return out
+
+
 def load_sources(args):
     if args.fetch:
         print("Descargando tiendas…")
@@ -200,6 +256,7 @@ def load_sources(args):
         src["dspiae"] = ds
         src["gsw"] = fetch_gsw()
         src["turbodork"] = fetch_shopify("turbodork.com")
+        src["retail"] = fetch_retail_sets()
         if args.save_raw:
             os.makedirs(args.save_raw, exist_ok=True)
             for k, v in src.items():
@@ -207,7 +264,7 @@ def load_sources(args):
                     json.dump(v, f)
         return src
     src = {}
-    for k in ["monument", "armypainter", "scale75", "gaahleri", "vallejo", "ak", "dspiae", "gsw", "turbodork"]:
+    for k in ["monument", "armypainter", "scale75", "gaahleri", "vallejo", "ak", "dspiae", "gsw", "turbodork", "retail"]:
         fn = os.path.join(args.raw, k + ".json.gz")
         src[k] = json.load(gzip.open(fn, "rt", encoding="utf-8")) if os.path.exists(fn) else []
     return src
@@ -815,6 +872,26 @@ CODE_RES = [
 ]
 
 
+RETAIL_BRANDS = [
+    (r"citadel|games ?workshop", "Citadel"), (r"vallejo", "Vallejo"), (r"army ?painter", "The Army Painter"),
+    (r"\bak\b|ak[- ]interactive|ak3g|3rd gen", "AK Interactive"), (r"ammo|\bmig\b", "Ammo by Mig"),
+    (r"mission models", "Mission Models"), (r"reaper", "Reaper"), (r"pro ?acryl|monument", "Pro Acryl"),
+    (r"scale ?75", "Scale75"), (r"green ?stuff", "Green Stuff World"), (r"kimera", "Kimera Kolors"),
+    (r"turbo ?dork", "Turbo Dork"), (r"foundry", "Foundry"), (r"tamiya", "Tamiya"), (r"mr\.? ?hobby|gsi creos|mr\.? ?color", "Mr. Hobby"),
+    (r"humbrol", "Humbrol"), (r"two thin coats|duncan rhodes", "Duncan Rhodes"), (r"warcolou?rs", "Warcolours"),
+    (r"coat d.?arms", "Coat d'Arms"), (r"\bp3\b|formula p3|privateer", "P3"), (r"kaleido|gaahleri", "Kaleido Colorworks"),
+    (r"dspiae", "DSPIAE"),
+]
+
+
+def retail_brand(vendor, title):
+    for txt in (vendor, title):
+        for rx, b in RETAIL_BRANDS:
+            if txt and re.search(rx, txt, re.I):
+                return b
+    return None
+
+
 def _strip_html(t):
     t = re.sub(r"<[^>]+>", " ", t or "")
     return re.sub(r"\s+", " ", html.unescape(t))
@@ -853,9 +930,19 @@ def build_sets(src, final):
     for r in final:
         by_brand[r[0]].append(r)
     sets, seen, pending = [], set(), []
-    for key, brand in SET_SOURCES.items():
+    # Fuentes: tiendas oficiales primero; después los minoristas, agrupados por la marca de cada producto
+    sources = [(key, brand, _set_items(key, src.get(key) or [])) for key, brand in SET_SOURCES.items()]
+    retail_by_brand = defaultdict(list)
+    for p in src.get("retail") or []:
+        b = retail_brand(p["vendor"], p["title"])
+        if b and not SET_EXCLUDE.search(p["title"]):
+            retail_by_brand[b].append((html.unescape(p["title"]).strip(), p["sku"], _strip_html(p["text"])))
+    for b, items in retail_by_brand.items():
+        sources.append(("retail", b, items))
+    paint_sets_seen = set()
+    for key, brand, set_items in sources:
         rows = by_brand.get(brand, [])
-        if not rows or not src.get(key):
+        if not rows or not set_items:
             continue
         by_code = {}
         by_name = defaultdict(list)
@@ -864,7 +951,7 @@ def build_sets(src, final):
                 by_code.setdefault(code_key(r[3]), r)
             by_name[norm(r[2])].append(r)
         names = sorted((n for n in by_name if len(n) >= 4), key=len, reverse=True)
-        for title, sku, text in _set_items(key, src[key]):
+        for title, sku, text in set_items:
             found = []
             # 1) por código
             for rx in CODE_RES:
@@ -930,9 +1017,12 @@ def build_sets(src, final):
                     pending.append((brand, title, sku, [norm(x).replace("set", "") for x in refs]))
                 continue
             k = (brand, norm(title))
-            if k in seen:
+            pk = (brand, frozenset(f"{r[0]}|{r[1]}|{r[2]}|{r[3]}" for r in found))
+            # El mismo set publicado por la tienda oficial y por minoristas (o por varios minoristas) va una sola vez
+            if k in seen or pk in paint_sets_seen:
                 continue
             seen.add(k)
+            paint_sets_seen.add(pk)
             sets.append({
                 "brand": brand, "name": title, "code": sku,
                 "paints": [f"{r[0]}|{r[1]}|{r[2]}|{r[3]}" for r in found],

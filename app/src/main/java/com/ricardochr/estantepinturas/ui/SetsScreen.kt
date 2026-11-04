@@ -53,7 +53,8 @@ fun SetsScreen(vm: MainViewModel, onClose: () -> Unit, onOpenPaint: (Paint) -> U
     var query by rememberSaveable { mutableStateOf("") }
     var brand by rememberSaveable { mutableStateOf<String?>(null) }
     var openKey by rememberSaveable { mutableStateOf<String?>(null) }
-    val all = vm.sets
+    var creating by remember { mutableStateOf(false) }
+    val all = vm.allSets
     val brands = remember(all) { all.groupingBy { it.brand }.eachCount().toList().sortedBy { it.first } }
     // Texto de búsqueda de cada set: marca, nombre, código y línea ("Squidmar Color", "Game Color"…)
     val searchText = remember(all, vm.byId) { all.associateWith { s -> norm(s.brand + " " + vm.lineOf(s) + " " + s.name + " " + s.code) } }
@@ -61,7 +62,7 @@ fun SetsScreen(vm: MainViewModel, onClose: () -> Unit, onOpenPaint: (Paint) -> U
         val words = queryWords(query)
         all.filter { s -> (brand == null || s.brand == brand) && (words.isEmpty() || matchesWords(searchText[s] ?: "", words)) }
     }
-    val open = openKey?.let { k -> all.firstOrNull { it.brand + "|" + it.name == k } }
+    val open = openKey?.let { k -> all.firstOrNull { it.uid == k } }
 
     Box(Modifier.fillMaxSize()) {
         BackHandler { if (open != null) openKey = null else onClose() }
@@ -76,10 +77,11 @@ fun SetsScreen(vm: MainViewModel, onClose: () -> Unit, onOpenPaint: (Paint) -> U
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
                 )
                 if (open != null) {
-                    SetDetail(vm, open, onOpenPaint, say)
+                    SetDetail(vm, open, onOpenPaint, say, onChanged = { openKey = it?.uid })
                 } else {
-                    Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                    Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         SearchField(query, { query = it }, "Buscar set: intro, starter, skin, metal…")
+                        androidx.compose.material3.TextButton(onClick = { creating = true }) { Text("+ Crear un set a mano") }
                     }
                     BrandChips(brands, brand) { brand = it }
                     if (all.isEmpty()) {
@@ -88,13 +90,38 @@ fun SetsScreen(vm: MainViewModel, onClose: () -> Unit, onOpenPaint: (Paint) -> U
                         EmptyState("Nada encontrado", "Ningún set coincide con “$query”.")
                     } else {
                         LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 24.dp)) {
-                            items(shown, key = { it.brand + "|" + it.name }) { s -> SetRow(vm, s) { openKey = s.brand + "|" + s.name } }
+                            items(shown, key = { it.uid }) { s -> SetRow(vm, s) { openKey = s.uid } }
                         }
                     }
                 }
             }
         }
     }
+    if (creating) {
+        SetNameDialog("Nuevo set", "", "", onDismiss = { creating = false }) { name, b ->
+            creating = false
+            openKey = vm.createSet(name, b).uid
+        }
+    }
+}
+
+/** Pide nombre y marca de un set. */
+@Composable
+private fun SetNameDialog(title: String, name0: String, brand0: String, onDismiss: () -> Unit, onSave: (String, String) -> Unit) {
+    var name by remember { mutableStateOf(name0) }
+    var b by remember { mutableStateOf(brand0) }
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                androidx.compose.material3.OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Nombre") }, placeholder = { Text("Fairy Flesh Set") }, singleLine = true)
+                androidx.compose.material3.OutlinedTextField(value = b, onValueChange = { b = it }, label = { Text("Marca") }, placeholder = { Text("Vallejo") }, singleLine = true)
+            }
+        },
+        confirmButton = { androidx.compose.material3.TextButton(onClick = { onSave(name, b) }, enabled = name.isNotBlank()) { Text("Guardar") } },
+        dismissButton = { androidx.compose.material3.TextButton(onClick = onDismiss) { Text("Cancelar") } },
+    )
 }
 
 @Composable
@@ -129,10 +156,14 @@ private fun SetRow(vm: MainViewModel, s: PaintSet, onClick: () -> Unit) {
 }
 
 @Composable
-private fun SetDetail(vm: MainViewModel, s: PaintSet, onOpenPaint: (Paint) -> Unit, say: (String) -> Unit) {
+private fun SetDetail(vm: MainViewModel, s: PaintSet, onOpenPaint: (Paint) -> Unit, say: (String) -> Unit, onChanged: (PaintSet?) -> Unit) {
+    var editing by remember { mutableStateOf(false) }
+    var picking by remember { mutableStateOf(false) }
+    var renaming by remember { mutableStateOf(false) }
     val paints = vm.paintsOf(s)
     val have = paints.filter { vm.qtyOf(it.id) > 0 }
     val missing = paints.filter { vm.qtyOf(it.id) == 0 }
+    Box(Modifier.fillMaxSize()) {
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 24.dp)) {
         item {
             Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -163,8 +194,26 @@ private fun SetDetail(vm: MainViewModel, s: PaintSet, onOpenPaint: (Paint) -> Un
                         say("Set agregado: +1 bote de $n pinturas")
                     }, modifier = Modifier.fillMaxWidth()) { Text("Ya compré el set: agregarlo a mi inventario") }
                 }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    androidx.compose.material3.TextButton(onClick = { editing = !editing }) { Text(if (editing) "Listo" else "Editar pinturas") }
+                    if (editing) {
+                        androidx.compose.material3.TextButton(onClick = { picking = true }) { Text("+ Agregar") }
+                        androidx.compose.material3.TextButton(onClick = { renaming = true }) { Text("Renombrar") }
+                    }
+                }
+                if (editing && s.custom) {
+                    androidx.compose.material3.TextButton(onClick = {
+                        vm.deleteSet(s)
+                        say(if (s.replaces != null) "Se restauró el set original de la tienda" else "Set eliminado")
+                        onChanged(null)
+                    }) { Text(if (s.replaces != null) "Deshacer mis cambios (volver al original)" else "Eliminar este set", color = MaterialTheme.colorScheme.error) }
+                }
                 Text(
-                    "La lista de pinturas sale de la descripción del set en la tienda; puede que no incluya primers, barnices o pinceles.",
+                    when {
+                        s.custom && s.replaces != null -> "Editaste este set; tus cambios se guardan en tu respaldo."
+                        s.custom -> "Set creado por ti."
+                        else -> "La lista sale de la descripción del set en la tienda; si falta o sobra alguna pintura, toca Editar pinturas."
+                    },
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -174,7 +223,8 @@ private fun SetDetail(vm: MainViewModel, s: PaintSet, onOpenPaint: (Paint) -> Un
             item { SectionTitle("Te faltan (${missing.size})") }
             items(missing, key = { "m-" + it.id }) { p ->
                 PaintRow(p, extra = if (vm.inShopping(p.id)) "en tu lista de compras" else null, onClick = { onOpenPaint(p) }) {
-                    Text("✗", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
+                    if (editing) IconButton(onClick = { onChanged(vm.removePaintFromSet(s, p.id)) }) { Icon(Icons.Default.Close, contentDescription = "Quitar del set") }
+                    else Text("✗", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -183,10 +233,25 @@ private fun SetDetail(vm: MainViewModel, s: PaintSet, onOpenPaint: (Paint) -> Un
             items(have, key = { "h-" + it.id }) { p ->
                 PaintRow(p, extra = "tienes ${vm.qtyOf(p.id)}", onClick = { onOpenPaint(p) }) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("✓", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                        if (editing) IconButton(onClick = { onChanged(vm.removePaintFromSet(s, p.id)) }) { Icon(Icons.Default.Close, contentDescription = "Quitar del set") }
+                        else Text("✓", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                     }
                 }
             }
         }
+    }
+    if (picking) {
+        PaintPickerDialog(vm, "Agregar al set", onDismiss = { picking = false }, fromCatalog = true) { p ->
+            picking = false
+            onChanged(vm.addPaintToSet(s, p.id))
+            say("Agregada: ${p.name}")
+        }
+    }
+    if (renaming) {
+        SetNameDialog("Renombrar set", s.name, s.brand, onDismiss = { renaming = false }) { name, b ->
+            renaming = false
+            onChanged(vm.renameSet(s, name, b))
+        }
+    }
     }
 }

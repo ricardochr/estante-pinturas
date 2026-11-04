@@ -16,6 +16,7 @@ data class SavedState(
     val colorFixes: Map<String, String> = emptyMap(),
     val shopping: List<ShopItem> = emptyList(),
     val gear: List<Gear> = emptyList(),
+    val customSets: List<PaintSet> = emptyList(),
 )
 
 /** Un lugar donde guardas pinturas (gaveta, estante), con su foto. */
@@ -207,7 +208,20 @@ class Store(private val context: Context) {
                 val e = ga.getJSONObject(i)
                 gear.add(Gear(e.getString("id"), e.optString("kind", "airbrush"), e.optString("name", ""), e.optDouble("nozzle", 0.0), e.optBoolean("tank", false)))
             }
-            return SavedState(owned, custom, barcodes, spots, locations, fixes, shopping, gear)
+            val customSets = ArrayList<PaintSet>()
+            val csa = o.optJSONArray("customSets") ?: JSONArray()
+            for (i in 0 until csa.length()) {
+                val e = csa.getJSONObject(i)
+                val ps = e.optJSONArray("paints") ?: JSONArray()
+                customSets.add(
+                    PaintSet(
+                        brand = e.optString("brand", ""), name = e.optString("name", "Mi set"), code = e.optString("code", ""),
+                        paintIds = (0 until ps.length()).map { ps.getString(it) }, custom = true, id = e.getString("id"),
+                        replaces = if (e.isNull("replaces")) null else e.optString("replaces", "").ifBlank { null },
+                    )
+                )
+            }
+            return SavedState(owned, custom, barcodes, spots, locations, fixes, shopping, gear, customSets)
         }
 
         fun stateToJson(state: SavedState): JSONObject {
@@ -259,6 +273,16 @@ class Store(private val context: Context) {
             val ga = JSONArray()
             state.gear.forEach { ga.put(JSONObject().put("id", it.id).put("kind", it.kind).put("name", it.name).put("nozzle", it.nozzle).put("tank", it.tank)) }
             o.put("gear", ga)
+            val csa = JSONArray()
+            state.customSets.forEach { s ->
+                val ps = JSONArray()
+                s.paintIds.forEach { ps.put(it) }
+                csa.put(
+                    JSONObject().put("id", s.id).put("brand", s.brand).put("name", s.name).put("code", s.code)
+                        .put("replaces", s.replaces ?: JSONObject.NULL).put("paints", ps)
+                )
+            }
+            o.put("customSets", csa)
             return o
         }
     }

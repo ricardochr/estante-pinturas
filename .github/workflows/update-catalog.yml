@@ -48,5 +48,6 @@ jobs:
             echo "Sin cambios en el catálogo"
           else
             git commit -m "Catálogo actualizado $(date +%Y-%m-%d)"
+            git pull --rebase -X theirs origin main
             git push
           fi

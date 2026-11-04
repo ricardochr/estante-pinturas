@@ -73,6 +73,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             colorFixes = saved.colorFixes
             shopping = saved.shopping
             gear = saved.gear
+            customSets = saved.customSets
             projects = withContext(Dispatchers.IO) { projectStore.load() }
             if (colorFixes.isNotEmpty()) {
                 catalog = catalog.map { p -> colorFixes[p.id]?.let { p.copy(hex = it, quality = "u") } ?: p }
@@ -209,7 +210,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private fun persist() {
-        val snapshot = SavedState(owned, custom, barcodes, spots, locations, colorFixes, shopping, gear)
+        val snapshot = SavedState(owned, custom, barcodes, spots, locations, colorFixes, shopping, gear, customSets)
         viewModelScope.launch(Dispatchers.IO) { store.saveState(snapshot) }
         scheduleAutoBackup()
     }
@@ -904,6 +905,60 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     var sets by mutableStateOf<List<PaintSet>>(emptyList())
         private set
 
+    /** Sets que creaste o editaste. */
+    var customSets by mutableStateOf<List<PaintSet>>(emptyList())
+        private set
+
+    /** Tus sets primero, y los de las tiendas que no editaste. */
+    val allSets: List<PaintSet>
+        get() {
+            val replaced = customSets.mapNotNull { it.replaces }.toHashSet()
+            return customSets + sets.filter { it.key !in replaced }
+        }
+
+    fun createSet(name: String, brand: String): PaintSet {
+        val s = PaintSet(brand.trim(), name.trim().ifBlank { "Mi set" }, "", emptyList(), custom = true, id = UUID.randomUUID().toString())
+        customSets = listOf(s) + customSets
+        persist()
+        return s
+    }
+
+    /** Un set editable: si es de la tienda, crea tu copia (que lo reemplaza en la lista). */
+    private fun editable(set: PaintSet): PaintSet {
+        if (set.custom) return customSets.firstOrNull { it.id == set.id } ?: set
+        val copy = set.copy(custom = true, id = UUID.randomUUID().toString(), replaces = set.key)
+        customSets = listOf(copy) + customSets
+        return copy
+    }
+
+    private fun saveSet(updated: PaintSet): PaintSet {
+        customSets = customSets.map { if (it.id == updated.id) updated else it }
+        persist()
+        return updated
+    }
+
+    fun addPaintToSet(set: PaintSet, paintId: String): PaintSet {
+        val s = editable(set)
+        return if (paintId in s.paintIds) s else saveSet(s.copy(paintIds = s.paintIds + paintId))
+    }
+
+    fun removePaintFromSet(set: PaintSet, paintId: String): PaintSet {
+        val s = editable(set)
+        return saveSet(s.copy(paintIds = s.paintIds - paintId))
+    }
+
+    fun renameSet(set: PaintSet, name: String, brand: String): PaintSet {
+        val s = editable(set)
+        return saveSet(s.copy(name = name.trim().ifBlank { s.name }, brand = brand.trim()))
+    }
+
+    /** Borra un set tuyo; si era tu versión de un set de la tienda, vuelve el original. */
+    fun deleteSet(set: PaintSet) {
+        if (!set.custom) return
+        customSets = customSets.filterNot { it.id == set.id }
+        persist()
+    }
+
     /** Línea principal del set (la de la mayoría de sus pinturas), p. ej. "Squidmar Color" o "Game Color". */
     fun lineOf(set: PaintSet): String =
         paintsOf(set).groupingBy { it.line }.eachCount().maxByOrNull { it.value }?.key ?: ""
@@ -1192,7 +1247,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun projectsRoot(): File = File(getApplication<Application>().filesDir, "projects")
 
-    private fun currentState() = SavedState(owned, custom, barcodes, spots, locations, colorFixes, shopping, gear)
+    private fun currentState() = SavedState(owned, custom, barcodes, spots, locations, colorFixes, shopping, gear, customSets)
 
     private fun writeBackup(uri: Uri): String? = try {
         val out = getApplication<Application>().contentResolver.openOutputStream(uri, "wt")
@@ -1301,6 +1356,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             }
             shopping = shopping + b.shopping.filter { s -> shopping.none { it.paintId == s.paintId } }
             gear = gear + b.gear.filter { g -> gear.none { it.id == g.id } }
+            customSets = customSets + b.customSets.filter { c -> customSets.none { it.id == c.id } }
             val knownProjects = projects.map { it.id }.toHashSet()
             val newProjects = content.projects.filter { it.id !in knownProjects }
             projects = projects + newProjects
