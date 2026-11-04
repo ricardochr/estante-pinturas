@@ -158,7 +158,7 @@ fun guessType(name: String, line: String): String {
     return when {
         "primer" in s || "imprim" in s -> "Imprimación"
         "varnish" in s || "barniz" in s || "'ardcoat" in s || "lahmian medium" in s -> "Barniz"
-        "medium" in s || "thinner" in s -> "Médium"
+        "thinner" in s || ("medium" in s && !Regex("^\\s*medium\\s+\\w").containsMatchIn(norm(name))) -> "Médium"
         "contrast" in s || "speedpaint" in s || "xpress" in s -> "Contraste"
         "wash" in s || "shade" in s -> "Wash"
         Regex("\\bink\\b|tinta").containsMatchIn(s) -> "Tinta"
