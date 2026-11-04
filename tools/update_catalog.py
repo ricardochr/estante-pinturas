@@ -21,10 +21,12 @@ import time
 import unicodedata
 import urllib.error
 import urllib.request
+from collections import Counter, defaultdict
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 OUT = os.path.join(ROOT, "app", "src", "main", "assets", "catalog.json")
+SETS_OUT = os.path.join(ROOT, "app", "src", "main", "assets", "sets.json")
 REPORT = os.path.join(ROOT, "tools", "catalog-report.md")
 CACHE = os.path.join(HERE, "color-cache-v3.json")  # v3: candidatos por imagen
 OVERRIDES = os.path.join(HERE, "color-overrides.json")  # correcciones manuales: "Marca|Código": "#RRGGBB"
@@ -155,7 +157,7 @@ def load_sources(args):
             "vallejo": fetch_wc("https://acrylicosvallejo.com/en"),
             "ak": fetch_wc("https://ak-interactive.com", 1538) + fetch_wc("https://ak-interactive.com", 1410)
                   + fetch_wc("https://ak-interactive.com", 151796)
-                  + fetch_wc_search("https://ak-interactive.com", ["acrylic wash", "wash", "ink"]),
+                  + fetch_wc_search("https://ak-interactive.com", ["acrylic wash", "wash", "ink", "set"]),
         }
         ds = []
         for h in ["dspiae-50ml-pre-mixed-acrylic-paint", "dspiae-50ml-pre-mixed-metallic-acrylic-paints"]:
@@ -720,6 +722,116 @@ def build(args):
     open(REPORT, "w", encoding="utf-8").write("\n".join(lines))
     print(f"catalog.json: {len(final)} pinturas")
     for b, n in sorted(by_brand.items(), key=lambda t: -t[1]):
+        print(f"  {b}: {n}")
+    build_sets(src, final)
+
+
+# ---------------------------------------------------------------- sets de pinturas
+
+SET_SOURCES = {
+    "monument": "Pro Acryl", "armypainter": "The Army Painter", "scale75": "Scale75",
+    "gaahleri": "Kaleido Colorworks", "vallejo": "Vallejo", "ak": "AK Interactive", "gsw": "Green Stuff World",
+}
+SET_TITLE = re.compile(r"\b(set|sets|bundle|collection|kit|box|range|case|pack)\b", re.I)
+SET_EXCLUDE = re.compile(r"brush|pincel|rack|organi[sz]er|empty|palette|paleta|display|book|magazine|\[pdf\]|guide|airbrush|aer[oó]grafo|tool|herramienta|model kit|1/\d+|maqueta|figure|figura|terrain|base[s]? set|texture|decal|calcas", re.I)
+CODE_RES = [
+    re.compile(r"\bMPA-?S?\d{2,3}\b|\bAMP-\d{3}\b|\bMPAP-\d{3}\b", re.I),     # Pro Acryl
+    re.compile(r"\bWP\d{4}\b|\bAW\d{4}\b", re.I),                                # Army Painter
+    re.compile(r"\bS(?:C|FG|CG|DP|IN|ART|WE)-\d{2,3}\b", re.I),                     # Scale75
+    re.compile(r"\b7[0-7]\.\d{3}\b|\b2[68]\.\d{3}\b|\b6[29]\.\d{3}\b"),     # Vallejo
+    re.compile(r"\bAK\d{4,5}\b", re.I),                                              # AK
+    re.compile(r"\bK[CMP]?\d{3}\b"),                                                 # Kaleido
+]
+
+
+def _strip_html(t):
+    t = re.sub(r"<[^>]+>", " ", t or "")
+    return re.sub(r"\s+", " ", html.unescape(t))
+
+
+def _set_items(key, prods):
+    """(título, sku, texto) de los productos que parecen sets."""
+    out = []
+    for p in prods:
+        if key in ("ak", "vallejo", "gsw"):
+            title = html.unescape(p.get("name") or p.get("title") or "")
+            sku = (p.get("sku") or p.get("reference") or "").strip()
+            text = _strip_html((p.get("description") or "") + " " + (p.get("short_description") or "") + " " + (p.get("description_short") or ""))
+        else:
+            title = p.get("title") or ""
+            sku = ((p.get("variants") or [{}])[0].get("sku") or "").strip()
+            text = _strip_html(p.get("body_html"))
+        if not SET_TITLE.search(title) or SET_EXCLUDE.search(title):
+            continue
+        # AK publica cada producto en inglés y en español: se usa el que está en inglés
+        if key == "ak" and re.search(r"[áéíóúñ]|\bSET DE\b|LAVADOS|COLORES", title, re.I):
+            continue
+        out.append((title.strip(), sku, text))
+    return out
+
+
+def build_sets(src, final):
+    by_brand = defaultdict(list)
+    for r in final:
+        by_brand[r[0]].append(r)
+    sets, seen = [], set()
+    for key, brand in SET_SOURCES.items():
+        rows = by_brand.get(brand, [])
+        if not rows or not src.get(key):
+            continue
+        by_code = {}
+        by_name = defaultdict(list)
+        for r in rows:
+            if r[3]:
+                by_code.setdefault(code_key(r[3]), r)
+            by_name[norm(r[2])].append(r)
+        names = sorted((n for n in by_name if len(n) >= 4), key=len, reverse=True)
+        for title, sku, text in _set_items(key, src[key]):
+            found = []
+            # 1) por código
+            for rx in CODE_RES:
+                for m in rx.findall(text):
+                    r = by_code.get(code_key(m))
+                    if r and r not in found:
+                        found.append(r)
+            # 2) por nombre, si los códigos no alcanzan: nombres largos primero y sin reutilizar el texto
+            if len(found) < 3:
+                low = " " + re.sub(r"[^a-z0-9]+", " ", unicodedata.normalize("NFD", text.lower()).encode("ascii", "ignore").decode()) + " "
+                compact_title = norm(title)
+                items = {" ".join(re.findall(r"[a-z0-9]+", unicodedata.normalize("NFD", x.lower()).encode("ascii", "ignore").decode())).removeprefix("and ").strip()
+                         for x in re.split(r"[,;:•\n·]|\band\b|\by\b", text, flags=re.I)}
+                for n in names:
+                    cands = by_name[n]
+                    words = " ".join(re.findall(r"[a-z0-9]+", unicodedata.normalize("NFD", cands[0][2].lower()).encode("ascii", "ignore").decode()))
+                    if len(words) < 4 or f" {words} " not in low:
+                        continue
+                    # Un nombre de una sola palabra ("Black", "Silver") solo cuenta si aparece como elemento
+                    # completo de la lista ("…, Silver, …"), no dentro de otro nombre ("Black Brush-On Primer")
+                    if " " not in words and words not in items:
+                        continue
+                    low = low.replace(f" {words} ", " | ", 1)
+                    pick = next((c for c in cands if norm(c[1]) and norm(c[1]) in compact_title), None)
+                    if pick is None and found:
+                        lines = Counter(f[1] for f in found)
+                        pick = max(cands, key=lambda c: lines.get(c[1], 0))
+                    pick = pick or cands[0]
+                    if pick not in found:
+                        found.append(pick)
+            if len(found) < 3:
+                continue
+            k = (brand, norm(title))
+            if k in seen:
+                continue
+            seen.add(k)
+            sets.append({
+                "brand": brand, "name": title, "code": sku,
+                "paints": [f"{r[0]}|{r[1]}|{r[2]}|{r[3]}" for r in found],
+            })
+    sets.sort(key=lambda x: (x["brand"], x["name"]))
+    with open(SETS_OUT, "w", encoding="utf-8") as f:
+        json.dump(sets, f, ensure_ascii=False, separators=(",", ":"))
+    print(f"sets.json: {len(sets)} sets")
+    for b, n in Counter(x["brand"] for x in sets).most_common():
         print(f"  {b}: {n}")
 
 
