@@ -802,7 +802,7 @@ SET_SOURCES = {
     "gaahleri": "Kaleido Colorworks", "vallejo": "Vallejo", "ak": "AK Interactive", "gsw": "Green Stuff World",
 }
 SET_TITLE = re.compile(r"\b(set|sets|bundle|collection|kit|box|range|case|pack)\b", re.I)
-SET_EXCLUDE = re.compile(r"brush|pincel|rack|organi[sz]er|empty|palette|paleta|display|book|magazine|\[pdf\]|guide|airbrush|aer[oó]grafo|tool|herramienta|model kit|1/\d+|maqueta|figure|figura|terrain|base[s]? set|texture|decal|calcas", re.I)
+SET_EXCLUDE = re.compile(r"brush|pincel|rack|organi[sz]er|empty|palette|paleta|display|book|magazine|\[pdf\]|guide|airbrush|aer[oó]grafo|tool|herramienta|model kit|1/\d+|maqueta|figure|figura|terrain|basing|texture|decal|calcas", re.I)
 CODE_RES = [
     re.compile(r"\bMPA-?S?\d{2,3}\b|\bAMP-\d{3}\b|\bMPAP-\d{3}\b", re.I),     # Pro Acryl
     re.compile(r"\bWP\d{4}\b|\bAW\d{4}\b", re.I),                                # Army Painter
@@ -850,7 +850,7 @@ def build_sets(src, final):
     by_brand = defaultdict(list)
     for r in final:
         by_brand[r[0]].append(r)
-    sets, seen = [], set()
+    sets, seen, pending = [], set(), []
     for key, brand in SET_SOURCES.items():
         rows = by_brand.get(brand, [])
         if not rows or not src.get(key):
@@ -870,19 +870,43 @@ def build_sets(src, final):
                     r = by_code.get(code_key(m))
                     if r and r not in found:
                         found.append(r)
-            # 2) por nombre, si los códigos no alcanzan: nombres largos primero y sin reutilizar el texto
+            def asc(t):
+                return unicodedata.normalize("NFD", t.lower()).encode("ascii", "ignore").decode()
+
+            def words_of(t):
+                return " ".join(re.findall(r"[a-z0-9]+", asc(t)))
+
             if len(found) < 3:
-                low = " " + re.sub(r"[^a-z0-9]+", " ", unicodedata.normalize("NFD", text.lower()).encode("ascii", "ignore").decode()) + " "
+                # El texto se normaliza conservando los separadores de la lista ("A, B y C" -> " a | b | c "),
+                # para que un nombre no se arme con el final de uno y el inicio del siguiente
+                low = " " + " | ".join(words_of(x) for x in re.split(r"[,;•\n·]|\s[-–]\s|\band\b|\by\b", text, flags=re.I)) + " "
+                low = re.sub(r"\s+", " ", low)
+                items = {re.sub(r"^(colou?rs? |paints? )?(include[sd]?|included|incluye) ", "", words_of(x)).strip()
+                         for x in re.split(r"[,;•\n·]|\s[-–]\s|\band\b|\by\b", text, flags=re.I)}
+                title_w = " " + words_of(title) + " "
                 compact_title = norm(title)
-                items = {" ".join(re.findall(r"[a-z0-9]+", unicodedata.normalize("NFD", x.lower()).encode("ascii", "ignore").decode())).removeprefix("and ").strip()
-                         for x in re.split(r"[,;:•\n·]|\band\b|\by\b", text, flags=re.I)}
+                # 2a) Pinturas "de artista" (Signature Series): el set las nombra sin el prefijo del artista
+                #     ("Bright Green" = "Rogue Hobbies Bright Green"); solo si el artista está en el título del set
+                for r in rows:
+                    if "signature" not in r[1].lower() or r in found:
+                        continue
+                    w = words_of(r[2]).split()
+                    for k in (2, 1):
+                        if len(w) <= k:
+                            continue
+                        prefix, rest = " ".join(w[:k]), " ".join(w[k:])
+                        if f" {prefix} " in title_w and f" {rest} " in low:
+                            found.append(r)
+                            low = low.replace(f" {rest} ", " | ", 1)
+                            break
+                # 2b) Por nombre: los más largos primero y sin reutilizar el texto
                 for n in names:
                     cands = by_name[n]
-                    words = " ".join(re.findall(r"[a-z0-9]+", unicodedata.normalize("NFD", cands[0][2].lower()).encode("ascii", "ignore").decode()))
+                    words = words_of(cands[0][2])
                     if len(words) < 4 or f" {words} " not in low:
                         continue
-                    # Un nombre de una sola palabra ("Black", "Silver") solo cuenta si aparece como elemento
-                    # completo de la lista ("…, Silver, …"), no dentro de otro nombre ("Black Brush-On Primer")
+                    # Un nombre de una sola palabra ("Black", "Silver") solo cuenta si es un elemento
+                    # completo de la lista ("…, Silver, …"), no parte de otro nombre ("Black Brush-On Primer")
                     if " " not in words and words not in items:
                         continue
                     low = low.replace(f" {words} ", " | ", 1)
@@ -893,7 +917,11 @@ def build_sets(src, final):
                     pick = pick or cands[0]
                     if pick not in found:
                         found.append(pick)
+            # 4) Sets que se arman con otros sets ("todos los colores del Base Set, Expansion 1…"): se resuelven al final
             if len(found) < 3:
+                refs = re.findall(r"(base set|intro set|metallic set|expansion(?: set)? ?#? ?\d)", text, re.I)
+                if refs:
+                    pending.append((brand, title, sku, [norm(x).replace("set", "") for x in refs]))
                 continue
             k = (brand, norm(title))
             if k in seen:
@@ -903,6 +931,16 @@ def build_sets(src, final):
                 "brand": brand, "name": title, "code": sku,
                 "paints": [f"{r[0]}|{r[1]}|{r[2]}|{r[3]}" for r in found],
             })
+    for brand, title, sku, refs in pending:
+        paints = []
+        for ref in refs:
+            for st in sets:
+                if st["brand"] == brand and ref in norm(st["name"]).replace("set", "").replace("proacryl", ""):
+                    paints += [x for x in st["paints"] if x not in paints]
+                    break
+        if len(paints) >= 3 and (brand, norm(title)) not in seen:
+            seen.add((brand, norm(title)))
+            sets.append({"brand": brand, "name": title, "code": sku, "paints": paints})
     sets.sort(key=lambda x: (x["brand"], x["name"]))
     with open(SETS_OUT, "w", encoding="utf-8") as f:
         json.dump(sets, f, ensure_ascii=False, separators=(",", ":"))
