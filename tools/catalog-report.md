@@ -1,6 +1,6 @@
 # Catálogo de pinturas
 
-Total: **8404** pinturas · generado 2026-11-03
+Total: **8484** pinturas · generado 2026-11-04
 
 | Marca | Pinturas | Fuente |
 |---|---:|---|
@@ -13,8 +13,8 @@ Total: **8404** pinturas · generado 2026-11-03
 | Reaper | 438 | datos abiertos |
 | Foundry | 360 | datos abiertos |
 | Tamiya | 329 | datos abiertos |
+| Green Stuff World | 300 | tienda oficial + datos abiertos |
 | Ammo by Mig | 292 | datos abiertos |
-| Green Stuff World | 220 | datos abiertos |
 | Pro Acryl | 218 | tienda oficial + datos abiertos |
 | Mission Models | 201 | datos abiertos |
 | Duncan Rhodes | 180 | datos abiertos |
@@ -72,6 +72,22 @@ Total: **8404** pinturas · generado 2026-11-03
 - 50ml Pre-Mixed: 33
 - 50ml Pre-Mixed Metallic: 22
 - Pinturas con color estimado de la foto: 55
+
+## Green Stuff World
+
+- Acrylic Colors: 130
+- Dipping Inks: 36
+- Effect Paints: 34
+- Metallic Colors: 32
+- Chameleon Colorshift Metallic: 18
+- Fluor Colors: 15
+- Intensity Ink: 13
+- Candy Ink Metallic: 8
+- Wash Ink: 8
+- Matt Surface: 4
+- Fluor Metallic: 1
+- Gloss Surface: 1
+- Pinturas con color estimado de la foto: 81
 
 ## Kaleido Colorworks
 
@@ -172,6 +188,6 @@ Total: **8404** pinturas · generado 2026-11-03
 
 ## Calidad del color
 
-- Medido (datos abiertos o muestra oficial): 7048
-- Estimado de la foto del producto: 1063
-- Típico según el nombre (aproximado): 293
+- Medido (datos abiertos o muestra oficial): 7047
+- Estimado de la foto del producto: 1138
+- Típico según el nombre (aproximado): 299
