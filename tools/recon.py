@@ -1,27 +1,25 @@
-import json, re, time, urllib.request, html, sys
-def get(u):
-    r = urllib.request.Request(u, headers={"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120 Safari/537.36", "Accept-Language": "en"})
+import json, re, urllib.request, html
+def get(u, h=None):
+    hd={"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120 Safari/537.36", "Accept-Language": "en"}
+    if h: hd.update(h)
+    r = urllib.request.Request(u, headers=hd)
     try:
         return urllib.request.urlopen(r, timeout=60).read().decode("utf-8", "replace")
     except Exception as e:
         return "ERR " + str(e)
-# 1) Pro Acryl sets
-items=[]
-for p in range(1,20):
-    b=get(f"https://monumenthobbies.com/products.json?limit=250&page={p}")
-    if b.startswith("ERR"): print(b); break
-    d=json.loads(b)["products"]
-    if not d: break
-    items+=d
-for p in items:
-    t=p["title"]
-    if re.search(r"set|bundle|kit|collection", t, re.I):
-        body=re.sub(r"<[^>]+>"," ",p.get("body_html") or "")
-        body=re.sub(r"\s+"," ",html.unescape(body))
-        print("PA|",t,"|",body[:700])
-# 2) GSW
-for u in ["https://www.greenstuffworld.com/en/","https://www.greenstuffworld.com/en/76-acrylic-paints","https://www.greenstuffworld.com/sitemap.xml","https://www.greenstuffworld.com/robots.txt","https://www.greenstuffworld.com/en/module/ps_facetedsearch/?q=paint"]:
-    b=get(u)
-    print("GSW|",u,"|",len(b),"|",b[:300].replace("\n"," "))
-    links=sorted(set(re.findall(r'href="(https://www\.greenstuffworld\.com/en/[^"#?]+)"', b)))
-    print("GSWLINKS|", len(links), " ".join(l for l in links if re.search(r"paint|acryl|ink|color|colour", l, re.I))[:3000])
+for u in ["https://www.greenstuffworld.com/en/122-acrylic-paints?from-xhr", "https://www.greenstuffworld.com/en/122-acrylic-paints?page=2&from-xhr"]:
+    b=get(u, {"Accept":"application/json, text/javascript, */*; q=0.01","X-Requested-With":"XMLHttpRequest"})
+    print("X|",u,"|",b[:200].replace("\n"," "))
+    try:
+        d=json.loads(b)
+        print("KEYS|",list(d.keys())[:30])
+        prods=d.get("products",[])
+        print("N|",len(prods), "pagination|", json.dumps(d.get("pagination",{}))[:400])
+        for p in prods[:3]:
+            print("P|", json.dumps({k:p.get(k) for k in ["id_product","name","reference","ean13","link","category","cover","attributes","price"]})[:1500])
+    except Exception as e:
+        print("NOJSON",e)
+b=get("https://www.greenstuffworld.com/en/122-acrylic-paints")
+names=re.findall(r'class="h3 product-title"[^>]*>\s*<a[^>]*>([^<]+)</a>', b)
+print("HTML names", len(names), names[:20])
+print("HTMLSNIP|", re.sub(r"\s+"," ",b[b.find('product-miniature'):b.find('product-miniature')+3000]))
