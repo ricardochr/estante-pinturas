@@ -887,15 +887,19 @@ def build_sets(src, final):
                 compact_title = norm(title)
                 # 2a) Pinturas "de artista" (Signature Series): el set las nombra sin el prefijo del artista
                 #     ("Bright Green" = "Rogue Hobbies Bright Green"); solo si el artista está en el título del set
+                #     También "Fluorescents Set: Red, Green…" = "Fluorescent Red", "Fluorescent Green"…
                 for r in rows:
-                    if "signature" not in r[1].lower() or r in found:
+                    if r in found:
                         continue
                     w = words_of(r[2]).split()
+                    line_w = words_of(r[1])
                     for k in (2, 1):
                         if len(w) <= k:
                             continue
                         prefix, rest = " ".join(w[:k]), " ".join(w[k:])
-                        if f" {prefix} " in title_w and f" {rest} " in low:
+                        if "signature" not in r[1].lower() and prefix not in line_w:
+                            continue
+                        if (f" {prefix} " in title_w or f" {prefix}s " in title_w) and f" {rest} " in low:
                             found.append(r)
                             low = low.replace(f" {rest} ", " | ", 1)
                             break
