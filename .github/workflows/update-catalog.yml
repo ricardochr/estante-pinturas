@@ -3,7 +3,7 @@ name: Actualizar catálogo
 on:
   workflow_dispatch:
   schedule:
-    - cron: "17 9 1 * *"   # día 1 de cada mes
+    - cron: "17 9 * * 1"   # cada lunes
   push:
     branches: [main]
     paths:

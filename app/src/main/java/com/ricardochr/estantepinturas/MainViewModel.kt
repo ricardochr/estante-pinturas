@@ -63,6 +63,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             val (cat, saved) = withContext(Dispatchers.IO) { store.loadCatalog() to store.loadState() }
             val ext = withContext(Dispatchers.IO) { store.loadExtraCatalog() }
             sets = withContext(Dispatchers.IO) { store.loadSets() }
+            catalogDownloadedAt = withContext(Dispatchers.IO) { store.catalogDownloadedAt() }
             catalog = cat
             extra = ext
             custom = saved.custom
@@ -904,6 +905,50 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     var sets by mutableStateOf<List<PaintSet>>(emptyList())
         private set
+
+    // ---------- actualizar catálogo desde internet ----------
+
+    var catalogUpdating by mutableStateOf(false)
+        private set
+    var catalogDownloadedAt by mutableStateOf(0L)
+        private set
+
+    /**
+     * Descarga el catálogo y los sets más recientes (los que el proceso automático publica cada
+     * semana a partir de las tiendas) y los aplica sin reinstalar la app. Mantiene tu inventario,
+     * colores corregidos y pinturas propias; las que llegaron nuevas al catálogo se unen solas.
+     */
+    fun refreshCatalog(onDone: (String) -> Unit) {
+        if (catalogUpdating) return
+        catalogUpdating = true
+        viewModelScope.launch {
+            val oldIds = (extra + catalog).map { it.id }.toHashSet()
+            val oldSets = sets.map { it.key }.toHashSet()
+            val err = withContext(Dispatchers.IO) { store.downloadCatalog() }
+            if (err != null) {
+                catalogUpdating = false
+                onDone("No se pudo actualizar: $err")
+                return@launch
+            }
+            val (cat, newSets) = withContext(Dispatchers.IO) { store.loadCatalog() to store.loadSets() }
+            val fixed = if (colorFixes.isEmpty()) cat else cat.map { p -> colorFixes[p.id]?.let { p.copy(hex = it, quality = "u") } ?: p }
+            withContext(Dispatchers.Default) { fixed.forEach { it.searchText; it.lab } }
+            catalog = fixed
+            sets = newSets
+            wheelCache = null
+            rebuildIndexes()
+            migrateOrphans()
+            adoptCatalogMatches()
+            catalogDownloadedAt = store.catalogDownloadedAt()
+            catalogUpdating = false
+            val newPaints = fixed.count { it.id !in oldIds }
+            val addedSets = newSets.count { it.key !in oldSets }
+            onDone(
+                if (newPaints == 0 && addedSets == 0) "Ya tenías el catálogo más reciente (${fixed.size} pinturas, ${newSets.size} sets)"
+                else "Catálogo actualizado: $newPaints pinturas nuevas y $addedSets sets nuevos"
+            )
+        }
+    }
 
     /** Sets que creaste o editaste. */
     var customSets by mutableStateOf<List<PaintSet>>(emptyList())

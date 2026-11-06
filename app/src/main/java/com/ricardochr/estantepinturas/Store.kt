@@ -29,20 +29,97 @@ class Store(private val context: Context) {
 
     private val file: File get() = File(context.filesDir, "inventario.json")
 
-    /** Sets de pinturas conocidos (assets/sets.json), generado junto con el catálogo. */
-    fun loadSets(): List<PaintSet> = try {
-        val arr = JSONArray(context.assets.open("sets.json").bufferedReader(Charsets.UTF_8).use { it.readText() })
-        (0 until arr.length()).map { i ->
-            val o = arr.getJSONObject(i)
-            val ps = o.getJSONArray("paints")
-            PaintSet(o.getString("brand"), o.getString("name"), o.optString("code", ""), (0 until ps.length()).map { ps.getString(it) })
+    // ---- Catálogo descargado: la versión más reciente publicada en GitHub, sin instalar otro APK
+
+    private val remoteCatalog: File get() = File(context.filesDir, "catalog-remote.json")
+    private val remoteSets: File get() = File(context.filesDir, "sets-remote.json")
+    private val prefs get() = context.getSharedPreferences("gotario", Context.MODE_PRIVATE)
+
+    /**
+     * Usa el catálogo descargado solo si se bajó con esta misma versión de la app: al instalar un APK
+     * nuevo, el catálogo que trae adentro es igual o más reciente, y el descargado se descarta.
+     */
+    private fun remoteValid(): Boolean {
+        if (!remoteCatalog.exists()) return false
+        if (prefs.getInt("catalog_dl_vc", -1) != BuildConfig.VERSION_CODE) {
+            remoteCatalog.delete(); remoteSets.delete()
+            prefs.edit().remove("catalog_dl_at").apply()
+            return false
         }
+        return true
+    }
+
+    /** Fecha (ms) de la última descarga del catálogo, o 0 si se usa el que viene en la app. */
+    fun catalogDownloadedAt(): Long = if (remoteValid()) prefs.getLong("catalog_dl_at", 0L) else 0L
+
+    /**
+     * Descarga catálogo y sets publicados en el repositorio y los guarda si son válidos.
+     * Devuelve null si todo salió bien, o el motivo del error.
+     */
+    fun downloadCatalog(): String? {
+        val base = "https://raw.githubusercontent.com/ricardochr/estante-pinturas/main/app/src/main/assets/"
+        fun fetch(name: String): String {
+            val c = java.net.URL(base + name).openConnection() as java.net.HttpURLConnection
+            c.connectTimeout = 15000
+            c.readTimeout = 60000
+            c.setRequestProperty("Cache-Control", "no-cache")
+            try {
+                if (c.responseCode != 200) throw java.io.IOException("HTTP ${c.responseCode}")
+                return c.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
+            } finally {
+                c.disconnect()
+            }
+        }
+        return try {
+            val cat = fetch("catalog.json")
+            val sets = fetch("sets.json")
+            // Validar antes de reemplazar: que se pueda leer y que no venga casi vacío
+            val n = parseCatalog(cat).size
+            if (n < 1000) return "el catálogo descargado parece incompleto ($n pinturas)"
+            parseSets(sets)
+            val t1 = File(context.filesDir, "catalog-remote.json.tmp").apply { writeText(cat, Charsets.UTF_8) }
+            val t2 = File(context.filesDir, "sets-remote.json.tmp").apply { writeText(sets, Charsets.UTF_8) }
+            if (!t1.renameTo(remoteCatalog)) { remoteCatalog.writeText(cat, Charsets.UTF_8); t1.delete() }
+            if (!t2.renameTo(remoteSets)) { remoteSets.writeText(sets, Charsets.UTF_8); t2.delete() }
+            prefs.edit().putLong("catalog_dl_at", System.currentTimeMillis()).putInt("catalog_dl_vc", BuildConfig.VERSION_CODE).apply()
+            null
+        } catch (e: java.net.UnknownHostException) {
+            "sin conexión a internet"
+        } catch (e: Exception) {
+            e.message ?: e.javaClass.simpleName
+        }
+    }
+
+    /** Sets de pinturas conocidos (descargados o los de assets/sets.json). */
+    fun loadSets(): List<PaintSet> = try {
+        val text = if (remoteValid() && remoteSets.exists()) remoteSets.readText(Charsets.UTF_8)
+        else context.assets.open("sets.json").bufferedReader(Charsets.UTF_8).use { it.readText() }
+        parseSets(text)
     } catch (e: Exception) {
         emptyList()
     }
 
+    private fun parseSets(text: String): List<PaintSet> {
+        val arr = JSONArray(text)
+        return (0 until arr.length()).map { i ->
+            val o = arr.getJSONObject(i)
+            val ps = o.getJSONArray("paints")
+            PaintSet(o.getString("brand"), o.getString("name"), o.optString("code", ""), (0 until ps.length()).map { ps.getString(it) })
+        }
+    }
+
     fun loadCatalog(): List<Paint> {
-        val text = context.assets.open("catalog.json").bufferedReader(Charsets.UTF_8).use { it.readText() }
+        if (remoteValid()) {
+            try {
+                return parseCatalog(remoteCatalog.readText(Charsets.UTF_8))
+            } catch (e: Exception) {
+                remoteCatalog.delete()
+            }
+        }
+        return parseCatalog(context.assets.open("catalog.json").bufferedReader(Charsets.UTF_8).use { it.readText() })
+    }
+
+    private fun parseCatalog(text: String): List<Paint> {
         val arr = JSONArray(text)
         val out = ArrayList<Paint>(arr.length())
         for (i in 0 until arr.length()) {

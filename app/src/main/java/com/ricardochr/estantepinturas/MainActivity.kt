@@ -174,6 +174,15 @@ private fun App(vm: MainViewModel = viewModel()) {
                         DropdownMenuItem(text = { Text("Encontrar una pintura") }, onClick = {
                             menuOpen = false; storage = StorageRequest()
                         })
+                        DropdownMenuItem(
+                            text = { Text(if (vm.catalogUpdating) "Actualizando catálogo…" else "Actualizar catálogo y sets") },
+                            enabled = !vm.catalogUpdating,
+                            onClick = {
+                                menuOpen = false
+                                say("Buscando novedades…")
+                                vm.refreshCatalog { say(it) }
+                            },
+                        )
                         DropdownMenuItem(text = { Text("Sets de pinturas") }, onClick = {
                             menuOpen = false; showSets = true
                         })
@@ -452,7 +461,8 @@ private fun App(vm: MainViewModel = viewModel()) {
                 Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
                         "Versión ${BuildConfig.VERSION_NAME}\n\n" +
-                            "Catálogo incluido: ${vm.catalog.size} pinturas del proyecto miniature-paints de Rick Fleuren (licencia MIT), actualizado a marzo de 2025. " +
+                            "Catálogo: ${vm.catalog.size} pinturas y ${vm.sets.size} sets, armado con las tiendas oficiales, tiendas minoristas y los proyectos abiertos paintdex y miniature-paints (licencia MIT). " +
+                            (if (vm.catalogDownloadedAt > 0) "Descargado el " + SimpleDateFormat("d MMM yyyy", Locale("es")).format(Date(vm.catalogDownloadedAt)) + ". " else "Es el que vino con la app; usa Actualizar catálogo para bajar el más reciente. ") +
                             "Importadas por ti: ${vm.extra.size}. Los colores son aproximados.\n\n" +
                             "El reconocimiento de etiquetas y códigos de barras usa ML Kit de Google y funciona sin internet. " +
                             "Tu inventario y proyectos se guardan en este teléfono; activa Respaldo (menú) para tener una copia en Google Drive u otro lugar."
