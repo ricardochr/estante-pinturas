@@ -461,6 +461,7 @@ def parse_ak(prods):
         parts = [x.strip() for x in re.split(r"\s+[–-]\s+", raw)]
         # Líneas por categoría (Glow Fluor, Xtreme Metal, True Metal, efectos, filtros, óleos, Real Colors…)
         if not re.match(r"^AK(1[17]\d{3}|193\d{2}|160[0-5]\d)$", sku) and re.match(r"^(AK|RC|ABT)\w{3,6}$", sku) \
+                and not sku.startswith("RCS") and not re.search(r"\bcolou?rs\b|\bset\b", raw, re.I) \
                 and not AK_NOT_PAINT.search(raw):
             hit = next(((ln, tp) for key, ln, tp in AK_CATEGORY_LINES if key in cat_set), None)
             if hit:
