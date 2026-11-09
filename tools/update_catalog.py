@@ -902,6 +902,26 @@ def clean_retail_title(title, brand):
     return t or title
 
 
+def _codes(prefix, a, b):
+    return [f"{prefix}{i:03d}" for i in range(a, b + 1)]
+
+
+# Kaleido no lista los colores en la descripción de sus sets, pero cada set corresponde a un tramo
+# de su numeración (los "B" son la segunda mitad de cada serie). El orden importa: lo específico primero.
+KALEIDO_SET_RULES = [
+    (r"12 (matt primary|primary matt)", _codes("K", 37, 48)),
+    (r"12 (translucent|clear)", _codes("KC", 1, 12)),
+    (r"12 metal", _codes("KM", 1, 12)),
+    (r"24 primary colou?rs set b", _codes("K", 25, 48)),
+    (r"24 primary", _codes("K", 1, 24)),
+    (r"12 primary", _codes("K", 1, 12)),
+    (r"24 mecha colou?rs set b", _codes("K", 125, 148)),
+    (r"24 mecha", _codes("K", 101, 124)),
+    (r"24 auto colou?rs set b", _codes("K", 209, 220) + _codes("K", 317, 328)),
+    (r"24 auto", _codes("K", 201, 208) + _codes("K", 301, 316)),
+]
+
+
 def _strip_html(t):
     t = re.sub(r"<[^>]+>", " ", t or "")
     return re.sub(r"\s+", " ", html.unescape(t))
@@ -1020,6 +1040,12 @@ def build_sets(src, final):
                     pick = pick or cands[0]
                     if pick not in found:
                         found.append(pick)
+            # 3) Kaleido: sets por tramo de numeración
+            if len(found) < 3 and brand == "Kaleido Colorworks":
+                for rx, codes in KALEIDO_SET_RULES:
+                    if re.search(rx, title, re.I):
+                        found = [by_code[code_key(c)] for c in codes if code_key(c) in by_code]
+                        break
             # 4) Sets que se arman con otros sets ("todos los colores del Base Set, Expansion 1…"): se resuelven al final
             if len(found) < 3:
                 refs = re.findall(r"(base set|intro set|metallic set|expansion(?: set)? ?#? ?\d)", text, re.I)
