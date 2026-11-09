@@ -1,6 +1,6 @@
 # Validación de sets
 
-Sets publicados: 769 — ok 391, parcial 36, revisar 342. Descartados: 1467.
+Sets publicados: 769 — ok 391, parcial 36, revisar 342. Descartados: 1466.
 
 ## Por revisar o parciales
 
@@ -1335,7 +1335,6 @@ Sets publicados: 769 — ok 391, parcial 36, revisar 342. Descartados: 1467.
 - The Army Painter — MASTERCLASS JOHN BLANCHE PAINT SET VOLUME 2 (www.tistaminis.com): solo 0 pinturas reconocidas
 - The Army Painter — MASTERCLASS JOHN BLANCHE PAINT SET VOLUME 3 (www.tistaminis.com): solo 0 pinturas reconocidas
 - The Army Painter — MASTERCLASS JOHN BLANCHE PAINT SET VOLUME 4 (www.tistaminis.com): solo 0 pinturas reconocidas
-- The Army Painter — Masterclass Bundle (Tienda oficial): solo 0 pinturas reconocidas
 - The Army Painter — Ork Bundle (Tienda oficial): solo 0 pinturas reconocidas
 - The Army Painter — Poxwalker Bundle (Tienda oficial): solo 0 pinturas reconocidas
 - The Army Painter — Reichbusters Projekt Vrill Army Painter Box (www.gapgames.com.au): solo 0 pinturas reconocidas
