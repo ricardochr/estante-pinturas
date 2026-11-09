@@ -911,7 +911,7 @@ SET_SOURCES = {
     "turbodork": "Turbo Dork",
 }
 SET_TITLE = re.compile(r"\b(set|sets|bundle|collection|kit|box|range|case|pack)\b", re.I)
-SET_EXCLUDE = re.compile(r"brush|pincel|rack|organi[sz]er|empty|palette|paleta|display|book|magazine|\[pdf\]|guide|airbrush|aer[oó]grafo|tool|herramienta|model kit|1/\d+|maqueta|figure|figura|terrain|basing|texture|decal|calcas|marker|rotulador|pencil|l[aá]pi[cz]|\bpens?\b|crayon|sticker|pegatina|gift card|tarjeta regalo|t-shirt|camiseta|mug|taza", re.I)
+SET_EXCLUDE = re.compile(r"brush|pincel|rack|organi[sz]er|empty|palette|paleta|display|book|magazine|\[pdf\]|guide|airbrush|aer[oó]grafo|tool|herramienta|model kit|1/\d+|maqueta|figure|figura|terrain|basing|texture|decal|calcas|pencil|l[aá]pi[cz]|crayon|sticker|pegatina|gift card|tarjeta regalo|t-shirt|camiseta|mug|taza", re.I)
 CODE_RES = [
     re.compile(r"\bMPA-?S?\d{2,3}\b|\bAMP-\d{3}\b|\bMPAP-\d{3}\b", re.I),     # Pro Acryl
     re.compile(r"\bWP\d{4}\b|\bAW\d{4}\b", re.I),                                # Army Painter
@@ -990,7 +990,7 @@ def expected_count(title, text):
             for m in re.finditer(rx, t):
                 n = int(m.group(1))
                 after = t[m.end():m.end() + 4]
-                if 2 <= n <= 60 and not re.match(r"\s?ml\b", after):
+                if 2 <= n <= 60 and not re.search(r"\bml\b|\bmm\b|\d\s?ml", m.group(0) + after):
                     return n
         return None
     return scan(title, True) or scan(text[:1500], False)
@@ -1177,25 +1177,18 @@ def build_sets(src, final):
 
 
 def validate_set(found, expected, method, key):
-    """(estado, nota) del set; estado None = se descarta.
-    ok: coincide con lo que anuncia · parcial: faltan algunas · revisar: no se pudo confirmar del todo."""
+    """(estado, nota) del set. No se descarta ningún set con 3 o más pinturas reconocidas: solo se marca.
+    ok: coincide con lo que anuncia o viene de la tienda oficial · parcial: faltan algunas · revisar: no se pudo confirmar."""
     if expected:
         if found == expected:
             return "ok", f"Trae {expected} pinturas; se reconocieron todas"
         if found > expected:
-            # Más de las anunciadas: el texto nombra colores que no vienen en el set (sugerencias, "también te puede interesar"…)
-            if found > expected * 1.5 + 1:
-                return None, f"anuncia {expected} pero se reconocieron {found}: el texto mezcla otros productos"
             return "revisar", f"Anuncia {expected} pinturas y se reconocieron {found}: puede incluir alguna que no viene"
         if found >= expected * 0.75:
             return "parcial", f"Trae {expected} pinturas; se reconocieron {found} (faltan {expected - found} en el catálogo)"
-        if found >= expected * 0.5:
-            return "revisar", f"Trae {expected} pinturas; solo se reconocieron {found}"
-        return None, f"anuncia {expected} pero solo se reconocieron {found}"
+        return "revisar", f"Anuncia {expected} pinturas; solo se reconocieron {found}"
     if method == "numeración":
         return "revisar", "Kaleido no publica la lista: se dedujo por la numeración de la serie"
-    if method == "nombre" and found < 4:
-        return None, f"solo {found} nombres reconocidos y el set no dice cuántas trae"
     if key == "retail":
         return "revisar", "Solo aparece en tiendas minoristas y no dice cuántas pinturas trae"
     return "ok", "Lista tomada de la tienda oficial"

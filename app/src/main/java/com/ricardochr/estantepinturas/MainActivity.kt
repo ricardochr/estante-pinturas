@@ -115,6 +115,7 @@ private fun App(vm: MainViewModel = viewModel()) {
     var showShopping by rememberSaveable { mutableStateOf(false) }
     var showBackup by rememberSaveable { mutableStateOf(false) }
     var showGear by rememberSaveable { mutableStateOf(false) }
+    var showCompare by rememberSaveable { mutableStateOf(false) }
     var showSets by rememberSaveable { mutableStateOf(false) }
     fun goCatalog() { tab = Tab.Inventario; invMode = 1 }
     val snackbar = remember { SnackbarHostState() }
@@ -183,6 +184,9 @@ private fun App(vm: MainViewModel = viewModel()) {
                                 vm.refreshCatalog { say(it) }
                             },
                         )
+                        DropdownMenuItem(text = { Text("Superponer referencia (comparar con tu figura)") }, onClick = {
+                            menuOpen = false; showCompare = true
+                        })
                         DropdownMenuItem(text = { Text("Sets de pinturas") }, onClick = {
                             menuOpen = false; showSets = true
                         })
@@ -287,7 +291,7 @@ private fun App(vm: MainViewModel = viewModel()) {
                 Tab.Escanear -> ScanScreen(
                     vm,
                     active = linking == null && editing == null && !creating && storage == null && liveFind == null &&
-                        openProject == null && !showShopping && !showBackup && !showGear && !showSets,
+                        openProject == null && !showShopping && !showBackup && !showGear && !showSets && !showCompare,
                     onLinkBarcode = { linking = it },
                     onNotFound = { goCatalog() },
                     onAdded = { say(it) },
@@ -409,6 +413,10 @@ private fun App(vm: MainViewModel = viewModel()) {
 
     if (showSets) {
         com.ricardochr.estantepinturas.ui.SetsScreen(vm, onClose = { showSets = false }, onOpenPaint = { editing = it }, say = { say(it) })
+    }
+
+    if (showCompare) {
+        com.ricardochr.estantepinturas.ui.CompareScreen(initialUri = null, onClose = { showCompare = false })
     }
 
     if (showGear) {
