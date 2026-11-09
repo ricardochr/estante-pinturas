@@ -93,6 +93,18 @@ val ScanIcon: ImageVector by lazy {
     }.build()
 }
 
+/** Ícono de dos capas superpuestas para Superponer referencia. */
+val CompareIcon: ImageVector by lazy {
+    ImageVector.Builder("compare", 24.dp, 24.dp, 24f, 24f).apply {
+        path(fill = null, stroke = SolidColor(Color.Black), strokeLineWidth = 2f, strokeLineCap = StrokeCap.Round) {
+            moveTo(3f, 4f); lineTo(15f, 4f); lineTo(15f, 15f); lineTo(3f, 15f); close()
+        }
+        path(fill = SolidColor(Color.Black), fillAlpha = 0.35f, stroke = SolidColor(Color.Black), strokeLineWidth = 2f, strokeLineCap = StrokeCap.Round) {
+            moveTo(9f, 9f); lineTo(21f, 9f); lineTo(21f, 20f); lineTo(9f, 20f); close()
+        }
+    }.build()
+}
+
 /** Ícono de libro abierto para la pestaña Guía. */
 val GuideIcon: ImageVector by lazy {
     ImageVector.Builder("guide", 24.dp, 24.dp, 24f, 24f).apply {
@@ -185,7 +197,7 @@ fun SearchField(value: String, onChange: (String) -> Unit, placeholder: String, 
 }
 
 @Composable
-fun BrandChips(brands: List<Pair<String, Int>>, selected: String?, onSelect: (String?) -> Unit) {
+fun BrandChips(brands: List<Pair<String, Int>>, selected: String?, mine: Set<String> = emptySet(), onSelect: (String?) -> Unit) {
     if (brands.size < 2) return
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -202,7 +214,7 @@ fun BrandChips(brands: List<Pair<String, Int>>, selected: String?, onSelect: (St
             FilterChip(
                 selected = selected == b,
                 onClick = { onSelect(if (selected == b) null else b) },
-                label = { Text("$b  $n") },
+                label = { Text((if (b in mine) "★ " else "") + "$b  $n") },
             )
         }
     }
@@ -480,6 +492,7 @@ fun CustomPaintDialog(
     initialName: String = "",
     initialCode: String = "",
     onDismiss: () -> Unit,
+    brandSuggestions: List<String> = emptyList(),
     onSave: (brand: String, line: String, name: String, code: String, hex: String, type: String, qty: Int) -> Unit,
 ) {
     var brand by remember { mutableStateOf("") }
@@ -495,6 +508,12 @@ fun CustomPaintDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(brand, { brand = it }, label = { Text("Marca") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                val sugg = brandSuggestions.filter { it.contains(brand.trim(), ignoreCase = true) && !it.equals(brand.trim(), ignoreCase = true) }.take(8)
+                if (sugg.isNotEmpty()) {
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        items(sugg) { b -> FilterChip(selected = false, onClick = { brand = b }, label = { Text(b) }) }
+                    }
+                }
                 OutlinedTextField(line, { line = it }, label = { Text("Línea") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(name, { name = it }, label = { Text("Nombre") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -602,3 +621,11 @@ fun SimilarSection(
         }
     }
 }
+
+/** Cuántas pinturas tienes de cada marca (solo las que tienes en tu inventario). */
+fun ownedBrandCounts(vm: com.ricardochr.estantepinturas.MainViewModel): Map<String, Int> =
+    vm.owned.values.filter { it.qty > 0 }.mapNotNull { vm.byId[it.paintId]?.brand }.groupingBy { it }.eachCount()
+
+/** Marcas con primero las que ya tienes (de la que más tienes a la que menos) y luego el resto en orden alfabético. */
+fun brandsOwnedFirst(counts: List<Pair<String, Int>>, mine: Map<String, Int>): List<Pair<String, Int>> =
+    counts.sortedWith(compareByDescending<Pair<String, Int>> { mine[it.first] ?: 0 }.thenBy { it.first.lowercase() })

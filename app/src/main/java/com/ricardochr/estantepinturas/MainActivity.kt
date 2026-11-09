@@ -63,7 +63,12 @@ import com.ricardochr.estantepinturas.ui.CustomPaintDialog
 import com.ricardochr.estantepinturas.ui.EntrySheet
 import com.ricardochr.estantepinturas.ui.EstanteTheme
 import com.ricardochr.estantepinturas.ui.InventoryScreen
-import com.ricardochr.estantepinturas.ui.GuideIcon
+import com.ricardochr.estantepinturas.ui.HubAction
+import com.ricardochr.estantepinturas.ui.HubScreen
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import com.ricardochr.estantepinturas.ui.GuideScreen
 import com.ricardochr.estantepinturas.ui.PaletteIcon
 import com.ricardochr.estantepinturas.ui.PaletteHub
@@ -95,7 +100,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private enum class Tab(val label: String) { Inventario("Inventario"), Proyectos("Proyectos"), Escanear("Escanear"), Paleta("Paleta"), Guia("Guía") }
+private enum class Tab(val label: String) { Inventario("Inventario"), Proyectos("Proyectos"), Escanear("Escanear"), Paleta("Paleta"), Taller("Taller") }
 
 @Composable
 private fun App(vm: MainViewModel = viewModel()) {
@@ -104,7 +109,6 @@ private fun App(vm: MainViewModel = viewModel()) {
     var linking by remember { mutableStateOf<String?>(null) }
     var creating by remember { mutableStateOf(false) }
     var createForBarcode by remember { mutableStateOf<String?>(null) }
-    var menuOpen by remember { mutableStateOf(false) }
     var showAbout by remember { mutableStateOf(false) }
     var confirmClearCatalog by remember { mutableStateOf(false) }
     var storage by remember { mutableStateOf<StorageRequest?>(null) }
@@ -117,6 +121,8 @@ private fun App(vm: MainViewModel = viewModel()) {
     var showGear by rememberSaveable { mutableStateOf(false) }
     var showCompare by rememberSaveable { mutableStateOf(false) }
     var showSets by rememberSaveable { mutableStateOf(false) }
+    var showGuide by rememberSaveable { mutableStateOf(false) }
+    var showWheel by rememberSaveable { mutableStateOf(false) }
     fun goCatalog() { tab = Tab.Inventario; invMode = 1 }
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -164,64 +170,14 @@ private fun App(vm: MainViewModel = viewModel()) {
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
                 actions = {
-                    IconButton(onClick = { menuOpen = true }) { Icon(Icons.Default.MoreVert, contentDescription = "Más opciones") }
-                    DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
-                        DropdownMenuItem(text = { Text("Agregar pintura fuera del catálogo") }, onClick = {
-                            menuOpen = false; createForBarcode = null; creating = true
-                        })
-                        DropdownMenuItem(text = { Text("Lista de compras") }, onClick = {
-                            menuOpen = false; showShopping = true
-                        })
-                        DropdownMenuItem(text = { Text("Encontrar una pintura") }, onClick = {
-                            menuOpen = false; storage = StorageRequest()
-                        })
-                        DropdownMenuItem(
-                            text = { Text(if (vm.catalogUpdating) "Actualizando catálogo…" else "Actualizar catálogo y sets") },
-                            enabled = !vm.catalogUpdating,
-                            onClick = {
-                                menuOpen = false
-                                say("Buscando novedades…")
-                                vm.refreshCatalog { say(it) }
-                            },
-                        )
-                        DropdownMenuItem(text = { Text("Superponer referencia (comparar con tu figura)") }, onClick = {
-                            menuOpen = false; showCompare = true
-                        })
-                        DropdownMenuItem(text = { Text("Sets de pinturas") }, onClick = {
-                            menuOpen = false; showSets = true
-                        })
-                        DropdownMenuItem(text = { Text("Mi equipo (aerógrafos)") }, onClick = {
-                            menuOpen = false; showGear = true
-                        })
-                        DropdownMenuItem(text = { Text("Respaldo") }, onClick = {
-                            menuOpen = false; showBackup = true
-                        })
-                        DropdownMenuItem(text = { Text("Exportar inventario (CSV)") }, onClick = {
-                            menuOpen = false
-                            val stamp = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
-                            exportLauncher.launch("inventario-pinturas-$stamp.csv")
-                        })
-                        DropdownMenuItem(text = { Text("Importar inventario (CSV)") }, onClick = {
-                            menuOpen = false
-                            importLauncher.launch(csvTypes)
-                        })
-                        HorizontalDivider()
-                        DropdownMenuItem(text = { Text("Agregar pinturas al catálogo (CSV)") }, onClick = {
-                            menuOpen = false
-                            catalogImportLauncher.launch(csvTypes)
-                        })
-                        DropdownMenuItem(text = { Text("Exportar catálogo completo (CSV)") }, onClick = {
-                            menuOpen = false
-                            catalogExportLauncher.launch("catalogo-pinturas.csv")
-                        })
-                        if (vm.extra.isNotEmpty()) {
-                            DropdownMenuItem(text = { Text("Quitar pinturas importadas (${vm.extra.size})") }, onClick = {
-                                menuOpen = false
-                                confirmClearCatalog = true
-                            })
+                    val toBuy = vm.lowPaints.size + vm.shopping.count { sh -> vm.lowPaints.none { it.id == sh.paintId } }
+                    IconButton(onClick = { showShopping = true }) {
+                        BadgedBox(badge = { if (toBuy > 0) Badge { Text(toBuy.toString()) } }) {
+                            Icon(Icons.Default.ShoppingCart, contentDescription = "Lista de compras")
                         }
-                        HorizontalDivider()
-                        DropdownMenuItem(text = { Text("Acerca de") }, onClick = { menuOpen = false; showAbout = true })
+                    }
+                    IconButton(onClick = { showCompare = true }) {
+                        Icon(com.ricardochr.estantepinturas.ui.CompareIcon, contentDescription = "Superponer referencia")
                     }
                 },
             )
@@ -245,8 +201,8 @@ private fun App(vm: MainViewModel = viewModel()) {
                     icon = { Icon(PaletteIcon, contentDescription = null) }, label = { Text("Paleta") },
                 )
                 NavigationBarItem(
-                    selected = tab == Tab.Guia, onClick = { tab = Tab.Guia },
-                    icon = { Icon(GuideIcon, contentDescription = null) }, label = { Text("Guía") },
+                    selected = tab == Tab.Taller, onClick = { tab = Tab.Taller },
+                    icon = { Icon(Icons.Default.Build, contentDescription = null) }, label = { Text("Taller") },
                 )
             }
         },
@@ -291,7 +247,7 @@ private fun App(vm: MainViewModel = viewModel()) {
                 Tab.Escanear -> ScanScreen(
                     vm,
                     active = linking == null && editing == null && !creating && storage == null && liveFind == null &&
-                        openProject == null && !showShopping && !showBackup && !showGear && !showSets && !showCompare,
+                        openProject == null && !showShopping && !showBackup && !showGear && !showSets && !showCompare && !showWheel && !showGuide && wheelFor == null,
                     onLinkBarcode = { linking = it },
                     onNotFound = { goCatalog() },
                     onAdded = { say(it) },
@@ -300,7 +256,32 @@ private fun App(vm: MainViewModel = viewModel()) {
                     say("Proyecto creado: ${it.name}")
                     openProject = it.id
                 })
-                Tab.Guia -> GuideScreen()
+                Tab.Taller -> HubScreen(vm) { action ->
+                    when (action) {
+                        HubAction.Compare -> showCompare = true
+                        HubAction.Wheel -> showWheel = true
+                        HubAction.Guide -> showGuide = true
+                        HubAction.Gear -> showGear = true
+                        HubAction.Shopping -> showShopping = true
+                        HubAction.Sets -> showSets = true
+                        HubAction.Find -> storage = StorageRequest()
+                        HubAction.AddCustom -> { createForBarcode = null; creating = true }
+                        HubAction.UpdateCatalog -> if (!vm.catalogUpdating) {
+                            say("Buscando novedades…")
+                            vm.refreshCatalog { say(it) }
+                        }
+                        HubAction.Backup -> showBackup = true
+                        HubAction.ExportInventory -> {
+                            val stamp = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+                            exportLauncher.launch("inventario-pinturas-$stamp.csv")
+                        }
+                        HubAction.ImportInventory -> importLauncher.launch(csvTypes)
+                        HubAction.ImportCatalog -> catalogImportLauncher.launch(csvTypes)
+                        HubAction.ExportCatalog -> catalogExportLauncher.launch("catalogo-pinturas.csv")
+                        HubAction.ClearImported -> confirmClearCatalog = true
+                        HubAction.About -> showAbout = true
+                    }
+                }
             }
         }
     }
@@ -393,6 +374,10 @@ private fun App(vm: MainViewModel = viewModel()) {
     if (creating) {
         CustomPaintDialog(
             onDismiss = { creating = false },
+            brandSuggestions = remember(vm.owned, vm.catalog) {
+                val mine = com.ricardochr.estantepinturas.ui.ownedBrandCounts(vm)
+                com.ricardochr.estantepinturas.ui.brandsOwnedFirst(vm.brandCounts.map { it.first to it.second }, mine).map { it.first }
+            },
             onSave = { brand, line, name, code, hex, type, qty ->
                 val id = vm.addCustom(brand, line, name, code, hex, type, qty)
                 createForBarcode?.let { vm.linkBarcode(it, id) }
@@ -438,14 +423,31 @@ private fun App(vm: MainViewModel = viewModel()) {
         )
     }
 
-    wheelFor?.let { p ->
+    if (showGuide) {
         Box(Modifier.fillMaxSize()) {
-            BackHandler { wheelFor = null }
+            BackHandler { showGuide = false }
+            Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                Column(Modifier.fillMaxSize().systemBarsPadding()) {
+                    TopAppBar(
+                        title = { Text("Guía de técnicas") },
+                        navigationIcon = { IconButton(onClick = { showGuide = false }) { Icon(Icons.Default.Close, contentDescription = "Cerrar") } },
+                        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
+                    )
+                    Box(Modifier.weight(1f)) { GuideScreen() }
+                }
+            }
+        }
+    }
+
+    if (wheelFor != null || showWheel) {
+        val p = wheelFor
+        Box(Modifier.fillMaxSize()) {
+            BackHandler { wheelFor = null; showWheel = false }
             Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                 Column(Modifier.fillMaxSize().systemBarsPadding()) {
                     TopAppBar(
                         title = { Text("Círculo cromático") },
-                        navigationIcon = { IconButton(onClick = { wheelFor = null }) { Icon(Icons.Default.Close, contentDescription = "Cerrar") } },
+                        navigationIcon = { IconButton(onClick = { wheelFor = null; showWheel = false }) { Icon(Icons.Default.Close, contentDescription = "Cerrar") } },
                         colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
                     )
                     Box(Modifier.weight(1f)) {
@@ -473,7 +475,7 @@ private fun App(vm: MainViewModel = viewModel()) {
                             (if (vm.catalogDownloadedAt > 0) "Descargado el " + SimpleDateFormat("d MMM yyyy", Locale("es")).format(Date(vm.catalogDownloadedAt)) + ". " else "Es el que vino con la app; usa Actualizar catálogo para bajar el más reciente. ") +
                             "Importadas por ti: ${vm.extra.size}. Los colores son aproximados.\n\n" +
                             "El reconocimiento de etiquetas y códigos de barras usa ML Kit de Google y funciona sin internet. " +
-                            "Tu inventario y proyectos se guardan en este teléfono; activa Respaldo (menú) para tener una copia en Google Drive u otro lugar."
+                            "Tu inventario y proyectos se guardan en este teléfono; activa Respaldo (pestaña Taller) para tener una copia en Google Drive u otro lugar."
                     )
                     Text("Pinturas por marca", style = MaterialTheme.typography.titleSmall)
                     vm.brandCounts.forEach { (b, n) ->

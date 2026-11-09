@@ -55,7 +55,8 @@ fun SetsScreen(vm: MainViewModel, onClose: () -> Unit, onOpenPaint: (Paint) -> U
     var openKey by rememberSaveable { mutableStateOf<String?>(null) }
     var creating by remember { mutableStateOf(false) }
     val all = vm.allSets
-    val brands = remember(all) { all.groupingBy { it.brand }.eachCount().toList().sortedBy { it.first } }
+    val mine = remember(vm.owned, vm.byId) { ownedBrandCounts(vm) }
+    val brands = remember(all, mine) { brandsOwnedFirst(all.groupingBy { it.brand }.eachCount().toList(), mine) }
     // Texto de búsqueda de cada set: marca, nombre, código y línea ("Squidmar Color", "Game Color"…)
     val searchText = remember(all, vm.byId) { all.associateWith { s -> norm(s.brand + " " + vm.lineOf(s) + " " + s.name + " " + s.code) } }
     val shown = remember(all, query, brand, searchText) {
@@ -83,7 +84,7 @@ fun SetsScreen(vm: MainViewModel, onClose: () -> Unit, onOpenPaint: (Paint) -> U
                         SearchField(query, { query = it }, "Buscar set: intro, starter, skin, metal…")
                         androidx.compose.material3.TextButton(onClick = { creating = true }) { Text("+ Crear un set a mano") }
                     }
-                    BrandChips(brands, brand) { brand = it }
+                    BrandChips(brands, brand, mine.keys) { brand = it }
                     if (all.isEmpty()) {
                         EmptyState("Sin sets todavía", "La lista de sets se descarga de las tiendas junto con el catálogo; llegará en la próxima actualización.")
                     } else if (shown.isEmpty()) {

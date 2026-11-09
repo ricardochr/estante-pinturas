@@ -206,8 +206,10 @@ fun CatalogList(
 ) {
     var query by rememberSaveable { mutableStateOf(initialQuery) }
     var brand by rememberSaveable { mutableStateOf<String?>(null) }
-    val all = remember(vm.catalog, vm.custom, vm.extra) { vm.allPaints }
-    val brands = remember(all) { all.groupingBy { it.brand }.eachCount().toList().sortedBy { it.first } }
+    val mine = remember(vm.owned, vm.byId) { ownedBrandCounts(vm) }
+    // Primero las marcas de las que ya tienes pinturas: al asignar una pintura escaneada casi siempre es de esas
+    val all = remember(vm.catalog, vm.custom, vm.extra, mine) { vm.allPaints.sortedByDescending { mine[it.brand] ?: 0 } }
+    val brands = remember(all, mine) { brandsOwnedFirst(all.groupingBy { it.brand }.eachCount().toList(), mine) }
     val shown = rememberFiltered(query, brand, all) { words, b ->
         if (words.isEmpty() && b == null) all
         else all.filter { (b == null || it.brand == b) && (words.isEmpty() || matchesWords(it.searchText, words)) }
@@ -225,7 +227,7 @@ fun CatalogList(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        BrandChips(brands, brand) { brand = it }
+        BrandChips(brands, brand, mine.keys) { brand = it }
         Spacer(Modifier.height(4.dp))
         if (shown == null) {
             EmptyState("Cargando…", "Preparando el catálogo.")

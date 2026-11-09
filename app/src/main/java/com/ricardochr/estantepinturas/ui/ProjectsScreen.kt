@@ -224,6 +224,7 @@ fun ProjectDetail(vm: MainViewModel, projectId: String, onClose: () -> Unit, onO
     }
 
     val ref = rememberFileBitmap(p.reference?.let { vm.projectFile(p.id, it) }, 1200)
+    var comparing by remember { mutableStateOf(false) }
     val paints = p.paints.mapNotNull { pp -> vm.byId[pp.paintId]?.let { it to pp } }
     val missing = paints.filter { vm.qtyOf(it.first.id) == 0 }
 
@@ -261,6 +262,9 @@ fun ProjectDetail(vm: MainViewModel, projectId: String, onClose: () -> Unit, onO
                                         .clip(RoundedCornerShape(14.dp))
                                         .background(MaterialTheme.colorScheme.surfaceContainer),
                                 )
+                                Button(onClick = { comparing = true }, modifier = Modifier.fillMaxWidth()) {
+                                    Text("Comparar con mi figura (cámara)")
+                                }
                             } else if (p.reference == null) {
                                 OutlinedButton(
                                     onClick = { refPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
@@ -416,6 +420,11 @@ fun ProjectDetail(vm: MainViewModel, projectId: String, onClose: () -> Unit, onO
             },
             dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text("Cancelar") } },
         )
+    }
+
+    if (comparing) {
+        val file = p.reference?.let { vm.projectFile(p.id, it) }
+        CompareScreen(initialUri = file?.let { android.net.Uri.fromFile(it) }, onClose = { comparing = false })
     }
 }
 
