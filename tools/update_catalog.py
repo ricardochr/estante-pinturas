@@ -247,6 +247,7 @@ def load_sources(args):
             "vallejo": fetch_wc("https://acrylicosvallejo.com/en"),
             "ak": fetch_wc("https://ak-interactive.com", 1538) + fetch_wc("https://ak-interactive.com", 1410)
                   + fetch_wc("https://ak-interactive.com", 151796)
+                  + fetch_wc("https://ak-interactive.com", 938) + fetch_wc("https://ak-interactive.com", 101810)
                   + fetch_wc_search("https://ak-interactive.com", ["acrylic wash", "wash", "ink", "set"]),
         }
         ds = []
@@ -414,6 +415,36 @@ def parse_vallejo(prods):
     return out
 
 
+# Líneas de AK fuera de 3rd Gen / Quick Gen / The Inks, según la categoría de la tienda (en orden de prioridad)
+AK_CATEGORY_LINES = [
+    ("GLOW FLUOR", "Glow Fluor (Enamel)", "Opaca"),
+    ("XTREME METAL", "Xtreme Metal (Enamel)", "Metálica"),
+    ("TRUE METAL COLORS", "True Metal (Wax)", "Metálica"),
+    ("TRUE METAL", "True Metal (Wax)", "Metálica"),
+    ("DUAL EXO", "Dual Exo", "Aerógrafo"),
+    ("LIQUID PIGMENTS", "Liquid Pigments", "Otro"),
+    ("OILS", "Oils", "Opaca"),
+    ("ARTIST DENSE ACRYLIC PAINTS", "Artist Dense Acrylic", "Opaca"),
+    ("GOUACHES", "Gouache", "Opaca"),
+    ("FILTERS", "Enamel Filter", "Tinta"),
+    ("PANEL LINERS", "Enamel Panel Liner", "Wash"),
+    ("STREAKING PAINTS E N", "Enamel Effects", "Otro"),
+    ("STREAKING PAINTS", "Enamel Effects", "Otro"),
+    ("NATURE E N", "Enamel Effects", "Otro"),
+    ("NATURE", "Enamel Effects", "Otro"),
+    ("DEPOSITS", "Enamel Effects", "Otro"),
+    ("SPECIALS E N", "Enamel Effects", "Otro"),
+    ("SPECIALS", "Enamel Effects", "Otro"),
+    ("NATURAL OXIDANTS", "Natural Oxidants", "Otro"),
+    ("EFFECTS", "Enamel Effects", "Otro"),
+    ("RC MILITARY", "Real Colors - Military", "Opaca"),
+    ("RC STANDARD", "Real Colors - Standard", "Opaca"),
+    ("RC CIVIL", "Real Colors - Civil", "Opaca"),
+    ("PIGMENTS", "Pigments", "Otro"),
+]
+AK_NOT_PAINT = re.compile(r"\bSETS?\b|MARKER|PENCIL|GUIDE|\bBOOK|\[PDF\]|\bBOX\b|\bKIT\b|BRUSH|\(\d+\s?(?:X|UNITS|COLORS)", re.I)
+
+
 def parse_ak(prods):
     out, seen = [], set()
     for p in prods:
@@ -424,12 +455,27 @@ def parse_ak(prods):
         cat_set = {c.upper() for c in cats}
         raw = html.unescape(p["name"]).strip()
         # Cada producto existe en español e inglés; se usa la ficha en inglés
-        if not any(c in ("AK product", "a.k. Campaings", "3GEN ACRYLICS", "Acrylics paints for modeling", "ACRYLIC WASHES") for c in cats):
+        if not any(c in ("AK product", "a.k. Campaings", "3GEN ACRYLICS", "Acrylics paints for modeling", "ACRYLIC WASHES",
+                             "Scale Model Paints", "REAL COLORS") for c in cats):
             continue
+        parts = [x.strip() for x in re.split(r"\s+[–-]\s+", raw)]
+        # Líneas por categoría (Glow Fluor, Xtreme Metal, True Metal, efectos, filtros, óleos, Real Colors…)
+        if not re.match(r"^AK(1[17]\d{3}|193\d{2}|160[0-5]\d)$", sku) and re.match(r"^(AK|RC|ABT)\w{3,6}$", sku) \
+                and not AK_NOT_PAINT.search(raw):
+            hit = next(((ln, tp) for key, ln, tp in AK_CATEGORY_LINES if key in cat_set), None)
+            if hit:
+                line, t = hit
+                name = titlecase(re.sub(r"\s*\d+\s?ML\b.*$", "", parts[0], flags=re.I).strip())
+                if t == "Opaca" and guess_type(name, "") == "Metálica":
+                    t = "Metálica"
+                if name:
+                    seen.add(sku)
+                    img = [im.get("thumbnail") or im.get("src") for im in (p.get("images") or [])[:4]]
+                    out.append(dict(brand="AK Interactive", line=line, name=name, code=sku, type=t, img=img))
+                continue
         # Sets, guías, marcadores y colecciones (no son una pintura)
         if re.search(r"\bSET\b|GUIDE|\[PDF\]|\(\d+ COLORS\)|\bBOX\b|MARKER|COLORS\b|TONES\b|SELECTION|\bVOL\b|MODELS\b|CREATURES", raw, re.I):
             continue
-        parts = [x.strip() for x in re.split(r"\s+[–-]\s+", raw)]
         img = [im.get("thumbnail") or im.get("src") for im in (p.get("images") or [])[:4]]
         if re.match(r"^AK193\d{2}$", sku):
             # Lavados acrílicos 3ª generación
