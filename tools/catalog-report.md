@@ -1,10 +1,10 @@
 # Catálogo de pinturas
 
-Total: **8977** pinturas · generado 2026-11-09
+Total: **8924** pinturas · generado 2026-11-09
 
 | Marca | Pinturas | Fuente |
 |---|---:|---|
-| AK Interactive | 1667 | tienda oficial + datos abiertos |
+| AK Interactive | 1614 | tienda oficial + datos abiertos |
 | Vallejo | 1495 | tienda oficial + datos abiertos |
 | The Army Painter | 783 | tienda oficial + datos abiertos |
 | Mr. Hobby | 668 | datos abiertos |
@@ -29,8 +29,8 @@ Total: **8977** pinturas · generado 2026-11-09
 
 ## AK Interactive
 
-- Real Colors - Military: 184
 - 3rd Gen Standard: 178
+- Real Colors - Military: 131
 - AFV: 106
 - 3rd Gen Air: 94
 - Real Colors - WWII: 92
@@ -84,7 +84,7 @@ Total: **8977** pinturas · generado 2026-11-09
 - Auxiliary (3rd Gen): 1
 - Real Colors - Modern: 1
 - Standard (3rd Gen): 1
-- Pinturas con color estimado de la foto: 727
+- Pinturas con color estimado de la foto: 674
 
 ## DSPIAE
 
@@ -208,5 +208,5 @@ Total: **8977** pinturas · generado 2026-11-09
 ## Calidad del color
 
 - Medido (datos abiertos o muestra oficial): 6994
-- Estimado de la foto del producto: 1648
-- Típico según el nombre (aproximado): 335
+- Estimado de la foto del producto: 1598
+- Típico según el nombre (aproximado): 332
