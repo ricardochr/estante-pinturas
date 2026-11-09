@@ -466,7 +466,9 @@ def parse_ak(prods):
             hit = next(((ln, tp) for key, ln, tp in AK_CATEGORY_LINES if key in cat_set), None)
             if hit:
                 line, t = hit
-                name = titlecase(re.sub(r"\s*\d+\s?ML\b.*$", "", parts[0], flags=re.I).strip())
+                # "DUAL EXO 8A – TWINKLE PINK 60ml": el color va después del guion
+                first = parts[1] if len(parts) > 1 and re.match(r"^DUAL EXO \d+[AB]$", parts[0], re.I) else parts[0]
+                name = titlecase(re.sub(r"\s*\d+\s?ML\b.*$", "", first, flags=re.I).strip(" .-"))
                 if t == "Opaca" and guess_type(name, "") == "Metálica":
                     t = "Metálica"
                 if name:
