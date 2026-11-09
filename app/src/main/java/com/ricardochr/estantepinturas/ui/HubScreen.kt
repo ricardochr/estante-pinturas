@@ -1,5 +1,7 @@
 package com.ricardochr.estantepinturas.ui
 
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,28 +15,38 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Build
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Place
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.automirrored.rounded.MenuBook
+import androidx.compose.material.icons.rounded.AddCircle
+import androidx.compose.material.icons.rounded.Air
+import androidx.compose.material.icons.rounded.Backup
+import androidx.compose.material.icons.rounded.ColorLens
+import androidx.compose.material.icons.rounded.DeleteSweep
+import androidx.compose.material.icons.rounded.FileDownload
+import androidx.compose.material.icons.rounded.FileUpload
+import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.Layers
+import androidx.compose.material.icons.rounded.LibraryAdd
+import androidx.compose.material.icons.rounded.ShoppingCart
+import androidx.compose.material.icons.rounded.Sync
+import androidx.compose.material.icons.rounded.TravelExplore
+import androidx.compose.material.icons.rounded.Widgets
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -49,77 +61,102 @@ enum class HubAction {
     ImportCatalog, ExportCatalog, ClearImported, About,
 }
 
-private data class HubTile(val action: HubAction, val icon: ImageVector, val title: String, val subtitle: String, val accent: Boolean = false)
+private data class HubTile(
+    val action: HubAction,
+    val icon: ImageVector,
+    val title: String,
+    val subtitle: String,
+    val colors: List<Color>,
+    val badge: String? = null,
+)
 
 /**
- * Taller: todas las herramientas de la app a la vista, agrupadas por para qué sirven,
- * en lugar de esconderlas en el menú de tres puntos.
+ * Taller: todas las herramientas de la app a la vista, cada una con su color de pigmento,
+ * agrupadas por para qué sirven.
  */
 @Composable
 fun HubScreen(vm: MainViewModel, onAction: (HubAction) -> Unit) {
     val owned = vm.owned.values.filter { it.qty > 0 }
     val bottles = owned.sumOf { it.qty }
-    val low = vm.lowPaints
-    val toBuy = low.size + vm.shopping.count { s -> low.none { it.id == s.paintId } }
+    val toBuy = vm.shoppingCount
     val active = vm.projects.count { it.status != "Terminado" }
     val airbrushes = vm.gearKit.airbrushes.size
-
-    val paint = listOf(
-        HubTile(HubAction.Compare, CompareIcon, "Superponer referencia", "Compara tu figura con una foto usando la cámara", accent = true),
-        HubTile(HubAction.Wheel, Icons.Default.Star, "Círculo cromático", "Armonías y complementarios con tus pinturas"),
-        HubTile(HubAction.Guide, GuideIcon, "Guía de técnicas", "Dilución, capas, lavados, veladuras…"),
-        HubTile(HubAction.Gear, Icons.Default.Build, "Mi equipo", if (airbrushes == 0) "Registra tu aerógrafo y compresor" else "$airbrushes aerógrafo" + (if (airbrushes > 1) "s" else "")),
-    )
-    val shop = listOf(
-        HubTile(HubAction.Shopping, Icons.Default.ShoppingCart, "Lista de compras", if (toBuy == 0) "Vacía · ve recomendaciones" else "$toBuy por comprar", accent = toBuy > 0),
-        HubTile(HubAction.Sets, Icons.Default.List, "Sets de pinturas", "${vm.allSets.size} sets · cuáles ya tienes"),
-        HubTile(HubAction.Find, Icons.Default.Place, "Encontrar una pintura", "Dónde está en tu gaveta o estante"),
-        HubTile(HubAction.AddCustom, Icons.Default.Add, "Pintura fuera del catálogo", "Agrégala a mano"),
-    )
-    val data = buildList {
-        add(HubTile(HubAction.UpdateCatalog, Icons.Default.Refresh, if (vm.catalogUpdating) "Actualizando…" else "Actualizar catálogo y sets", "${vm.catalog.size} pinturas en el catálogo"))
-        add(HubTile(HubAction.Backup, Icons.Default.Lock, "Respaldo", "Copia de tu inventario y proyectos"))
-        add(HubTile(HubAction.ExportInventory, Icons.Default.Share, "Exportar inventario", "Archivo CSV"))
-        add(HubTile(HubAction.ImportInventory, Icons.Default.Add, "Importar inventario", "Desde un CSV"))
-        add(HubTile(HubAction.ImportCatalog, Icons.Default.Add, "Agregar al catálogo", "Pinturas desde un CSV"))
-        add(HubTile(HubAction.ExportCatalog, Icons.Default.Share, "Exportar catálogo", "Todo el catálogo en CSV"))
-        if (vm.extra.isNotEmpty()) add(HubTile(HubAction.ClearImported, Icons.Default.Delete, "Quitar importadas", "${vm.extra.size} pinturas que importaste"))
-        add(HubTile(HubAction.About, Icons.Default.Info, "Acerca de", "Versión y fuentes del catálogo"))
+    val strip = remember(vm.owned, vm.byId) {
+        owned.mapNotNull { vm.byId[it.paintId] }.filter { it.hasColor }
+            .sortedBy {
+                val c = kotlin.math.sqrt(it.lab.a * it.lab.a + it.lab.b * it.lab.b)
+                if (c < 10) 400.0 - it.lab.l / 100 else (Math.toDegrees(kotlin.math.atan2(it.lab.b, it.lab.a)) + 360) % 360
+            }
+            .map { Color(it.argb) }
     }
 
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp)) {
+    val paint = listOf(
+        HubTile(HubAction.Compare, Icons.Rounded.Layers, "Superponer referencia", "Compara tu figura con una foto", Pigment.Magenta),
+        HubTile(HubAction.Wheel, Icons.Rounded.ColorLens, "Círculo cromático", "Armonías con tus pinturas", Pigment.Violet),
+        HubTile(HubAction.Guide, Icons.AutoMirrored.Rounded.MenuBook, "Guía de técnicas", "Capas, lavados, veladuras", Pigment.Teal),
+        HubTile(HubAction.Gear, Icons.Rounded.Air, "Mi equipo", if (airbrushes == 0) "Registra tu aerógrafo" else "$airbrushes aerógrafo" + (if (airbrushes > 1) "s" else ""), Pigment.Slate),
+    )
+    val shop = listOf(
+        HubTile(HubAction.Shopping, Icons.Rounded.ShoppingCart, "Lista de compras", if (toBuy == 0) "Vacía · ve recomendaciones" else "Por comprar", Pigment.Tangerine, badge = toBuy.takeIf { it > 0 }?.toString()),
+        HubTile(HubAction.Sets, Icons.Rounded.Widgets, "Sets de pinturas", "${vm.allSets.size} sets · cuáles tienes", Pigment.Gold),
+        HubTile(HubAction.Find, Icons.Rounded.TravelExplore, "Encontrar pintura", "En tu gaveta o estante", Pigment.Emerald),
+        HubTile(HubAction.AddCustom, Icons.Rounded.AddCircle, "Fuera del catálogo", "Agrega una pintura a mano", Pigment.Crimson),
+    )
+    val data = buildList {
+        add(HubTile(HubAction.UpdateCatalog, Icons.Rounded.Sync, if (vm.catalogUpdating) "Actualizando…" else "Actualizar catálogo", "${vm.catalog.size} pinturas", Pigment.Cobalt))
+        add(HubTile(HubAction.Backup, Icons.Rounded.Backup, "Respaldo", "Inventario y proyectos", Pigment.Emerald))
+        add(HubTile(HubAction.ExportInventory, Icons.Rounded.FileUpload, "Exportar inventario", "Archivo CSV", Pigment.Teal))
+        add(HubTile(HubAction.ImportInventory, Icons.Rounded.FileDownload, "Importar inventario", "Desde un CSV", Pigment.Teal))
+        add(HubTile(HubAction.ImportCatalog, Icons.Rounded.LibraryAdd, "Agregar al catálogo", "Pinturas desde un CSV", Pigment.Violet))
+        add(HubTile(HubAction.ExportCatalog, Icons.Rounded.FileUpload, "Exportar catálogo", "Todo en CSV", Pigment.Violet))
+        if (vm.extra.isNotEmpty()) add(HubTile(HubAction.ClearImported, Icons.Rounded.DeleteSweep, "Quitar importadas", "${vm.extra.size} pinturas", Pigment.Crimson))
+        add(HubTile(HubAction.About, Icons.Rounded.Info, "Acerca de", "Versión y fuentes", Pigment.Slate))
+    }
+
+    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 28.dp)) {
         item {
-            Surface(
-                color = MaterialTheme.colorScheme.primaryContainer,
-                shape = MaterialTheme.shapes.large,
-                modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 8.dp),
-            ) {
-                Row(Modifier.padding(vertical = 14.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
-                    HubStat(owned.size.toString(), "pinturas", Modifier.weight(1f))
-                    HubStat(bottles.toString(), "botes", Modifier.weight(1f))
-                    HubStat(active.toString(), "proyectos activos", Modifier.weight(1f))
-                    HubStat(toBuy.toString(), "por comprar", Modifier.weight(1f))
+            PigmentCard(Pigment.Night, Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 6.dp)) {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        BrandDrops(10.dp)
+                        Text("Tu estante", style = MaterialTheme.typography.titleLarge, color = Color.White)
+                    }
+                    Row(Modifier.fillMaxWidth()) {
+                        HubStat(owned.size.toString(), "colores", Pigment.Cobalt[0], Modifier.weight(1f))
+                        HubStat(bottles.toString(), "botes", Pigment.Emerald[0], Modifier.weight(1f))
+                        HubStat(active.toString(), "proyectos", Pigment.Magenta[0], Modifier.weight(1f))
+                        HubStat(toBuy.toString(), "por comprar", Pigment.Gold[0], Modifier.weight(1f))
+                    }
+                    if (strip.isNotEmpty()) {
+                        Canvas(Modifier.fillMaxWidth().height(12.dp).clip(RoundedCornerShape(6.dp))) {
+                            val w = size.width / strip.size
+                            strip.forEachIndexed { i, c -> drawRect(c, topLeft = Offset(i * w, 0f), size = Size(w + 1f, size.height)) }
+                        }
+                    }
                 }
             }
         }
-        hubSection("Pintar", paint, onAction)
-        hubSection("Comprar y organizar", shop, onAction)
-        hubSection("Catálogo y datos", data, onAction)
+        hubSection("Pintar", Pigment.Magenta[0], paint, onAction)
+        hubSection("Comprar y organizar", Pigment.Tangerine[0], shop, onAction)
+        dataSection("Catálogo y datos", Pigment.Cobalt[0], data, onAction)
     }
 }
 
-private fun androidx.compose.foundation.lazy.LazyListScope.hubSection(title: String, tiles: List<HubTile>, onAction: (HubAction) -> Unit) {
+private fun LazyListScope.sectionTitle(title: String, accent: Color) {
     item(key = "title-$title") {
-        Text(
-            title.uppercase(),
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.tertiary,
-            modifier = Modifier.padding(top = 14.dp, bottom = 8.dp),
-        )
+        Row(Modifier.padding(top = 18.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Box(Modifier.width(18.dp).height(5.dp).clip(RoundedCornerShape(3.dp)).background(accent))
+            Text(title.uppercase(), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurface)
+        }
     }
+}
+
+/** Herramientas principales: tarjetas grandes con degradado. */
+private fun LazyListScope.hubSection(title: String, accent: Color, tiles: List<HubTile>, onAction: (HubAction) -> Unit) {
+    sectionTitle(title, accent)
     tiles.chunked(2).forEachIndexed { i, row ->
         item(key = "row-$title-$i") {
-            Row(Modifier.fillMaxWidth().padding(bottom = 10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(Modifier.fillMaxWidth().padding(bottom = 12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 row.forEach { t -> HubCard(t, Modifier.weight(1f)) { onAction(t.action) } }
                 if (row.size == 1) Spacer(Modifier.weight(1f))
             }
@@ -127,33 +164,59 @@ private fun androidx.compose.foundation.lazy.LazyListScope.hubSection(title: Str
     }
 }
 
-@Composable
-private fun HubCard(t: HubTile, modifier: Modifier, onClick: () -> Unit) {
-    val bg = if (t.accent) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh
-    val fg = if (t.accent) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface
-    Surface(color = bg, shape = MaterialTheme.shapes.medium, modifier = modifier.heightIn(min = 112.dp)) {
-        Column(
-            Modifier.clickable(onClick = onClick).padding(12.dp).fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            Box(Modifier.size(38.dp), contentAlignment = Alignment.Center) {
-                Surface(color = MaterialTheme.colorScheme.primary.copy(alpha = 0.16f), shape = CircleShape, modifier = Modifier.size(38.dp)) {}
-                Icon(t.icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(22.dp))
+/** Datos y archivos: filas compactas con ícono de color, para no competir con las herramientas. */
+private fun LazyListScope.dataSection(title: String, accent: Color, tiles: List<HubTile>, onAction: (HubAction) -> Unit) {
+    sectionTitle(title, accent)
+    item(key = "data-$title") {
+        Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = MaterialTheme.shapes.large, modifier = Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(vertical = 6.dp)) {
+                tiles.forEach { t ->
+                    Row(
+                        Modifier.fillMaxWidth().clickable { onAction(t.action) }.padding(horizontal = 14.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(14.dp),
+                    ) {
+                        Box(Modifier.size(38.dp).clip(RoundedCornerShape(12.dp)).background(diagonal(t.colors)), contentAlignment = Alignment.Center) {
+                            Icon(t.icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
+                        }
+                        Column(Modifier.weight(1f)) {
+                            Text(t.title, style = MaterialTheme.typography.titleSmall)
+                            Text(t.subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        Text("›", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
             }
-            Text(t.title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = fg, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            Text(t.subtitle, style = MaterialTheme.typography.bodySmall, color = fg.copy(alpha = 0.75f), maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
     }
 }
 
 @Composable
-private fun HubStat(value: String, label: String, modifier: Modifier) {
-    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(value, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
-        Spacer(Modifier.height(2.dp))
-        Text(
-            label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
-            maxLines = 2, textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-        )
+private fun HubCard(t: HubTile, modifier: Modifier, onClick: () -> Unit) {
+    PigmentCard(t.colors, modifier.heightIn(min = 128.dp), onClick = onClick) {
+        Column(Modifier.padding(14.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(verticalAlignment = Alignment.Top) {
+                IconBubble(t.icon, 44.dp)
+                Spacer(Modifier.weight(1f))
+                t.badge?.let {
+                    Box(Modifier.clip(RoundedCornerShape(10.dp)).background(Color.White).padding(horizontal = 8.dp, vertical = 2.dp)) {
+                        Text(it, style = MaterialTheme.typography.labelLarge, color = t.colors[1], fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+            Text(t.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Color.White, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Text(t.subtitle, style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.85f), maxLines = 2, overflow = TextOverflow.Ellipsis)
+        }
+    }
+}
+
+@Composable
+private fun HubStat(value: String, label: String, accent: Color, modifier: Modifier) {
+    Column(modifier) {
+        Text(value, style = MaterialTheme.typography.headlineMedium, color = Color.White)
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Box(Modifier.size(6.dp).clip(RoundedCornerShape(3.dp)).background(accent))
+            Text(label, style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.75f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
     }
 }

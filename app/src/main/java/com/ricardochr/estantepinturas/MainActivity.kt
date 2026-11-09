@@ -83,6 +83,30 @@ import com.ricardochr.estantepinturas.ui.BackupScreen
 import com.ricardochr.estantepinturas.ui.ProjectDetail
 import com.ricardochr.estantepinturas.ui.ProjectsScreen
 import com.ricardochr.estantepinturas.ui.ShoppingScreen
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.rounded.Brush as BrushIcon
+import androidx.compose.material.icons.rounded.Handyman
+import androidx.compose.material.icons.rounded.Inventory2
+import androidx.compose.material.icons.rounded.Layers
+import androidx.compose.material.icons.rounded.Palette
+import androidx.compose.material.icons.rounded.QrCodeScanner
+import androidx.compose.material.icons.rounded.ShoppingCart
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import com.ricardochr.estantepinturas.ui.BrandDrops
+import com.ricardochr.estantepinturas.ui.Pigment
+import com.ricardochr.estantepinturas.ui.diagonal
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -156,54 +180,57 @@ private fun App(vm: MainViewModel = viewModel()) {
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Column {
+            val accent = tabPigment(tab)
+            Column(Modifier.background(MaterialTheme.colorScheme.background).statusBarsPadding()) {
+                Row(
+                    Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            BrandDrops(7.dp)
+                            Text(
+                                "GOTARIO",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = accent[1],
+                                letterSpacing = 3.sp,
+                                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                            )
+                        }
                         Text(
-                            "GOTARIO",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.tertiary,
-                            letterSpacing = 2.sp,
+                            if (tab == Tab.Inventario && invMode == 1) "Catálogo" else if (tab == Tab.Inventario) "Mis pinturas" else tab.label,
+                            style = MaterialTheme.typography.headlineMedium,
                         )
-                        Text(if (tab == Tab.Inventario && invMode == 1) "Catálogo" else if (tab == Tab.Inventario) "Mis pinturas" else tab.label, style = MaterialTheme.typography.headlineMedium)
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
-                actions = {
-                    val toBuy = vm.lowPaints.size + vm.shopping.count { sh -> vm.lowPaints.none { it.id == sh.paintId } }
-                    IconButton(onClick = { showShopping = true }) {
-                        BadgedBox(badge = { if (toBuy > 0) Badge { Text(toBuy.toString()) } }) {
-                            Icon(Icons.Default.ShoppingCart, contentDescription = "Lista de compras")
+                    val toBuy = vm.shoppingCount
+                    HeaderButton(Icons.Rounded.Layers, "Superponer referencia", Pigment.Magenta) { showCompare = true }
+                    Box {
+                        HeaderButton(Icons.Rounded.ShoppingCart, "Lista de compras", Pigment.Tangerine) { showShopping = true }
+                        if (toBuy > 0) {
+                            Badge(Modifier.align(Alignment.TopEnd), containerColor = Pigment.Crimson[0], contentColor = Color.White) { Text(toBuy.toString()) }
                         }
                     }
-                    IconButton(onClick = { showCompare = true }) {
-                        Icon(com.ricardochr.estantepinturas.ui.CompareIcon, contentDescription = "Superponer referencia")
-                    }
-                },
-            )
+                }
+                // Franja de pintura bajo el encabezado, del color de la pestaña
+                Box(Modifier.fillMaxWidth().height(3.dp).background(Brush.horizontalGradient(listOf(accent[0], accent[1], accent[1].copy(alpha = 0f)))))
+            }
         },
         bottomBar = {
             NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh, tonalElevation = 0.dp) {
-                NavigationBarItem(
-                    selected = tab == Tab.Inventario, onClick = { tab = Tab.Inventario },
-                    icon = { Icon(Icons.Default.Home, contentDescription = null) }, label = { Text("Inventario") },
-                )
-                NavigationBarItem(
-                    selected = tab == Tab.Proyectos, onClick = { tab = Tab.Proyectos },
-                    icon = { Icon(Icons.Default.Edit, contentDescription = null) }, label = { Text("Proyectos") },
-                )
-                NavigationBarItem(
-                    selected = tab == Tab.Escanear, onClick = { tab = Tab.Escanear },
-                    icon = { Icon(ScanIcon, contentDescription = null) }, label = { Text("Escanear") },
-                )
-                NavigationBarItem(
-                    selected = tab == Tab.Paleta, onClick = { tab = Tab.Paleta },
-                    icon = { Icon(PaletteIcon, contentDescription = null) }, label = { Text("Paleta") },
-                )
-                NavigationBarItem(
-                    selected = tab == Tab.Taller, onClick = { tab = Tab.Taller },
-                    icon = { Icon(Icons.Default.Build, contentDescription = null) }, label = { Text("Taller") },
-                )
+                Tab.values().forEach { t ->
+                    val pg = tabPigment(t)
+                    NavigationBarItem(
+                        selected = tab == t,
+                        onClick = { tab = t },
+                        icon = { Icon(tabIcon(t), contentDescription = null) },
+                        label = { Text(t.label, fontWeight = if (tab == t) androidx.compose.ui.text.font.FontWeight.Bold else null) },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = Color.White,
+                            selectedTextColor = pg[1],
+                            indicatorColor = pg[0],
+                        ),
+                    )
+                }
             }
         },
         snackbarHost = { SnackbarHost(snackbar) },
@@ -499,5 +526,39 @@ private fun App(vm: MainViewModel = viewModel()) {
             },
             dismissButton = { TextButton(onClick = { confirmClearCatalog = false }) { Text("Cancelar") } },
         )
+    }
+}
+
+/** Color de pigmento de cada pestaña: se usa en su ícono, la franja del encabezado y la marca. */
+private fun tabPigment(t: Tab): List<Color> = when (t) {
+    Tab.Inventario -> Pigment.Cobalt
+    Tab.Proyectos -> Pigment.Magenta
+    Tab.Escanear -> Pigment.Emerald
+    Tab.Paleta -> Pigment.Violet
+    Tab.Taller -> Pigment.Tangerine
+}
+
+private fun tabIcon(t: Tab): ImageVector = when (t) {
+    Tab.Inventario -> Icons.Rounded.Inventory2
+    Tab.Proyectos -> Icons.Rounded.BrushIcon
+    Tab.Escanear -> Icons.Rounded.QrCodeScanner
+    Tab.Paleta -> Icons.Rounded.Palette
+    Tab.Taller -> Icons.Rounded.Handyman
+}
+
+/** Botón redondo con degradado de pigmento para el encabezado. */
+@Composable
+private fun HeaderButton(icon: ImageVector, description: String, colors: List<Color>, onClick: () -> Unit) {
+    Box(
+        Modifier
+            .padding(4.dp)
+            .size(42.dp)
+            .clip(CircleShape)
+            .background(diagonal(colors))
+            .clickable(onClick = onClick)
+            .semantics { contentDescription = description },
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
     }
 }

@@ -20,15 +20,15 @@ import com.ricardochr.estantepinturas.R
 
 // Paleta: tinta azul de base, neutros cálidos de papel y un acento magenta para lo destacado
 private val Light = lightColorScheme(
-    primary = Color(0xFF2A5BA8),
+    primary = Color(0xFF3355D6),
     onPrimary = Color(0xFFFFFFFF),
-    primaryContainer = Color(0xFFDDE7F7),
+    primaryContainer = Color(0xFFDDE4FF),
     onPrimaryContainer = Color(0xFF0E2A55),
     secondary = Color(0xFF5B6270),
     onSecondary = Color(0xFFFFFFFF),
-    secondaryContainer = Color(0xFFE7E4EE),
-    onSecondaryContainer = Color(0xFF22212B),
-    tertiary = Color(0xFFB0306E),
+    secondaryContainer = Color(0xFFE2E7FF),
+    onSecondaryContainer = Color(0xFF1A2A6B),
+    tertiary = Color(0xFFC72F7F),
     onTertiary = Color(0xFFFFFFFF),
     tertiaryContainer = Color(0xFFF8DCE9),
     onTertiaryContainer = Color(0xFF4A0C2B),
@@ -49,14 +49,14 @@ private val Light = lightColorScheme(
 )
 
 private val Dark = darkColorScheme(
-    primary = Color(0xFF8AB4F2),
+    primary = Color(0xFF9BB1FF),
     onPrimary = Color(0xFF0B1B33),
     primaryContainer = Color(0xFF1E3354),
     onPrimaryContainer = Color(0xFFD7E5FA),
     secondary = Color(0xFFA6ACB8),
     onSecondary = Color(0xFF1B1D22),
-    secondaryContainer = Color(0xFF2D2F38),
-    onSecondaryContainer = Color(0xFFE6E4EE),
+    secondaryContainer = Color(0xFF2C3770),
+    onSecondaryContainer = Color(0xFFE2E7FF),
     tertiary = Color(0xFFF08DBB),
     onTertiary = Color(0xFF3E0A24),
     tertiaryContainer = Color(0xFF5A1D3B),

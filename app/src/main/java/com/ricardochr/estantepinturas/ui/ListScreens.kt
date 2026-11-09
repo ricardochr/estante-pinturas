@@ -17,6 +17,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ShoppingCart
+import androidx.compose.material.icons.rounded.TravelExplore
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
@@ -35,6 +37,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.size
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -282,16 +286,12 @@ private fun SummaryCard(paints: List<Paint>, bottles: Int, brands: Int) {
             }))
             .map { androidx.compose.ui.graphics.Color(it.argb) }
     }
-    Surface(
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        shape = MaterialTheme.shapes.medium,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-                Stat(paints.size.toString(), "colores")
-                Stat(bottles.toString(), "botes")
-                Stat(brands.toString(), "marcas")
+    PigmentCard(Pigment.Night, Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(Modifier.fillMaxWidth()) {
+                Stat(paints.size.toString(), "colores", Pigment.Cobalt[0], Modifier.weight(1f))
+                Stat(bottles.toString(), "botes", Pigment.Emerald[0], Modifier.weight(1f))
+                Stat(brands.toString(), "marcas", Pigment.Magenta[0], Modifier.weight(1f))
             }
             if (strip.isNotEmpty()) {
                 androidx.compose.foundation.Canvas(
@@ -311,46 +311,52 @@ private fun SummaryCard(paints: List<Paint>, bottles: Int, brands: Int) {
 }
 
 @Composable
-private fun Stat(value: String, label: String) {
-    Column {
-        Text(value, style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onSurface)
-        Text(label.uppercase(), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-    }
-}
-
-@Composable
-private fun StorageCard(spots: Int, located: Int, onOpen: () -> Unit, modifier: Modifier = Modifier) {
-    Surface(
-        color = MaterialTheme.colorScheme.tertiaryContainer,
-        contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-        shape = MaterialTheme.shapes.medium,
-        modifier = modifier.clickable(onClick = onOpen),
-    ) {
-        Column(Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
-            Text("Encontrar una pintura", style = MaterialTheme.typography.titleSmall)
-            Text(
-                if (spots == 0) "Por foto o con la cámara, por etiqueta y color"
-                else "$spots ${if (spots == 1) "foto" else "fotos"} · $located ubicadas",
-                style = MaterialTheme.typography.bodySmall,
+private fun Stat(value: String, label: String, accent: androidx.compose.ui.graphics.Color, modifier: Modifier = Modifier) {
+    Column(modifier) {
+        Text(value, style = MaterialTheme.typography.headlineMedium, color = androidx.compose.ui.graphics.Color.White)
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+            androidx.compose.foundation.layout.Box(
+                Modifier.size(7.dp).clip(RoundedCornerShape(4.dp)).background(accent)
             )
+            Text(label.uppercase(), style = MaterialTheme.typography.labelSmall, color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.75f))
         }
     }
 }
 
 @Composable
+private fun StorageCard(spots: Int, located: Int, onOpen: () -> Unit, modifier: Modifier = Modifier) {
+    QuickCard(
+        androidx.compose.material.icons.Icons.Rounded.TravelExplore, Pigment.Emerald, "Encontrar una pintura",
+        if (spots == 0) "Por foto o con la cámara" else "$spots ${if (spots == 1) "foto" else "fotos"} · $located ubicadas",
+        onOpen, modifier,
+    )
+}
+
+@Composable
 private fun ShoppingCard(count: Int, onOpen: () -> Unit, modifier: Modifier = Modifier) {
-    Surface(
-        color = MaterialTheme.colorScheme.secondaryContainer,
-        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-        shape = MaterialTheme.shapes.medium,
-        modifier = modifier.clickable(onClick = onOpen),
-    ) {
-        Column(Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
-            Text("Lista de compras", style = MaterialTheme.typography.titleSmall)
-            Text(
-                if (count == 0) "Vacía · marca las que se acaban" else "$count ${if (count == 1) "pintura" else "pinturas"} por comprar",
-                style = MaterialTheme.typography.bodySmall,
-            )
+    QuickCard(
+        androidx.compose.material.icons.Icons.Rounded.ShoppingCart, Pigment.Tangerine, "Lista de compras",
+        if (count == 0) "Vacía · ve recomendaciones" else "$count por comprar",
+        onOpen, modifier,
+    )
+}
+
+@Composable
+private fun QuickCard(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    colors: List<androidx.compose.ui.graphics.Color>,
+    title: String,
+    subtitle: String,
+    onOpen: () -> Unit,
+    modifier: Modifier,
+) {
+    PigmentCard(colors, modifier, shape = MaterialTheme.shapes.medium, onClick = onOpen) {
+        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            IconBubble(icon, 36.dp)
+            Column {
+                Text(title, style = MaterialTheme.typography.titleSmall, color = androidx.compose.ui.graphics.Color.White, maxLines = 2)
+                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.85f), maxLines = 2)
+            }
         }
     }
 }
