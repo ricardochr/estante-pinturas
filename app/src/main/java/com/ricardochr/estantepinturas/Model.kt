@@ -61,6 +61,14 @@ data class PaintSet(
     val id: String = "",
     /** Si editaste un set de la tienda, la clave del original al que reemplaza. */
     val replaces: String? = null,
+    /** Cuántas pinturas anuncia la tienda (0 = no lo dice). */
+    val expected: Int = 0,
+    /** Validación del set: "ok", "parcial" o "revisar". */
+    val status: String = "ok",
+    /** Por qué tiene ese estado. */
+    val note: String = "",
+    /** De dónde salió: tienda oficial o el minorista que lo vende. */
+    val source: String = "",
 ) {
     val key: String get() = "$brand|$name"
     /** Identificador único para la pantalla: los tuyos por id, los de la tienda por marca y nombre. */

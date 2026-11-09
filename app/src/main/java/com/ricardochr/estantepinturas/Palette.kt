@@ -55,6 +55,8 @@ data class PaletteMatch(
     val washShadow: Paint? = null,
     /** Pintura de contraste/speedpaint que da este color de una sola capa sobre imprimación clara. */
     val quick: Paint? = null,
+    /** Tinta o pintura transparente de un tono parecido a la base, para la veladura que unifica la zona. */
+    val glaze: Paint? = null,
 )
 
 /** Mezcla de la pintura base con otra para sacar la sombra o la luz: partes de cada una y color que resulta. */
@@ -504,6 +506,7 @@ fun matchPalette(palette: ImagePalette, inventory: List<Paint>, catalog: List<Pa
     val inv = inventory.filter { it.hasColor && typeGroup(it.type) == "opaca" && it.type != "Imprimación" }
     val glazes = inventory.filter { it.hasColor && (it.type == "Wash" || it.type == "Tinta" || it.type == "Contraste") }
     val contrasts = inventory.filter { it.hasColor && it.type == "Contraste" }
+    val transparents = inventory.filter { it.hasColor && (it.type == "Tinta" || it.type == "Contraste") }
     val ownedIds = inventory.map { it.id }.toHashSet()
     val buyable = catalog.filter { it.hasColor && it.type == "Opaca" && it.quality != "n" && it.id !in ownedIds }
     val brands = inventory.map { brandKey(it.brand) }.toSet()
@@ -539,7 +542,13 @@ fun matchPalette(palette: ImagePalette, inventory: List<Paint>, catalog: List<Pa
             .map { it to deltaE2000(lab, it.lab) }
             .filter { it.second < 9 && (best == null || it.second < best.distance + 3) }
             .minByOrNull { it.second }?.first
-        PaletteMatch(c, best, alts, shadow, highlight, toBuy, toBuyD, shadowMix, highlightMix, shadowBuy, highlightBuy, washShadow, quick)
+        val glaze = best?.paint?.let { b ->
+            transparents.asSequence()
+                .map { it to deltaE2000(b.lab, it.lab) }
+                .filter { it.second < 20 }
+                .minByOrNull { it.second + if (it.first.type == "Tinta") 0.0 else 2.0 }?.first
+        }
+        PaletteMatch(c, best, alts, shadow, highlight, toBuy, toBuyD, shadowMix, highlightMix, shadowBuy, highlightBuy, washShadow, quick, glaze)
     }
 }
 

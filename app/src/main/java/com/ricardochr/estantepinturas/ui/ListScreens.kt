@@ -50,6 +50,27 @@ import kotlinx.coroutines.withContext
 
 private val paintOrder = compareBy<Paint>({ it.brand }, { it.line }, { it.code.ifBlank { it.name } }, { it.name })
 
+/** Cómo ordenar el inventario. */
+private enum class InvSort(val label: String) { Marca("Marca"), Color("Color"), Nombre("Nombre"), Cantidad("Cantidad"), Tipo("Tipo") }
+
+/** Orden por color: primero los cromáticos por tono (rojo → naranja → … → morado) y luminosidad; al final grises, de claro a oscuro. */
+private fun colorKey(p: Paint): Triple<Int, Double, Double> {
+    if (!p.hasColor) return Triple(2, 0.0, 0.0)
+    val c = kotlin.math.sqrt(p.lab.a * p.lab.a + p.lab.b * p.lab.b)
+    if (c < 10) return Triple(1, -p.lab.l, 0.0)
+    var h = Math.toDegrees(kotlin.math.atan2(p.lab.b, p.lab.a))
+    if (h < 15) h += 360   // los rojos (≈ 15–40°) quedan primero y los magentas al final
+    return Triple(0, h, -p.lab.l)
+}
+
+private fun sortOwned(list: List<Pair<Paint, OwnedEntry>>, mode: InvSort): List<Pair<Paint, OwnedEntry>> = when (mode) {
+    InvSort.Marca -> list.sortedWith(compareBy(paintOrder) { it.first })
+    InvSort.Nombre -> list.sortedWith(compareBy({ norm(it.first.name) }, { it.first.brand }))
+    InvSort.Cantidad -> list.sortedWith(compareByDescending<Pair<Paint, OwnedEntry>> { it.second.qty }.thenBy { it.first.brand }.thenBy { it.first.name })
+    InvSort.Tipo -> list.sortedWith(compareBy({ com.ricardochr.estantepinturas.PAINT_TYPES.indexOf(it.first.type).let { i -> if (i < 0) 99 else i } }, { it.first.brand }, { it.first.name }))
+    InvSort.Color -> list.sortedWith(compareBy({ colorKey(it.first).first }, { colorKey(it.first).second }, { colorKey(it.first).third }))
+}
+
 /**
  * Filtra fuera del hilo principal y espera un momento mientras se escribe, para que el teclado
  * no se trabe con miles de pinturas. Mientras calcula, sigue mostrando el resultado anterior.
@@ -80,6 +101,9 @@ fun InventoryScreen(
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     var brand by rememberSaveable { mutableStateOf<String?>(null) }
+    var sortMode by rememberSaveable { mutableStateOf(InvSort.Marca) }
+    var onlyMultiple by rememberSaveable { mutableStateOf(false) }
+    var sortMenu by remember { mutableStateOf(false) }
 
     val ownedPaints: List<Pair<Paint, OwnedEntry>> = remember(vm.owned, vm.byId) {
         vm.owned.values.mapNotNull { e -> vm.byId[e.paintId]?.let { it to e } }.sortedWith(compareBy(paintOrder) { it.first })
@@ -88,11 +112,15 @@ fun InventoryScreen(
         ownedPaints.groupingBy { it.first.brand }.eachCount().toList().sortedBy { it.first }
     }
     val effectiveBrand = brand?.takeIf { b -> brands.any { it.first == b } }
-    val shown = rememberFiltered(query, effectiveBrand, ownedPaints) { words, b ->
-        ownedPaints.filter { (p, e) ->
-            (b == null || p.brand == b) &&
-                (words.isEmpty() || matchesWords(p.searchText + " " + norm(e.notes), words))
-        }
+    val multipleCount = remember(ownedPaints) { ownedPaints.count { it.second.qty > 1 } }
+    val shown = rememberFiltered(query, effectiveBrand, Triple(ownedPaints, sortMode, onlyMultiple)) { words, b ->
+        sortOwned(
+            ownedPaints.filter { (p, e) ->
+                (b == null || p.brand == b) && (!onlyMultiple || e.qty > 1) &&
+                    (words.isEmpty() || matchesWords(p.searchText + " " + norm(e.notes), words))
+            },
+            sortMode,
+        )
     }
     val totalBottles = ownedPaints.sumOf { it.second.qty }
 
@@ -108,10 +136,35 @@ fun InventoryScreen(
             SearchField(query, { query = it }, "Buscar: nombre, código, marca, color…")
         }
         BrandChips(brands, effectiveBrand) { brand = it }
+        if (ownedPaints.isNotEmpty()) {
+            Row(
+                Modifier.padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                androidx.compose.material3.FilterChip(
+                    selected = onlyMultiple,
+                    onClick = { onlyMultiple = !onlyMultiple },
+                    label = { Text("Más de 1 bote ($multipleCount)") },
+                )
+                androidx.compose.foundation.layout.Box {
+                    androidx.compose.material3.AssistChip(onClick = { sortMenu = true }, label = { Text("Ordenar: ${sortMode.label}") })
+                    androidx.compose.material3.DropdownMenu(expanded = sortMenu, onDismissRequest = { sortMenu = false }) {
+                        InvSort.values().forEach { m ->
+                            androidx.compose.material3.DropdownMenuItem(
+                                text = { Text((if (m == sortMode) "✓ " else "") + m.label) },
+                                onClick = { sortMode = m; sortMenu = false },
+                            )
+                        }
+                    }
+                }
+            }
+        }
         Spacer(Modifier.height(4.dp))
 
         when {
             vm.loading || shown == null -> EmptyState("Cargando…", "Abriendo el catálogo de pinturas.")
+            onlyMultiple && shown.isEmpty() -> EmptyState("Ninguna repetida", "No tienes más de un bote de ninguna pintura con estos filtros.")
             ownedPaints.isEmpty() -> Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
                 EmptyState(
                     "Tu estante está vacío",

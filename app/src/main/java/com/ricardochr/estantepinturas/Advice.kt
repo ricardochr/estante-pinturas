@@ -306,13 +306,29 @@ fun familySteps(f: PaletteFamily, matches: List<PaletteMatch>, zones: List<ZoneA
         steps.add("Sombra profunda: $it solo en lo más hundido y en las uniones (entre piernas, bajo la falda, axilas), sobre la sombra anterior.")
     }
     steps.add(
-        "Luz: $light en las caras que miran hacia arriba y hacia la luz (rodillas, muslos, nariz, pómulos si es piel). " +
-            "Capas finas que cubran menos área que la base, para que se vea la transición."
+        "Luz: $light en las caras que miran hacia arriba y hacia la luz. Hazla por capas (layering): " +
+            "la primera cubre casi la mitad de la zona clara; cada capa siguiente, un poco más clara y más pequeña, " +
+            "hacia el punto más alto. Pintura diluida 1:1 y varias capas finas antes que una gruesa."
     )
     val top = topMembers.firstNotNullOfOrNull { paintOf(it) }
     steps.add(
         if (top != null) "Punto de luz: $top solo en las aristas y puntos más altos, con la punta del pincel."
         else "Punto de luz (opcional): mezcla la luz con un poco de blanco y marca solo las aristas y puntos más altos con la punta del pincel."
+    )
+    // Técnicas para que no se vean escalones entre sombra, base y luz
+    val big = zoneFraction >= 0.06 && baseAdvice?.role != "Detalle"
+    steps.add(
+        "Suavizar transiciones: donde se nota el salto entre dos tonos, pinta una franja con la mezcla de ambos 1:1 " +
+            "(sombra + base, o base + luz). " +
+            (if (big) "En zonas grandes funciona muy bien el fundido con dos pinceles: con uno aplicas la capa y con otro limpio y apenas húmedo arrastras el borde antes de que seque. "
+            else "En zonas pequeñas usa capas muy diluidas (1 de pintura por 2–3 de agua) que se superponen poco a poco. ") +
+            "Si aún se ve un escalón, pasa una veladura del tono intermedio justo sobre él."
+    )
+    val glazeText = mb.glaze?.let { "${it.name} (${it.type.lowercase()}) muy diluida, 1 parte por 4–5 de agua o de medium" }
+        ?: "$baseName muy diluida, 1 parte por 5 de agua (o con medium para veladuras si tienes)"
+    steps.add(
+        "Unificar (veladura final): cuando todo esté seco, pasa $glazeText sobre toda la zona, con el pincel casi descargado. " +
+            "Tiñe todo con el mismo tono, junta sombras y luces y disimula pinceladas. Si la luz quedó apagada, recupera solo el punto más alto después."
     )
     return steps
 }

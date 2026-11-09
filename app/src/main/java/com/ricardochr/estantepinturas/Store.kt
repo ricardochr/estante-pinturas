@@ -104,7 +104,11 @@ class Store(private val context: Context) {
         return (0 until arr.length()).map { i ->
             val o = arr.getJSONObject(i)
             val ps = o.getJSONArray("paints")
-            PaintSet(o.getString("brand"), o.getString("name"), o.optString("code", ""), (0 until ps.length()).map { ps.getString(it) })
+            PaintSet(
+                o.getString("brand"), o.getString("name"), o.optString("code", ""), (0 until ps.length()).map { ps.getString(it) },
+                expected = o.optInt("expected", 0), status = o.optString("status", "ok"),
+                note = o.optString("note", ""), source = o.optString("source", ""),
+            )
         }
     }
 

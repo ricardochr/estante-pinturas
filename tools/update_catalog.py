@@ -28,6 +28,7 @@ ROOT = os.path.dirname(HERE)
 OUT = os.path.join(ROOT, "app", "src", "main", "assets", "catalog.json")
 SETS_OUT = os.path.join(ROOT, "app", "src", "main", "assets", "sets.json")
 REPORT = os.path.join(ROOT, "tools", "catalog-report.md")
+SETS_REPORT = os.path.join(ROOT, "tools", "sets-report.md")
 CACHE = os.path.join(HERE, "color-cache-v3.json")  # v3: candidatos por imagen
 OVERRIDES = os.path.join(HERE, "color-overrides.json")  # correcciones manuales: "Marca|Código": "#RRGGBB"
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
@@ -910,7 +911,7 @@ SET_SOURCES = {
     "turbodork": "Turbo Dork",
 }
 SET_TITLE = re.compile(r"\b(set|sets|bundle|collection|kit|box|range|case|pack)\b", re.I)
-SET_EXCLUDE = re.compile(r"brush|pincel|rack|organi[sz]er|empty|palette|paleta|display|book|magazine|\[pdf\]|guide|airbrush|aer[oó]grafo|tool|herramienta|model kit|1/\d+|maqueta|figure|figura|terrain|basing|texture|decal|calcas", re.I)
+SET_EXCLUDE = re.compile(r"brush|pincel|rack|organi[sz]er|empty|palette|paleta|display|book|magazine|\[pdf\]|guide|airbrush|aer[oó]grafo|tool|herramienta|model kit|1/\d+|maqueta|figure|figura|terrain|basing|texture|decal|calcas|marker|rotulador|pencil|l[aá]pi[cz]|\bpens?\b|crayon|sticker|pegatina|gift card|tarjeta regalo|t-shirt|camiseta|mug|taza", re.I)
 CODE_RES = [
     re.compile(r"\bMPA-?S?\d{2,3}\b|\bAMP-\d{3}\b|\bMPAP-\d{3}\b", re.I),     # Pro Acryl
     re.compile(r"\bWP\d{4}\b|\bAW\d{4}\b", re.I),                                # Army Painter
@@ -971,6 +972,30 @@ KALEIDO_SET_RULES = [
 ]
 
 
+_NUM_WORDS = {"two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10,
+              "eleven": 11, "twelve": 12, "fifteen": 15, "sixteen": 16, "twenty": 20, "twenty four": 24, "thirty": 30}
+_COUNT_UNIT = r"(?:x\s*)?(?:[a-z]+\s){0,2}?(?:colou?rs?|paints?|pots?|bottles?|botes?|colores|pinturas|pcs|pieces|piezas|units?|unidades|dropper|jars?|tarros?|inks?|washes|lavados|metallics?|shades|tonos)\b"
+
+
+def expected_count(title, text):
+    """Cuántas pinturas dice traer el set ("12 Colors", "Set of 8", "(x6)", "Contains 16 paints"…); None si no lo dice."""
+    def scan(t, strict):
+        t = " " + re.sub(r"\s+", " ", t.lower().replace("-", " ")) + " "
+        for w, n in sorted(_NUM_WORDS.items(), key=lambda x: -len(x[0])):
+            t = re.sub(rf"\b{w}\b", str(n), t)
+        pats = [rf"\b(\d{{1,2}})\s*{_COUNT_UNIT}", r"\bset of (\d{1,2})\b", r"\bpack of (\d{1,2})\b", r"\bjuego de (\d{1,2})\b"]
+        if strict:  # solo en el título: "(8)", "x8", "8 set"
+            pats += [r"\((?:x\s?)?(\d{1,2})\)", r"\bx\s?(\d{1,2})\b", r"\b(\d{1,2})\s?(?:set|pack|kit)\b"]
+        for rx in pats:
+            for m in re.finditer(rx, t):
+                n = int(m.group(1))
+                after = t[m.end():m.end() + 4]
+                if 2 <= n <= 60 and not re.match(r"\s?ml\b", after):
+                    return n
+        return None
+    return scan(title, True) or scan(text[:1500], False)
+
+
 def _strip_html(t):
     t = re.sub(r"<[^>]+>", " ", t or "")
     return re.sub(r"\s+", " ", html.unescape(t))
@@ -1008,14 +1033,15 @@ def build_sets(src, final):
     by_brand = defaultdict(list)
     for r in final:
         by_brand[r[0]].append(r)
-    sets, seen, pending = [], set(), []
+    sets, seen, pending, rejected = [], set(), [], []
     # Fuentes: tiendas oficiales primero; después los minoristas, agrupados por la marca de cada producto
-    sources = [(key, brand, _set_items(key, src.get(key) or [])) for key, brand in SET_SOURCES.items()]
+    sources = [(key, brand, [t + ("Tienda oficial",) for t in _set_items(key, src.get(key) or [])]) for key, brand in SET_SOURCES.items()]
     retail_by_brand = defaultdict(list)
     for p in src.get("retail") or []:
         b = retail_brand(p["vendor"], p["title"])
         if b and not SET_EXCLUDE.search(p["title"]):
-            retail_by_brand[b].append((html.unescape(p["title"]).strip(), p["sku"], _strip_html(p["text"])))
+            host = re.sub(r"^https?://(www\.)?|/.*$", "", p.get("src") or "")
+            retail_by_brand[b].append((html.unescape(p["title"]).strip(), p["sku"], _strip_html(p["text"]), host or "Minorista"))
     for b, items in retail_by_brand.items():
         sources.append(("retail", b, items))
     paint_sets_seen = set()
@@ -1030,8 +1056,9 @@ def build_sets(src, final):
                 by_code.setdefault(code_key(r[3]), r)
             by_name[norm(r[2])].append(r)
         names = sorted((n for n in by_name if len(n) >= 4), key=len, reverse=True)
-        for title, sku, text in set_items:
+        for title, sku, text, origin in set_items:
             found = []
+            method = "código"
             # 1) por código
             for rx in CODE_RES:
                 for m in rx.findall(text):
@@ -1089,20 +1116,30 @@ def build_sets(src, final):
                     pick = pick or cands[0]
                     if pick not in found:
                         found.append(pick)
+                        method = "nombre"
             # 3) Kaleido: sets por tramo de numeración
             if len(found) < 3 and brand == "Kaleido Colorworks":
                 for rx, codes in KALEIDO_SET_RULES:
                     if re.search(rx, title, re.I):
                         found = [by_code[code_key(c)] for c in codes if code_key(c) in by_code]
+                        method = "numeración"
                         break
             # 4) Sets que se arman con otros sets ("todos los colores del Base Set, Expansion 1…"): se resuelven al final
             if len(found) < 3:
+                if len(found) == 0 or not re.search(r"base set|intro set|metallic set|expansion", text, re.I):
+                    rejected.append((brand, title, origin, f"solo {len(found)} pinturas reconocidas"))
                 refs = re.findall(r"(base set|intro set|metallic set|expansion(?: set)? ?#? ?\d)", text, re.I)
                 if refs:
-                    pending.append((brand, title, sku, [norm(x).replace("set", "") for x in refs]))
+                    pending.append((brand, title, sku, [norm(x).replace("set", "") for x in refs], origin))
                 continue
+            # Validación: lo que dice el set que trae contra lo que se reconoció
+            exp = expected_count(title, text)
             if key == "retail":
                 title = clean_retail_title(title, brand)
+            status, note = validate_set(len(found), exp, method, key)
+            if status is None:
+                rejected.append((brand, title, origin, note))
+                continue
             k = (brand, norm(title))
             ids = frozenset(f"{r[0]}|{r[1]}|{r[2]}|{r[3]}" for r in found)
             pk = (brand, ids)
@@ -1117,8 +1154,9 @@ def build_sets(src, final):
             sets.append({
                 "brand": brand, "name": title, "code": sku,
                 "paints": [f"{r[0]}|{r[1]}|{r[2]}|{r[3]}" for r in found],
+                "expected": exp or 0, "status": status, "note": note, "source": origin,
             })
-    for brand, title, sku, refs in pending:
+    for brand, title, sku, refs, origin in pending:
         paints = []
         for ref in refs:
             for st in sets:
@@ -1127,13 +1165,54 @@ def build_sets(src, final):
                     break
         if len(paints) >= 3 and (brand, norm(title)) not in seen:
             seen.add((brand, norm(title)))
-            sets.append({"brand": brand, "name": title, "code": sku, "paints": paints})
+            sets.append({"brand": brand, "name": title, "code": sku, "paints": paints, "expected": 0,
+                         "status": "ok", "note": "Reúne los colores de otros sets de la marca", "source": origin})
     sets.sort(key=lambda x: (x["brand"], x["name"]))
     with open(SETS_OUT, "w", encoding="utf-8") as f:
         json.dump(sets, f, ensure_ascii=False, separators=(",", ":"))
     print(f"sets.json: {len(sets)} sets")
     for b, n in Counter(x["brand"] for x in sets).most_common():
         print(f"  {b}: {n}")
+    write_sets_report(sets, rejected)
+
+
+def validate_set(found, expected, method, key):
+    """(estado, nota) del set; estado None = se descarta.
+    ok: coincide con lo que anuncia · parcial: faltan algunas · revisar: no se pudo confirmar del todo."""
+    if expected:
+        if found == expected:
+            return "ok", f"Trae {expected} pinturas; se reconocieron todas"
+        if found > expected:
+            # Más de las anunciadas: el texto nombra colores que no vienen en el set (sugerencias, "también te puede interesar"…)
+            if found > expected * 1.5 + 1:
+                return None, f"anuncia {expected} pero se reconocieron {found}: el texto mezcla otros productos"
+            return "revisar", f"Anuncia {expected} pinturas y se reconocieron {found}: puede incluir alguna que no viene"
+        if found >= expected * 0.75:
+            return "parcial", f"Trae {expected} pinturas; se reconocieron {found} (faltan {expected - found} en el catálogo)"
+        if found >= expected * 0.5:
+            return "revisar", f"Trae {expected} pinturas; solo se reconocieron {found}"
+        return None, f"anuncia {expected} pero solo se reconocieron {found}"
+    if method == "numeración":
+        return "revisar", "Kaleido no publica la lista: se dedujo por la numeración de la serie"
+    if method == "nombre" and found < 4:
+        return None, f"solo {found} nombres reconocidos y el set no dice cuántas trae"
+    if key == "retail":
+        return "revisar", "Solo aparece en tiendas minoristas y no dice cuántas pinturas trae"
+    return "ok", "Lista tomada de la tienda oficial"
+
+
+def write_sets_report(sets, rejected):
+    st = Counter(x["status"] for x in sets)
+    lines = ["# Validación de sets", "",
+             f"Sets publicados: {len(sets)} — ok {st['ok']}, parcial {st['parcial']}, revisar {st['revisar']}. Descartados: {len(rejected)}.", ""]
+    lines += ["## Por revisar o parciales", ""]
+    for x in sets:
+        if x["status"] != "ok":
+            lines.append(f"- **{x['brand']} — {x['name']}** ({len(x['paints'])}/{x['expected'] or '?'}, {x['source']}): {x['note']}")
+    lines += ["", "## Descartados", ""]
+    for b, t, o, why in sorted(rejected):
+        lines.append(f"- {b} — {t} ({o}): {why}")
+    open(SETS_REPORT, "w", encoding="utf-8").write("\n".join(lines) + "\n")
 
 
 if __name__ == "__main__":

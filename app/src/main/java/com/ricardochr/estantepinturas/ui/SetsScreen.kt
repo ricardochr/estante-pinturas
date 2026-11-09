@@ -135,7 +135,10 @@ private fun SetRow(vm: MainViewModel, s: PaintSet, onClick: () -> Unit) {
             .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        Text(s.name, fontWeight = FontWeight.Bold, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(s.name, fontWeight = FontWeight.Bold, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+            SetBadge(s)
+        }
         Text(
             listOf(s.brand, vm.lineOf(s)).filter { it.isNotBlank() }.distinct().joinToString(" · ") + " · " + when {
                 paints.isEmpty() -> "sin pinturas reconocidas"
@@ -172,6 +175,18 @@ private fun SetDetail(vm: MainViewModel, s: PaintSet, onOpenPaint: (Paint) -> Un
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                if (!s.custom && (s.note.isNotBlank() || s.source.isNotBlank())) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        SetBadge(s, always = true)
+                        Text(
+                            listOf(s.note, s.source.takeIf { it.isNotBlank() }?.let { "Fuente: $it" } ?: "").filter { it.isNotBlank() }.joinToString(" · ") +
+                                if (s.status != "ok") ". Revisa la caja o la tienda antes de comprarlo; puedes corregirlo con “Editar pinturas”." else "",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                }
                 Text(
                     when {
                         paints.isEmpty() -> "No reconocí pinturas de este set en el catálogo."
@@ -253,5 +268,26 @@ private fun SetDetail(vm: MainViewModel, s: PaintSet, onOpenPaint: (Paint) -> Un
             onChanged(vm.renameSet(s, name, b))
         }
     }
+    }
+}
+
+/** Etiqueta de validación del set: verificado, incompleto o por revisar. */
+@Composable
+private fun SetBadge(s: PaintSet, always: Boolean = false) {
+    if (s.custom) {
+        if (always) Badge("Tuyo", MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.onSecondaryContainer)
+        return
+    }
+    when (s.status) {
+        "parcial" -> Badge("Incompleto", MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onTertiaryContainer)
+        "revisar" -> Badge("Por revisar", MaterialTheme.colorScheme.errorContainer, MaterialTheme.colorScheme.onErrorContainer)
+        else -> if (always) Badge("Verificado", MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer)
+    }
+}
+
+@Composable
+private fun Badge(text: String, bg: androidx.compose.ui.graphics.Color, fg: androidx.compose.ui.graphics.Color) {
+    Surface(color = bg, shape = MaterialTheme.shapes.small) {
+        Text(text, style = MaterialTheme.typography.labelSmall, color = fg, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
     }
 }
