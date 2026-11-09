@@ -1,6 +1,6 @@
 # Catálogo de pinturas
 
-Total: **8484** pinturas · generado 2026-11-04
+Total: **8484** pinturas · generado 2026-11-09
 
 | Marca | Pinturas | Fuente |
 |---|---:|---|
