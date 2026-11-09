@@ -1,52 +1,68 @@
 # Validación de sets
 
-Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
+Sets publicados: 769 — ok 391, parcial 36, revisar 342. Descartados: 1467.
 
 ## Por revisar o parciales
 
 - **AK Interactive — 3200 Vietnam U.S Green and Camoflage Colours Set (discontinued)** (5/?, www.thecombatcompany.com): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
-- **AK Interactive — 3230 IDF Uniform Colours Set (discontinued)** (4/6, www.thecombatcompany.com): Trae 6 pinturas; solo se reconocieron 4
+- **AK Interactive — 3230 IDF Uniform Colours Set (discontinued)** (4/6, www.thecombatcompany.com): Anuncia 6 pinturas; solo se reconocieron 4
+- **AK Interactive — 3rd Gen paint set: Waffen-SS Pea Dot Pattern / Dot 44** (6/3, www.thecombatcompany.com): Anuncia 3 pinturas y se reconocieron 6: puede incluir alguna que no viene
+- **AK Interactive — 561 Soviet Camouflages Paint Set (discontinued)** (3/?, www.thecombatcompany.com): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **AK Interactive — AIRCRAFT EFFECTS SET** (7/6, Tienda oficial): Anuncia 6 pinturas y se reconocieron 7: puede incluir alguna que no viene
-- **AK Interactive — BLACK & WHITE COLOR SET – ARTISTIC DENSE ACRYLIC COLOR** (4/6, Tienda oficial): Trae 6 pinturas; solo se reconocieron 4
+- **AK Interactive — BLACK & WHITE COLOR SET – ARTISTIC DENSE ACRYLIC COLOR** (4/6, Tienda oficial): Anuncia 6 pinturas; solo se reconocieron 4
 - **AK Interactive — Bundeswehr Basic Desert Colors Set – RAL 1039-F9, RAL 6040-F9, RAL 7050-F9, RAL 8031-F9** (3/4, Tienda oficial): Trae 4 pinturas; se reconocieron 3 (faltan 1 en el catálogo)
 - **AK Interactive — DIORAMA COLORS SET** (8/6, Tienda oficial): Anuncia 6 pinturas y se reconocieron 8: puede incluir alguna que no viene
-- **AK Interactive — FANTASY & SCI-FI COLORS SET** (3/6, Tienda oficial): Trae 6 pinturas; solo se reconocieron 3
+- **AK Interactive — Early Cold War RAF Aircraft Colors SET 3G** (3/?, www.thecombatcompany.com): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **AK Interactive — Engines and Metal Weathering Set** (6/2, Tienda oficial): Anuncia 2 pinturas y se reconocieron 6: puede incluir alguna que no viene
+- **AK Interactive — FANTASY & SCI-FI COLORS SET** (3/6, Tienda oficial): Anuncia 6 pinturas; solo se reconocieron 3
 - **AK Interactive — FLESH COLORS SET** (8/6, Tienda oficial): Anuncia 6 pinturas y se reconocieron 8: puede incluir alguna que no viene
 - **AK Interactive — French Uniform Colors 3G Set** (6/?, www.thecombatcompany.com): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **AK Interactive — GERMAN TANKS INTERIOR COLORS – RC MARKERS SET** (4/3, Tienda oficial): Anuncia 3 pinturas y se reconocieron 4: puede incluir alguna que no viene
+- **AK Interactive — German Army Early WWII Colour Set** (4/3, www.thecombatcompany.com): Anuncia 3 pinturas y se reconocieron 4: puede incluir alguna que no viene
 - **AK Interactive — Interactive - 3 Gen s - Us Airborne Division D-Day. Wargame Starter Set** (14/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **AK Interactive — Interactive - 3 Gen s - Wargame Color Set. Non Metallic Metal Gold (W. B.)** (4/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **AK Interactive — Interactive - 3 Gen s - Wargame Color Set. Non Metallic Metal Silver (W.B)** (4/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
-- **AK Interactive — Interactive Blue Essential Colors 3Gen Set AK-11618** (3/6, scalemodelshop.co.uk): Trae 6 pinturas; solo se reconocieron 3
-- **AK Interactive — Interactive British Desert Colours AFV Set AK-11646** (3/6, scalemodelshop.co.uk): Trae 6 pinturas; solo se reconocieron 3
-- **AK Interactive — Interactive Brown Colours Set AK-3260** (4/6, scalemodelshop.co.uk): Trae 6 pinturas; solo se reconocieron 4
+- **AK Interactive — Interactive Blue Essential Colors 3Gen Set AK-11618** (3/6, scalemodelshop.co.uk): Anuncia 6 pinturas; solo se reconocieron 3
+- **AK Interactive — Interactive British Desert Colours AFV Set AK-11646** (3/6, scalemodelshop.co.uk): Anuncia 6 pinturas; solo se reconocieron 3
+- **AK Interactive — Interactive Brown Colours Set AK-3260** (4/6, scalemodelshop.co.uk): Anuncia 6 pinturas; solo se reconocieron 4
+- **AK Interactive — Interactive Civil Series: Red And Blue Interior Colors 3rd Generation** (6/3, www.gapgames.com.au): Anuncia 3 pinturas y se reconocieron 6: puede incluir alguna que no viene
 - **AK Interactive — Interactive Israeli Air Force Colors Set 3rd Gen Aircraft Series AK-11752** (4/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **AK Interactive — Interactive Israeli Air Force Colours Air Series Set AK-2150** (7/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **AK Interactive — Interactive MERDC Camouflage Colour Set AK-4230** (7/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **AK Interactive — Interactive Merdc Camouflage Colors AFV Set AK-11653** (6/8, scalemodelshop.co.uk): Trae 8 pinturas; se reconocieron 6 (faltan 2 en el catálogo)
 - **AK Interactive — Interactive Modern Royal Air Force Aircraft Colors Set 3rd Gen Aircraft Series AK-11755** (4/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **AK Interactive — Interactive Modern Russian Colours Vol 2 AFV Set AK-11663** (6/3, scalemodelshop.co.uk): Anuncia 3 pinturas y se reconocieron 6: puede incluir alguna que no viene
+- **AK Interactive — Interactive Quick Gen Paints – Complete Set Bulk Deal** (79/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **AK Interactive — Interactive Soviet Aircraft Colors 1930s-1941 Set 3rd Gen Aircraft Series AK-11740** (5/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **AK Interactive — Interactive Soviet Aircraft Colors 1941-1945 Set 3rd Gen Aircraft Series AK-11741** (4/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **AK Interactive — Interactive Soviet Aircraft Colors 1950s-1970s Set 3rd Gen Aircraft Series AK-11743** (5/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **AK Interactive — Interactive Spanish Civil War. Republican Aircraft Colors Set 3rd Gen Aircraft Series AK-11713** (4/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **AK Interactive — Interactive US Air Force & ANG Modern Aircraft Colors Set 3rd Gen Aircraft Series AK-11746** (4/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **AK Interactive — Interactive US Air Force European I Camo Colors 1980s Set 3rd Gen Aircraft Series AK-11749** (3/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **AK Interactive — Interactive US Army & USMC Camouflage Colors Set AK-4220** (5/2, scalemodelshop.co.uk): Anuncia 2 pinturas y se reconocieron 5: puede incluir alguna que no viene
 - **AK Interactive — Interactive US Army & USMC Green Colors Set AK-4210** (3/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **AK Interactive — Interactive US Army Helicopter Colors Set 3rd Gen Aircraft Series AK-11750** (4/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **AK Interactive — Interactive US Modern Pilot Uniform Colors Set 3rd Gen Aircraft Series AK-11761** (4/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **AK Interactive — Interactive US.Army & USMC Camouflage Colors AFV Set AK-11668** (7/8, scalemodelshop.co.uk): Trae 8 pinturas; se reconocieron 7 (faltan 1 en el catálogo)
+- **AK Interactive — Interactive Vietnam Green And Camouflage Colors AFV Set AK-11682** (6/3, scalemodelshop.co.uk): Anuncia 3 pinturas y se reconocieron 6: puede incluir alguna que no viene
+- **AK Interactive — Interactive WWI German Aircraft Colors Set 3rd Gen Aircraft Series AK-11710** (3/7, scalemodelshop.co.uk): Anuncia 7 pinturas; solo se reconocieron 3
 - **AK Interactive — Interactive WWI RFC & RNAS. British Aircraft Colors Set 3rd Gen Aircraft Series AK-11711** (5/4, scalemodelshop.co.uk): Anuncia 4 pinturas y se reconocieron 5: puede incluir alguna que no viene
 - **AK Interactive — Interactive WWII British Uniform Colors Set AK-3240** (6/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **AK Interactive — Interactive WWII Finnish Air Force Colors Set 3rd Gen Aircraft Series AK-11739** (7/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **AK Interactive — Interactive WWII IJAAF Aircraft Colors Set 3rd Gen Aircraft Series AK-11735** (8/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
-- **AK Interactive — Interactive WWII IJAAF Aircraft Colors Set AK-2260** (5/8, scalemodelshop.co.uk): Trae 8 pinturas; solo se reconocieron 5
+- **AK Interactive — Interactive WWII IJAAF Aircraft Colors Set AK-2260** (5/8, scalemodelshop.co.uk): Anuncia 8 pinturas; solo se reconocieron 5
 - **AK Interactive — Interactive WWII IJAAF Aircraft Interior Colors Set 3rd Gen Aircraft Series AK-11736** (4/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **AK Interactive — Interactive WWII IJN Aircraft Colors Set 3rd Gen Aircraft Series AK-11737** (5/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **AK Interactive — Interactive WWII Japan Uniform Colors Air Set 3rd Gen Aircraft Series AK-11693** (4/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **AK Interactive — Interactive WWII Luftwaffe Cockpit & Interior Colors Set 3rd Gen Aircraft Series AK-11722** (4/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **AK Interactive — Interactive WWII Luftwaffe Early War Colors Set 3rd Gen Aircraft Series AK-11716** (4/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **AK Interactive — Interactive WWII Luftwaffe Late War Colors Set 3rd Gen Aircraft Series AK-11718** (3/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **AK Interactive — Interactive WWII Luftwaffe Mid-War Colors Set 3rd Gen Aircraft Series AK-11717** (5/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **AK Interactive — Interactive WWII Luftwaffe Seaplane Colors Set 3rd Gen Aircraft Series AK-11721** (3/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **AK Interactive — Interactive WWII Luftwaffe Tropical Colors Set 3rd Gen Aircraft Series AK-11719** (6/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **AK Interactive — Interactive WWII Luftwaffe Uniform Colors Set 3rd Gen Aircraft Series AK-11690** (3/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **AK Interactive — Interactive WWII RAF Uniform Colors Set 3rd Gen Aircraft Series AK-11689** (4/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **AK Interactive — Interactive WWII Soviet Uniform Colors Set 3rd Gen Aircraft Series AK-11692** (3/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **AK Interactive — Interactive WWII US Aircraft Interior Colors Set 3rd Gen Aircraft Series AK-11734** (3/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **AK Interactive — Interactive WWII US Navy & USMC Aircraft Colors Set 3rd Gen Aircraft Series AK-11729** (4/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **AK Interactive — Interactive WWII US Navy & USMC Aircraft Late War Colors Set 3rd Gen Aircraft Series AK-11730** (4/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
@@ -56,12 +72,14 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - **AK Interactive — Israeli Air Force Colors SET 3G** (8/?, www.thecombatcompany.com): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **AK Interactive — Luftwaffe Fighter Colors 1941-1944 SET 3G** (4/?, www.thecombatcompany.com): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **AK Interactive — Luftwaffe Pre-WWII Aircraft Colors SET 3G** (3/?, www.thecombatcompany.com): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
-- **AK Interactive — MAPPING TECHNIQUE LIGHTS & SHADOWS SET** (4/6, Tienda oficial): Trae 6 pinturas; solo se reconocieron 4
+- **AK Interactive — MAPPING TECHNIQUE LIGHTS & SHADOWS SET** (4/6, Tienda oficial): Anuncia 6 pinturas; solo se reconocieron 4
 - **AK Interactive — Modern Royal Air Force Aircraft Colors SET 3G** (8/?, www.thecombatcompany.com): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **AK Interactive — ORCS & GOBLINS – PLAYMARKER SET** (3/6, Tienda oficial): Anuncia 6 pinturas; solo se reconocieron 3
 - **AK Interactive — RN Fleet Air Arm Aircraft Colors 1945-2010 SET 3G** (6/?, www.thecombatcompany.com): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **AK Interactive — RUST & RED COLORS SET** (7/6, Tienda oficial): Anuncia 6 pinturas y se reconocieron 7: puede incluir alguna que no viene
 - **AK Interactive — SIGNATURE SET – ADAM WILDER 3G** (17/18, Tienda oficial): Trae 18 pinturas; se reconocieron 17 (faltan 1 en el catálogo)
-- **AK Interactive — SIGNATURE SET – RAFA “ARCHIDUQUE” – SUDAN CAMPAIGN 1881-1899 – 28MM WARGAME PAINT SET** (18/28, Tienda oficial): Trae 28 pinturas; solo se reconocieron 18
+- **AK Interactive — SIGNATURE SET – RAFA “ARCHIDUQUE” – SUDAN CAMPAIGN 1881-1899 – 28MM WARGAME PAINT SET** (18/28, Tienda oficial): Anuncia 28 pinturas; solo se reconocieron 18
+- **AK Interactive — SPACE KNIGHTS – PLAYMARKER SET** (3/6, Tienda oficial): Anuncia 6 pinturas; solo se reconocieron 3
 - **AK Interactive — Soviet Aircraft Colors 1930s-1941 SET 3G** (8/?, www.thecombatcompany.com): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **AK Interactive — Soviet Aircraft Colors 1941-1945 SET 3G** (7/?, www.thecombatcompany.com): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **AK Interactive — Soviet Aircraft Colors 1950s-1970s SET 3G** (4/?, www.thecombatcompany.com): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
@@ -69,55 +87,105 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - **AK Interactive — Spanish Civil War. Republican Aircraft Colors SET** (4/?, www.thecombatcompany.com): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **AK Interactive — VEHICLE WEATHERING 6 EFFECT SET** (8/6, Tienda oficial): Anuncia 6 pinturas y se reconocieron 8: puede incluir alguna que no viene
 - **AK Interactive — WWI German Aircraft Colors Set 3G** (8/7, www.thecombatcompany.com): Anuncia 7 pinturas y se reconocieron 8: puede incluir alguna que no viene
+- **AK Interactive — WWII ALLIED AIRCRAFT COCKPIT COLORS – RC MARKERS SET** (6/3, Tienda oficial): Anuncia 3 pinturas y se reconocieron 6: puede incluir alguna que no viene
+- **AK Interactive — WWII AXIS AIRCRAFT COCKPIT COLORS – RC MARKERS SET** (4/3, Tienda oficial): Anuncia 3 pinturas y se reconocieron 4: puede incluir alguna que no viene
+- **AK Interactive — WWII AXIS AIRCRAFT SQUIGGLE CAMOUFLAGE COLORS – RC MARKERS SET** (5/3, Tienda oficial): Anuncia 3 pinturas y se reconocieron 5: puede incluir alguna que no viene
 - **AK Interactive — WWII IJN Aircraft Colors SET 3G** (4/?, www.thecombatcompany.com): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **AK Interactive — WWII IJN Aircraft Interior Colors SET 3G** (5/?, www.thecombatcompany.com): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
-- **Ammo by Mig — ATOM Weapons Color Set Ammo ATOM-20733** (3/4, scalemodelshop.co.uk): Trae 4 pinturas; se reconocieron 3 (faltan 1 en el catálogo)
+- **Ammo by Mig — ATOM Beginners Set: SCI-FI Colors Ammo ATOM-20810** (3/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Ammo by Mig — British 1939-45 European Colours Set [10] Ammo A.MIG-7140** (3/45, scalemodelshop.co.uk): Anuncia 45 pinturas; solo se reconocieron 3
 - **Ammo by Mig — Early / Middle German Colours Set Ammo A.MIG-7100** (6/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
-- **Ammo by Mig — Interior Colours German Tanks Set Ammo A.MIG-7108** (4/6, scalemodelshop.co.uk): Trae 6 pinturas; solo se reconocieron 4
-- **Ammo by Mig — King Tiger Exterior Color Set Vol.2 Ammo A.MIG-7166** (3/6, scalemodelshop.co.uk): Trae 6 pinturas; solo se reconocieron 3
-- **Ammo by Mig — King Tiger Interior Color Set Vol.1 Ammo A.MIG-7165** (4/6, scalemodelshop.co.uk): Trae 6 pinturas; solo se reconocieron 4
+- **Ammo by Mig — German Accessories WWII Paint Set Ammo ATOM-20745** (3/12, scalemodelshop.co.uk): Anuncia 12 pinturas; solo se reconocieron 3
+- **Ammo by Mig — Interior Colours German Tanks Set Ammo A.MIG-7108** (4/6, scalemodelshop.co.uk): Anuncia 6 pinturas; solo se reconocieron 4
+- **Ammo by Mig — King Tiger Exterior Color Set Vol.2 Ammo A.MIG-7166** (3/6, scalemodelshop.co.uk): Anuncia 6 pinturas; solo se reconocieron 3
+- **Ammo by Mig — King Tiger Interior Color Set Vol.1 Ammo A.MIG-7165** (4/6, scalemodelshop.co.uk): Anuncia 6 pinturas; solo se reconocieron 4
+- **Ammo by Mig — Luftwaffe Late WWII Colour Set Ammo A.MIG-7209** (3/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Ammo by Mig — Metallic Mechas Colour Set Ammo A.MIG-7158** (4/3, scalemodelshop.co.uk): Anuncia 3 pinturas y se reconocieron 4: puede incluir alguna que no viene
+- **Ammo by Mig — Missing Link Aircraft Set A.MIG-0401** (4/12, scalemodelshop.co.uk): Anuncia 12 pinturas; solo se reconocieron 4
+- **Ammo by Mig — Missing Link Trains Set AMMO.R-1070** (3/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Ammo by Mig — Modern Russian Camo Colors Set Ammo A.MIG-7109** (7/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
-- **Ammo by Mig — Modern USA Army Colors Set Ammo A.MIG-7159** (4/6, scalemodelshop.co.uk): Trae 6 pinturas; solo se reconocieron 4
+- **Ammo by Mig — Modern Russian Camo Colors Vol.2?Set Ammo A.MIG-7161** (3/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Ammo by Mig — Modern USA Army Colors Set Ammo A.MIG-7159** (4/6, scalemodelshop.co.uk): Anuncia 6 pinturas; solo se reconocieron 4
 - **Ammo by Mig — Rust Effects Colour Set Ammo Mig 7106** (6/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Ammo by Mig — Space Legions Color Set Ammo A.MIG-7153** (3/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Ammo by Mig — StuG III Ausf. G Exterior & Interior Paint Set Ammo ATOM-20730** (3/12, scalemodelshop.co.uk): Anuncia 12 pinturas; solo se reconocieron 3
 - **Ammo by Mig — TIGER I Colors Set Ammo A.MIG-7182** (10/12, scalemodelshop.co.uk): Trae 12 pinturas; se reconocieron 10 (faltan 2 en el catálogo)
+- **Ammo by Mig — U.S. Carrier Deck Paint Set A.MIG-7457 Ammo** (3/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Ammo by Mig — US Navy Helicopters Paint Set AMIG7250 Ammo** (5/4, scalemodelshop.co.uk): Anuncia 4 pinturas y se reconocieron 5: puede incluir alguna que no viene
 - **Ammo by Mig — US Navy WWII Colors Set Ammo A.MIG-7207** (4/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
-- **Ammo by Mig — USAF Aggressor Desert & Artic Colours Set Ammo A.MIG-7234** (4/6, scalemodelshop.co.uk): Trae 6 pinturas; solo se reconocieron 4
+- **Ammo by Mig — USAF Aggressor Desert & Artic Colours Set Ammo A.MIG-7234** (4/6, scalemodelshop.co.uk): Anuncia 6 pinturas; solo se reconocieron 4
 - **Ammo by Mig — VVS Russian Wwii Bomber Colors Set Ammo A.MIG-7224** (3/4, scalemodelshop.co.uk): Trae 4 pinturas; se reconocieron 3 (faltan 1 en el catálogo)
 - **Ammo by Mig — Vegetation Diorama Colours Set Ammo A.MIG-7176** (5/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
-- **Ammo by Mig — WWI British and German Colours Set Ammo A.MIG-7111** (4/6, scalemodelshop.co.uk): Trae 6 pinturas; solo se reconocieron 4
+- **Ammo by Mig — WWI British and German Colours Set Ammo A.MIG-7111** (4/6, scalemodelshop.co.uk): Anuncia 6 pinturas; solo se reconocieron 4
 - **Ammo by Mig — WWII Regia Aeronautica Early Colors Paint Set Ammo A.MIG-7237** (3/4, scalemodelshop.co.uk): Trae 4 pinturas; se reconocieron 3 (faltan 1 en el catálogo)
 - **Ammo by Mig — Weapons Colors Set Ammo A.MIG-7123** (5/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Ammo by Mig — Yom Kippur War Colours Set Ammo A.MIG-7113** (4/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
-- **Ammo by Mig — by MIG Green Mechas Colours Set** (4/6, www.gapgames.com.au): Trae 6 pinturas; solo se reconocieron 4
-- **Ammo by Mig — by MIG Purple Mechas Colour Set** (4/6, www.gapgames.com.au): Trae 6 pinturas; solo se reconocieron 4
-- **Ammo by Mig — by MIG Realistic Robots Colour Set** (4/6, www.gapgames.com.au): Trae 6 pinturas; solo se reconocieron 4
-- **Ammo by Mig — by MIG Space Fighters Sci-Fi Colours Set** (4/6, www.gapgames.com.au): Trae 6 pinturas; solo se reconocieron 4
-- **Citadel — Warhammer Age of Sigmar: Skaven Paint Set** (4/6, www.gapgames.com.au): Trae 6 pinturas; solo se reconocieron 4
-- **Citadel — Warhammer Age of Sigmar: Stormcast Eternals Paints Set** (4/6, www.gapgames.com.au): Trae 6 pinturas; solo se reconocieron 4
-- **Citadel — Warhammer Tone Pro Bundle - Megaboss Yellow: 1-5** (6/12, www.goblingaming.co.uk): Trae 12 pinturas; solo se reconocieron 6
+- **Ammo by Mig — by MIG Green Mechas Colours Set** (4/6, www.gapgames.com.au): Anuncia 6 pinturas; solo se reconocieron 4
+- **Ammo by Mig — by MIG Purple Mechas Colour Set** (4/6, www.gapgames.com.au): Anuncia 6 pinturas; solo se reconocieron 4
+- **Ammo by Mig — by MIG Realistic Robots Colour Set** (4/6, www.gapgames.com.au): Anuncia 6 pinturas; solo se reconocieron 4
+- **Ammo by Mig — by MIG Space Fighters Sci-Fi Colours Set** (4/6, www.gapgames.com.au): Anuncia 6 pinturas; solo se reconocieron 4
+- **Citadel — Warhammer Age of Sigmar: Skaven Paint Set** (4/6, www.gapgames.com.au): Anuncia 6 pinturas; solo se reconocieron 4
+- **Citadel — Warhammer Age of Sigmar: Stormcast Eternals Paints Set** (4/6, www.gapgames.com.au): Anuncia 6 pinturas; solo se reconocieron 4
+- **Citadel — Warhammer Tone Pro Bundle - Blackstone Void: 1-5** (5/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Citadel — Warhammer Tone Pro Bundle - Bloodtoof Red: 1-5** (5/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Citadel — Warhammer Tone Pro Bundle - Blue Gorkshroom: 1-5** (5/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Citadel — Warhammer Tone Pro Bundle - Carmine Blades: 1-5** (5/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Citadel — Warhammer Tone Pro Bundle - Carthalos Skin: 1-5** (5/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Citadel — Warhammer Tone Pro Bundle - Celestine Skin: 1-5** (5/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Citadel — Warhammer Tone Pro Bundle - Chotec Orange: 1-5** (5/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Citadel — Warhammer Tone Pro Bundle - Craventhrone Cloak: 1-5** (5/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Citadel — Warhammer Tone Pro Bundle - Dataslate Grey: 1-5** (5/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Citadel — Warhammer Tone Pro Bundle - Enrapturess Dusk: 1-5** (5/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Citadel — Warhammer Tone Pro Bundle - Eye of Terror: 1-5** (5/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Citadel — Warhammer Tone Pro Bundle - Gnarlwood: 1-5** (5/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Citadel — Warhammer Tone Pro Bundle - Green Morkshroom: 1-5** (5/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Citadel — Warhammer Tone Pro Bundle - Hawkshroud Yellow: 1-5** (5/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Citadel — Warhammer Tone Pro Bundle - Hierotek Green: 1-5** (5/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Citadel — Warhammer Tone Pro Bundle - Hive Fleet Purple: 1-5** (5/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Citadel — Warhammer Tone Pro Bundle - Kasrkin Green: 1-5** (5/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Citadel — Warhammer Tone Pro Bundle - Khemri Sands: 1-5** (5/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Citadel — Warhammer Tone Pro Bundle - Kruleboyz Green: 1-5** (5/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Citadel — Warhammer Tone Pro Bundle - Lustria Green: 1-5** (5/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Citadel — Warhammer Tone Pro Bundle - Magnus The Red: 1-5** (5/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Citadel — Warhammer Tone Pro Bundle - Megaboss Yellow: 1-5** (6/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Citadel — Warhammer Tone Pro Bundle - Necrolith Bone: 1-5** (5/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Citadel — Warhammer Tone Pro Bundle - Plague Toad Venom: 1-5** (5/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Citadel — Warhammer Tone Pro Bundle - Scinari Blue: 1-5** (5/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Citadel — Warhammer Tone Pro Bundle - Seraphon Blue: 1-5** (5/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Citadel — Warhammer Tone Pro Bundle - Shalaxi Violet: 1-5** (5/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Citadel — Warhammer Tone Pro Bundle - Stormwolf Blue: 1-5** (5/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Citadel — Warhammer Tone Pro Bundle - Ta'unar Ochre: 1-5** (5/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Citadel — Warhammer Tone Pro Bundle - Ultramar Blue: 1-5** (5/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Green Stuff World — WORLD Paint Set - NMM Steel and Silver** (6/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Green Stuff World — WORLD Paint Set - Turquoise** (6/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Green Stuff World — World Paint Set - Basic Colors 02** (6/?, www.tistaminis.com): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Green Stuff World — World Paint Set - Special Effects Vol. 2** (3/?, www.tistaminis.com): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Green Stuff World — World Slime Effects Paint Set** (6/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Green Stuff World — World Special Effects Mega Paint Set** (8/48, www.tistaminis.com): Anuncia 48 pinturas; solo se reconocieron 8
 - **Kaleido Colorworks — ASW-G-08 Gundam Barbatos Colors Bundle** (9/8, Tienda oficial): Anuncia 8 pinturas y se reconocieron 9: puede incluir alguna que no viene
 - **Kaleido Colorworks — ATM-09-DD Burglarydog Colors Bundle** (10/9, Tienda oficial): Anuncia 9 pinturas y se reconocieron 10: puede incluir alguna que no viene
+- **Kaleido Colorworks — GAT-04 Windam Colors Bundle** (10/4, Tienda oficial): Anuncia 4 pinturas y se reconocieron 10: puede incluir alguna que no viene
 - **Kaleido Colorworks — MSN-04 Sazabi Colors Bundle** (5/4, Tienda oficial): Anuncia 4 pinturas y se reconocieron 5: puede incluir alguna que no viene
-- **Kaleido Colorworks — Mazda RX-7 Colors Bundle** (4/7, Tienda oficial): Trae 7 pinturas; solo se reconocieron 4
+- **Kaleido Colorworks — Mazda RX-7 Colors Bundle** (4/7, Tienda oficial): Anuncia 7 pinturas; solo se reconocieron 4
+- **Kaleido Colorworks — Metallic Series Marker Set** (5/10, Tienda oficial): Anuncia 10 pinturas; solo se reconocieron 5
+- **Kaleido Colorworks — Metallic Series Marker Set (10pcs) 42328** (3/10, scalemodelshop.co.uk): Anuncia 10 pinturas; solo se reconocieron 3
+- **Kaleido Colorworks — Nissan GT-R 35 Colors Bundle** (4/35, Tienda oficial): Anuncia 35 pinturas; solo se reconocieron 4
+- **Kaleido Colorworks — RX-77-2 Guncannon Colors Bundle** (6/2, Tienda oficial): Anuncia 2 pinturas y se reconocieron 6: puede incluir alguna que no viene
+- **Kaleido Colorworks — RX-78-2 Gundam Colors Bundle** (7/2, Tienda oficial): Anuncia 2 pinturas y se reconocieron 7: puede incluir alguna que no viene
+- **Mr. Hobby — Gundam Pouring Ink Marker Set** (4/3, www.gapgames.com.au): Anuncia 3 pinturas y se reconocieron 4: puede incluir alguna que no viene
+- **Mr. Hobby — Imperial Japanese Army Tank Late Camouflage Color Set Mr Hobby CS663** (3/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **P3 — Paints - Full Bundle** (93/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
-- **Pro Acryl — Metallic Set Expansion** (6/9, www.thecombatcompany.com): Trae 9 pinturas; solo se reconocieron 6
-- **Pro Acryl — PRO Acryl 1-Step Set #1** (12/22, Tienda oficial): Trae 22 pinturas; solo se reconocieron 12
-- **Pro Acryl — PRO Acryl 1-Step Set #2** (12/22, Tienda oficial): Trae 22 pinturas; solo se reconocieron 12
-- **Pro Acryl — PRO Acryl Base Set** (24/22, Tienda oficial): Anuncia 22 pinturas y se reconocieron 24: puede incluir alguna que no viene
+- **Pro Acryl — Metallic Set Expansion** (6/9, www.thecombatcompany.com): Anuncia 9 pinturas; solo se reconocieron 6
 - **Pro Acryl — PRO Acryl Expansion Set #2 - Transparents!** (10/9, Tienda oficial): Anuncia 9 pinturas y se reconocieron 10: puede incluir alguna que no viene
 - **Pro Acryl — PRO Acryl Expansion Set #3** (8/9, Tienda oficial): Trae 9 pinturas; se reconocieron 8 (faltan 1 en el catálogo)
-- **Pro Acryl — PRO Acryl Intro Set** (11/22, Tienda oficial): Trae 22 pinturas; solo se reconocieron 11
-- **Pro Acryl — Pro Acryl Sets - 24 Colour Base Set – 24 Colors** (16/24, www.gapgames.com.au): Trae 24 pinturas; solo se reconocieron 16
+- **Pro Acryl — Pro Acryl Sets - 24 Colour Base Set – 24 Colors** (16/24, www.gapgames.com.au): Anuncia 24 pinturas; solo se reconocieron 16
 - **Scale75 — AMBUSH paint set** (3/4, Tienda oficial): Trae 4 pinturas; se reconocieron 3 (faltan 1 en el catálogo)
 - **Scale75 — Drop and Paints - Back To Black Paint Set** (8/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Scale75 — Drop and Paints - Blue Moon 2 Paint Set** (8/2, www.gapgames.com.au): Anuncia 2 pinturas y se reconocieron 8: puede incluir alguna que no viene
 - **Scale75 — Drop and Paints - Color Palace Vol 1 Paint Set** (64/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Scale75 — Drop and Paints - Color Palace Vol 2 Paint Set** (64/2, www.gapgames.com.au): Anuncia 2 pinturas y se reconocieron 64: puede incluir alguna que no viene
 - **Scale75 — Drop and Paints - Copper Kettle Paint Set** (8/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Scale75 — Drop and Paints - Green Manalishi 2 Paint Set** (8/2, www.gapgames.com.au): Anuncia 2 pinturas y se reconocieron 8: puede incluir alguna que no viene
 - **Scale75 — Drop and Paints - Green Manalishi Paint Set** (8/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Scale75 — Drop and Paints - Orange Crush Paint Set** (8/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Scale75 — Drop and Paints - Purple Rain Paint Set** (9/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
@@ -128,7 +196,7 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - **Scale75 — Fantasy Colours - Creatures From Hell Paint Set** (7/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Scale75 — Fantasy Colours - Makeup Paint Set** (7/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Scale75 — SOVIET ARMORED CREW PAINT SET** (3/4, Tienda oficial): Trae 4 pinturas; se reconocieron 3 (faltan 1 en el catálogo)
-- **Scale75 — Scalecolor - Color Boost 24 Color Set** (16/24, www.gapgames.com.au): Trae 24 pinturas; solo se reconocieron 16
+- **Scale75 — Scalecolor - Color Boost 24 Color Set** (16/24, www.gapgames.com.au): Anuncia 24 pinturas; solo se reconocieron 16
 - **Scale75 — Scalecolor Artist - Charmed Paint Set** (6/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Scale75 — Scalecolor Artist - Game of Inks Paint Set** (6/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Scale75 — Scalecolor Artist - The Emerald Forest Paint Set** (5/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
@@ -136,7 +204,7 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - **Scale75 — Scalecolor Artist Ready Painter One Paint Set** (6/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Scale75 — Scalecolor Metal n' Alchemy Gold Bundle** (4/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Scale75 — VIII ARMY PAINT SET** (6/8, Tienda oficial): Trae 8 pinturas; se reconocieron 6 (faltan 2 en el catálogo)
-- **Scale75 — WAR TANKS STARTER SET** (5/9, Tienda oficial): Trae 9 pinturas; solo se reconocieron 5
+- **Scale75 — WAR TANKS STARTER SET** (5/9, Tienda oficial): Anuncia 9 pinturas; solo se reconocieron 5
 - **The Army Painter — Flexible Triad PLUS - Deep Green** (7/6, www.gapgames.com.au): Anuncia 6 pinturas y se reconocieron 7: puede incluir alguna que no viene
 - **The Army Painter — Flexible Triad PLUS - Ruddy Browns** (7/6, www.gapgames.com.au): Anuncia 6 pinturas y se reconocieron 7: puede incluir alguna que no viene
 - **The Army Painter — Flexible Triad Plus: Olive Greens** (7/6, www.goblingaming.co.uk): Anuncia 6 pinturas y se reconocieron 7: puede incluir alguna que no viene
@@ -145,105 +213,136 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - **The Army Painter — Historical: WWII Soviet Union Paint Set** (18/20, www.thecombatcompany.com): Trae 20 pinturas; se reconocieron 18 (faltan 2 en el catálogo)
 - **The Army Painter — Imperial Fist Bundle (Sam Lenz)** (27/29, Tienda oficial): Trae 29 pinturas; se reconocieron 27 (faltan 2 en el catálogo)
 - **The Army Painter — John Blanche Volume 1 Paint Set** (9/10, www.goblingaming.co.uk): Trae 10 pinturas; se reconocieron 9 (faltan 1 en el catálogo)
+- **The Army Painter — John Blanche Volume 2 Paint Set** (8/2, www.goblingaming.co.uk): Anuncia 2 pinturas y se reconocieron 8: puede incluir alguna que no viene
 - **The Army Painter — John Blanche: Masterclass Volume 3 Paint Set** (4/3, www.thecombatcompany.com): Anuncia 3 pinturas y se reconocieron 4: puede incluir alguna que no viene
-- **The Army Painter — Speedpaint Metallics Paint Set 2.0** (10/18, www.thecombatcompany.com): Trae 18 pinturas; solo se reconocieron 10
-- **The Army Painter — The Army Painter WWII British Historical Paint Set WP8084P** (18/22, scalemodelshop.co.uk): Trae 22 pinturas; se reconocieron 18 (faltan 4 en el catálogo)
+- **The Army Painter — Speedpaint Marker Most Wanted Set** (20/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **The Army Painter — Speedpaint Metallics Paint Set 2.0** (10/?, www.thecombatcompany.com): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **The Army Painter — Speedpaint Metallics Set 2.0** (4/10, www.goblingaming.co.uk): Anuncia 10 pinturas; solo se reconocieron 4
 - **The Army Painter — The Army Painter World War II German Afrika Korps Paint Set WP8124P** (11/10, scalemodelshop.co.uk): Anuncia 10 pinturas y se reconocieron 11: puede incluir alguna que no viene
 - **The Army Painter — The Army Painter World War II Imperial Japanese Paint Set WP8125P** (19/20, scalemodelshop.co.uk): Trae 20 pinturas; se reconocieron 19 (faltan 1 en el catálogo)
-- **The Army Painter — WARPAINTS: SPEEDPAINT METALLICS SET 2.0 *FREEZE WARNING*** (4/?, www.tistaminis.com): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **The Army Painter — WANDERING MONSTERS STARTER ROLE-PLAYING PAINT SET** (3/?, www.tistaminis.com): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **The Army Painter — Warpaints Historical - WWII American Paint Set** (17/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **The Army Painter — Warpaints Historical - WWII British Paint Set** (18/3, www.gapgames.com.au): Anuncia 3 pinturas y se reconocieron 18: puede incluir alguna que no viene
 - **The Army Painter — Warpaints Historical - WWII German Paint Set** (18/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — 70182 Model Color/Air Wood & Leather** (7/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — 72307 Game Colour Cyberpunk Combat Zone 8 Colour w/ Nemo miniature** (7/8, www.gapgames.com.au): Trae 8 pinturas; se reconocieron 7 (faltan 1 en el catálogo)
 - **Vallejo — 74103 Fantasy Pro Crimson Red Set** (7/8, www.gapgames.com.au): Trae 8 pinturas; se reconocieron 7 (faltan 1 en el catálogo)
 - **Vallejo — 8x Allied Tank Crew Uniforms Paint Set 70.126** (4/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Vallejo — 8x Face & Skin Tones Paint Set 70.124** (3/8, scalemodelshop.co.uk): Anuncia 8 pinturas; solo se reconocieron 3
 - **Vallejo — AFV Army Olive Drab - Armour Paint Set** (5/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — AFV Dunkelgelb - Armour Paint Set** (6/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — AFV Dunkelgrau - Armour Paint Set** (6/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — AFV Russian Green - Armour Paint Set** (6/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
-- **Vallejo — Advanced Paint Set - Game Colour** (16/18, www.goblingaming.co.uk): Trae 18 pinturas; se reconocieron 16 (faltan 2 en el catálogo)
-- **Vallejo — Basic Colors Paint Set - Model Air** (9/17, www.goblingaming.co.uk): Trae 17 pinturas; solo se reconocieron 9
+- **Vallejo — Advanced Paint Set - Game Colour** (16/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Vallejo — Basic Colors Paint Set - Model Air** (9/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — Basic Colors USA Set Model Color 70.140** (16/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — Basic Starter Case** (34/40, Tienda oficial): Trae 40 pinturas; se reconocieron 34 (faltan 6 en el catálogo)
+- **Vallejo — Black and White Paint Set - Model Colour** (5/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — Blue Color Set** (4/2, Tienda oficial): Anuncia 2 pinturas y se reconocieron 4: puede incluir alguna que no viene
+- **Vallejo — British Caunter Colors 1940-41 Paint Set - Model Air** (5/41, www.goblingaming.co.uk): Anuncia 41 pinturas; solo se reconocieron 5
 - **Vallejo — British Infantry Napoleonic Wars Model Color Paint Set 70.163** (8/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — Cold War and Modern Russian Desert Pat Paint Set - Model Air** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — Cold War and Modern Russian Green Pat Paint Set - Model Air** (6/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — Color Box 80x + Carry Case - Model Air** (80/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Vallejo — D&D Prismatic Paint Basic Starter Case** (19/60, www.gapgames.com.au): Anuncia 60 pinturas; solo se reconocieron 19
+- **Vallejo — D&D Prismatic Paint Intermediate Case** (16/60, www.gapgames.com.au): Anuncia 60 pinturas; solo se reconocieron 16
 - **Vallejo — DAK Colors 1941-1944 Paint Set - Model Air** (6/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — Defenders of the Wild Paint Set - WizKids** (7/8, www.goblingaming.co.uk): Trae 8 pinturas; se reconocieron 7 (faltan 1 en el catálogo)
 - **Vallejo — Dust & Dirt Pigment Set - Vallejo** (4/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
-- **Vallejo — Eccentric Colors The Shifters – Space Dust Set 77.091** (5/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
-- **Vallejo — Eccentric Colorshift "Galaxy Dust" set** (4/?, www.thecombatcompany.com): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
-- **Vallejo — Eccentric Colorshift "Magic Dust" set** (4/?, www.thecombatcompany.com): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — Eccentric Colorshift "Space Dust" set** (5/?, www.thecombatcompany.com): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — Face Painting Paint Set - Game Air** (4/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Vallejo — Faces Painting Set Paint Set - Model Colour** (6/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Vallejo — French Camo Colors Paint Set 8x - Model Air** (8/4, www.goblingaming.co.uk): Anuncia 4 pinturas y se reconocieron 8: puede incluir alguna que no viene
 - **Vallejo — French Infantry Napoleonic Wars Model Color Paint Set 70.164** (8/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Vallejo — Galaxy Dust Paint Set - Colour Shifters** (3/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — Game Air  – Creative Full Collection** (59/51, Tienda oficial): Anuncia 51 pinturas y se reconocieron 59: puede incluir alguna que no viene
+- **Vallejo — Game Air - set Plastic Case 51 colours, 8 primers, 5 auxiliary** (20/51, www.gameology.com.au): Anuncia 51 pinturas; solo se reconocieron 20
+- **Vallejo — Game Colour - Cold Green Color Set** (4/10, www.gapgames.com.au): Anuncia 10 pinturas; solo se reconocieron 4
 - **Vallejo — Game Colour - Fairy Flesh 8 Colour Set** (7/8, www.gameology.com.au): Trae 8 pinturas; se reconocieron 7 (faltan 1 en el catálogo)
 - **Vallejo — Game Colour - Game Colour Bundle 136 x** (98/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Vallejo — Game Colour - Purple Color Set** (3/10, www.gapgames.com.au): Anuncia 10 pinturas; solo se reconocieron 3
 - **Vallejo — Game Colour - Squidmar Miniatures - Dark Future Set** (9/12, www.gapgames.com.au): Trae 12 pinturas; se reconocieron 9 (faltan 3 en el catálogo)
-- **Vallejo — Game Colour - Squidmar Miniatures - Essential Paint Set** (7/12, www.gapgames.com.au): Trae 12 pinturas; solo se reconocieron 7
+- **Vallejo — Game Colour - Squidmar Miniatures - Essential Paint Set** (7/12, www.gapgames.com.au): Anuncia 12 pinturas; solo se reconocieron 7
+- **Vallejo — Game Colour - Tanned Skin Set** (4/10, www.gapgames.com.au): Anuncia 10 pinturas; solo se reconocieron 4
+- **Vallejo — Game Colour Blue Colours** (4/10, www.gapgames.com.au): Anuncia 10 pinturas; solo se reconocieron 4
+- **Vallejo — Game Colour Green Colours** (4/10, www.gapgames.com.au): Anuncia 10 pinturas; solo se reconocieron 4
+- **Vallejo — Game Colour Leather** (4/10, www.gapgames.com.au): Anuncia 10 pinturas; solo se reconocieron 4
 - **Vallejo — German Fallschirmjager Early WWII Model Color Paint Set 70.185** (8/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — IDF Army Colors 1957 - Present Paint Set - Model Air** (6/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — Imperial Japanese Army (IJA) Paint Set - Model Air** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — Imperial Japanese Navy Paint Set - Model Air** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
-- **Vallejo — Intermediate Case** (27/40, Tienda oficial): Trae 40 pinturas; solo se reconocieron 27
-- **Vallejo — Intro Paint Set - Game Colour** (16/18, www.goblingaming.co.uk): Trae 18 pinturas; se reconocieron 16 (faltan 2 en el catálogo)
+- **Vallejo — Ink Paint Set - Game Colour** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Vallejo — Intermediate Case** (27/40, Tienda oficial): Anuncia 40 pinturas; solo se reconocieron 27
+- **Vallejo — Intro Paint Set - Game Colour** (16/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — Israeli AF 1967 to Present Paint Set - Model Air** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — Italian WWII Camo Colors Paint Set 8x - Model Air** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — Kriegsmarine WWII German Color Paint Set - Model Air** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — Luftwaffe Colors 1941 to end Paint Set - Model Air** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — Luftwaffe Maritime & Tropical Paint Set - Model Air** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — Luftwaffe Pre-War to 1941 Paint Set - Model Air** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Vallejo — Magic Dust Paint Set - Colour Shifters** (4/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — Malefic Flesh Paint Set - Fantasy Pro** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — Mecha Color – Basic Case** (80/57, Tienda oficial): Anuncia 57 pinturas y se reconocieron 80: puede incluir alguna que no viene
 - **Vallejo — Mega Set** (72/48, Tienda oficial): Anuncia 48 pinturas y se reconocieron 72: puede incluir alguna que no viene
-- **Vallejo — Metallic Effects Paint Set - Model Air** (9/17, www.goblingaming.co.uk): Trae 17 pinturas; solo se reconocieron 9
+- **Vallejo — Metallic Effects Paint Set - Model Air** (9/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — Middle East Wars (1967-Pres) Paint Set - Model Air** (7/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Vallejo — Mode Air German/Allied WWII Colors Paint Set 71.190** (3/16, scalemodelshop.co.uk): Anuncia 16 pinturas; solo se reconocieron 3
+- **Vallejo — Model Air Starter Set** (12/2, Tienda oficial): Anuncia 2 pinturas y se reconocieron 12: puede incluir alguna que no viene
 - **Vallejo — Model Colour - German Infantry WWII 6 Colour Set** (5/6, www.gapgames.com.au): Trae 6 pinturas; se reconocieron 5 (faltan 1 en el catálogo)
-- **Vallejo — Model Colour - Rust & Corrossion By Chema Cabrero Effects 8 Colour Set** (5/8, www.gapgames.com.au): Trae 8 pinturas; solo se reconocieron 5
-- **Vallejo — Model Colour - Winter Weathering By Chema Cabrero Effects 8 Colour Set** (5/8, www.gapgames.com.au): Trae 8 pinturas; solo se reconocieron 5
+- **Vallejo — Model Colour - Rust & Corrossion By Chema Cabrero Effects 8 Colour Set** (5/8, www.gapgames.com.au): Anuncia 8 pinturas; solo se reconocieron 5
+- **Vallejo — Model Colour - Winter Weathering By Chema Cabrero Effects 8 Colour Set** (5/8, www.gapgames.com.au): Anuncia 8 pinturas; solo se reconocieron 5
 - **Vallejo — Model Colour: Military Case (80 Colours)** (79/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — Model Colour: Railroad Weathering by Chema Cabrero (8 Colours)** (6/8, www.gapgames.com.au): Trae 8 pinturas; se reconocieron 6 (faltan 2 en el catálogo)
 - **Vallejo — Mud & Sand Pigment Set - Vallejo** (4/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Vallejo — NCO US Infantry Europe 1944-45 Model Color Paint Set 70.244** (8/45, scalemodelshop.co.uk): Anuncia 45 pinturas; solo se reconocieron 8
 - **Vallejo — New Formula Vallejo Game Colour - Auxiliary Bundle (7 droppers)** (6/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Vallejo — New Formula Vallejo Game Colour - Metallics Bundle (9 droppers)** (7/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — New Formula Vallejo Game Colour - Special FX Bundle (12 droppers)** (5/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — New Formula Vallejo Game Colour - Vallejo Xpress Color - New Colours Range Bundle (36 droppers)** (35/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
-- **Vallejo — New Formula Vallejo Game Colour - Xpress Color Bundle (24 droppers)** (23/18, www.gapgames.com.au): Anuncia 18 pinturas y se reconocieron 23: puede incluir alguna que no viene
+- **Vallejo — New Formula Vallejo Game Colour - Xpress Color Bundle (24 droppers)** (23/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — Nuclear Submarines Paint Set 8x - Model Air** (4/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
-- **Vallejo — O-12 Model Color Paint Set 70.239** (8/12, scalemodelshop.co.uk): Trae 12 pinturas; solo se reconocieron 8
+- **Vallejo — O-12 Model Color Paint Set 70.239** (8/12, scalemodelshop.co.uk): Anuncia 12 pinturas; solo se reconocieron 8
+- **Vallejo — Old & New Wood Effects Paint Set - Model Air** (4/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — Paint Set Nuclear Submarines 71.611** (8/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
-- **Vallejo — Paint Set RLM Colors 71.193** (9/16, scalemodelshop.co.uk): Trae 16 pinturas; solo se reconocieron 9
-- **Vallejo — Paint Set WWII Allies [x16] 71.180** (10/16, scalemodelshop.co.uk): Trae 16 pinturas; solo se reconocieron 10
-- **Vallejo — Paint Set WWII British Aircraft Colours RAF/FAA 71.189** (16/17, scalemodelshop.co.uk): Trae 17 pinturas; se reconocieron 16 (faltan 1 en el catálogo)
-- **Vallejo — Paint Set WWII British Colors Africa 1939-1943 71.622** (8/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Vallejo — Paint Set RLM Colors 71.193** (9/16, scalemodelshop.co.uk): Anuncia 16 pinturas; solo se reconocieron 9
+- **Vallejo — Paint Set WWII Allies [x16] 71.180** (10/16, scalemodelshop.co.uk): Anuncia 16 pinturas; solo se reconocieron 10
+- **Vallejo — Paint Set WWII British Aircraft Colours RAF/FAA 71.189** (16/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — Paint Set WWII German [x16] 71.179** (13/16, scalemodelshop.co.uk): Trae 16 pinturas; se reconocieron 13 (faltan 3 en el catálogo)
+- **Vallejo — Paint Set Weathering 71.194** (3/16, scalemodelshop.co.uk): Anuncia 16 pinturas; solo se reconocieron 3
 - **Vallejo — Panoceania Model Color Paint Set 70.231** (7/8, scalemodelshop.co.uk): Trae 8 pinturas; se reconocieron 7 (faltan 1 en el catálogo)
 - **Vallejo — Protectors of Virtue Paint Set - WizKids** (7/8, www.goblingaming.co.uk): Trae 8 pinturas; se reconocieron 7 (faltan 1 en el catálogo)
+- **Vallejo — RAF & FAA Air 1939 - 45 Paint Set - Model Air** (8/45, www.goblingaming.co.uk): Anuncia 45 pinturas; solo se reconocieron 8
+- **Vallejo — RAF & FAA Coastal 1939-45 Paint Set - Model Air** (8/45, www.goblingaming.co.uk): Anuncia 45 pinturas; solo se reconocieron 8
 - **Vallejo — RAF & FAA Day Fighter Pre War Paint Set - Model Air** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
-- **Vallejo — RAF Battle of Britain WWII Paint Set - Model Air** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Vallejo — RAF & FAA Fleet Air 1939-45 Paint Set - Model Air** (8/45, www.goblingaming.co.uk): Anuncia 45 pinturas; solo se reconocieron 8
 - **Vallejo — Recamouflage Colours Paint Set 8x - Model Air** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Vallejo — Red Army Scout 1943-45 Model Color Paint Set 70.248** (8/45, scalemodelshop.co.uk): Anuncia 45 pinturas; solo se reconocieron 8
 - **Vallejo — Ruins and Rubble Paint Set 8x - Model Air** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — Russian Green Paint Set 8x - Model Air** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — Russian, Italian & Japanese Tank Crew Uniform Paint Set 70.127** (5/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — Rust & Corrosion Pigment Set - Vallejo** (4/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — Rust and Chipping Effects Paint Set - Model Air** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Vallejo — Rust, Stains and Streaking Set Paint Set - Model Colour** (7/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — SALE Wizkids Premium Paint Set by Vallejo: Champions of the Realm** (6/8, www.gapgames.com.au): Trae 8 pinturas; se reconocieron 6 (faltan 2 en el catálogo)
 - **Vallejo — Sci-Fi Paint Set** (11/12, Tienda oficial): Trae 12 pinturas; se reconocieron 11 (faltan 1 en el catálogo)
 - **Vallejo — Shadow warriors Paint Set - WizKids** (6/8, www.goblingaming.co.uk): Trae 8 pinturas; se reconocieron 6 (faltan 2 en el catálogo)
 - **Vallejo — Shasvastii Model Color Paint Set 70.241** (7/8, scalemodelshop.co.uk): Trae 8 pinturas; se reconocieron 7 (faltan 1 en el catálogo)
 - **Vallejo — Soot & Ashes Pigment Set - Vallejo** (4/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — Soviet AFV WWII Camo Paint Set 8x - Model Air** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Vallejo — Soviet Air Force VVS 1941 - 43 Paint Set - Model Air** (7/43, www.goblingaming.co.uk): Anuncia 43 pinturas; solo se reconocieron 7
+- **Vallejo — Soviet Air Force VVS 1943 - 45 Paint Set - Model Air** (6/45, www.goblingaming.co.uk): Anuncia 45 pinturas; solo se reconocieron 6
 - **Vallejo — Soviet Air Force VVS Pre-War Paint Set - Model Air** (7/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — Soviet Helicopters Post War Paint Set - Model Air** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — Soviet MiG-29 Fulcrum 80's On Paint Set - Model Air** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Vallejo — Soviet Schemes Pt.I 1960-20 Paint Set - Model Air** (8/20, www.goblingaming.co.uk): Anuncia 20 pinturas; solo se reconocieron 8
 - **Vallejo — Soviet Silver Darts 1950-1980 Paint Set - Model Air** (7/8, www.goblingaming.co.uk): Trae 8 pinturas; se reconocieron 7 (faltan 1 en el catálogo)
 - **Vallejo — Soviet Su-25 Frogfoot 80's On Paint Set - Model Air** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — Soviet Su-27 Flanker 80's On Paint Set - Model Air** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Vallejo — Space Dust Paint Set - Colour Shifters** (5/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — Squidmar The Essentials Paint Set** (27/30, www.goblingaming.co.uk): Trae 30 pinturas; se reconocieron 27 (faltan 3 en el catálogo)
 - **Vallejo — Star Fighters Colours Paint Set 8x - Model Air** (7/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — Stone & Cement Pigment Set - Vallejo** (4/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Vallejo — Titanic Colours Paint Set 8x - Model Air** (4/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — True Metallic METAL DUSKEN GREEN PAINT SET** (3/4, www.tistaminis.com): Trae 4 pinturas; se reconocieron 3 (faltan 1 en el catálogo)
 - **Vallejo — True Metallic METAL RUBY RED PAINT SET** (3/4, www.tistaminis.com): Trae 4 pinturas; se reconocieron 3 (faltan 1 en el catálogo)
 - **Vallejo — True Metallic METAL SAPPHIRE BLUE PAINT SET** (3/4, www.tistaminis.com): Trae 4 pinturas; se reconocieron 3 (faltan 1 en el catálogo)
@@ -251,9 +350,10 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - **Vallejo — US Air Corps MTO WWII Paint Set 8x - Model Air** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — US Air Corps Pacific WWII Paint Set 8x - Model Air** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — US Army Europe & N.Africa Paint Set - Model Air** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
-- **Vallejo — US MERDC Desert Colors Paint Set - Model Air** (6/12, www.goblingaming.co.uk): Trae 12 pinturas; solo se reconocieron 6
+- **Vallejo — US MERDC Desert Colors Paint Set - Model Air** (6/12, www.goblingaming.co.uk): Anuncia 12 pinturas; solo se reconocieron 6
 - **Vallejo — US Modern Desert Colors Paint Set - Model Air** (6/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — US Navy & USMC from 70's on Paint Set - Model Air** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Vallejo — USAAF Aircraft Paint Set - Model Air** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — USAF "Gray Schemes" from 70's on Paint Set - Model Air** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — USAF ''Aggressor'' (Part I) Paint Set - Model Air** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — USAF ''Aggressor'' (Part II) Paint Set - Model Air** (6/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
@@ -261,22 +361,27 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - **Vallejo — USAF SEA South East Asia Paint Set - Model Air** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — USN Aircraft Paint Set 8x - Model Air** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — WWII British Aircraft Colors RAF/FAA Paint Set - Model Air** (10/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Vallejo — WWII British Colors Africa 1939-43 Paint Set - Model Air** (8/43, www.goblingaming.co.uk): Anuncia 43 pinturas; solo se reconocieron 8
 - **Vallejo — WWII British Colours 1939-1945 Paint Set - Model Air** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — WWII RAF Day Fighters Paint Set 8x - Model Air** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — WWII RAF Desert Paint Set 8x - Model Air** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — WWII US Tank Crew Model Color Paint Set 70.186** (8/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — WWII USMC Colors Green/Grey Patterns Paint Set - Model Air** (6/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — WWII USMC Colors Sand Patterns 1942-1945 Paint Set - Model Air** (6/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Vallejo — WWII Wargames – Vehicles Basic Paint Set Paint Set 70.157** (6/2, scalemodelshop.co.uk): Anuncia 2 pinturas y se reconocieron 6: puede incluir alguna que no viene
 - **Vallejo — WWIII American Armour & Infantry - Vallejo Paint Set** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — WWIII British Armour & Infantry - Vallejo Paint Set** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — WWIII East German Armour & Infantry Model Color Paint Set 70.224** (8/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Vallejo — WWIII NATO Armour & Infantry Model Color Paint Set 70.223** (6/3, scalemodelshop.co.uk): Anuncia 3 pinturas y se reconocieron 6: puede incluir alguna que no viene
 - **Vallejo — WWIII Soviet Armour & Infantry - Vallejo Paint Set** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — Waffen SS Camouflage Paint Set - Model Colour** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Vallejo — Waffen-SS Tank Crew, Kursk 1943 Model Color Paint Set 70.249** (8/3, scalemodelshop.co.uk): Anuncia 3 pinturas y se reconocieron 8: puede incluir alguna que no viene
 - **Vallejo — Wehrmacht Unteroffizier Early War Model Color Paint Set 70.246** (8/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Vallejo — Wizkids Premium Paint Set by Vallejo: Arcane Elements** (3/8, www.gapgames.com.au): Anuncia 8 pinturas; solo se reconocieron 3
 - **Vallejo — Wizkids Premium Paint Set by Vallejo: Fleshtones** (6/8, www.gapgames.com.au): Trae 8 pinturas; se reconocieron 6 (faltan 2 en el catálogo)
-- **Vallejo — Wizkids Premium Paint Set by Vallejo: Wood & Steel** (4/8, www.gapgames.com.au): Trae 8 pinturas; solo se reconocieron 4
+- **Vallejo — Wizkids Premium Paint Set by Vallejo: Wood & Steel** (4/8, www.gapgames.com.au): Anuncia 8 pinturas; solo se reconocieron 4
 - **Vallejo — Wizkids Premium Paint Set by Vallejo: Woodland Creatures** (6/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
-- **Vallejo — XPRESS COLOR STARTER SET** (10/?, www.tistaminis.com): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Vallejo — Xpress Color Starter Set** (11/2, Tienda oficial): Anuncia 2 pinturas y se reconocieron 11: puede incluir alguna que no viene
 
 ## Descartados
 
@@ -288,12 +393,14 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - AK Interactive — 3GEN – WARGAME PAINT IT ALL BOX x108 (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — 3GEN – WARGAME PAINT IT ALL BOX x36 (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — 3GEN – WARGAME PAINT IT ALL BOX x72 (Tienda oficial): solo 0 pinturas reconocidas
-- AK Interactive — 3rd Gen paint set: Waffen-SS Pea Dot Pattern / Dot 44 (www.thecombatcompany.com): anuncia 3 pero se reconocieron 6: el texto mezcla otros productos
-- AK Interactive — 561 Soviet Camouflages Paint Set (discontinued) (www.thecombatcompany.com): solo 3 nombres reconocidos y el set no dice cuántas trae
-- AK Interactive — ABT317 WEATHERING OILS2 SET (Limited Edition) + ABT255 Intense Blue de REGALO (Tienda oficial): solo 3 nombres reconocidos y el set no dice cuántas trae
 - AK Interactive — AIR CONDITIONING- SCENOGRAPHY WARGAME SET – 100% POLYURETHANE RESIN COMPATIBLE WITH 30-35MM SCALE (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — AIR HOSE JOINT SET (BRASS) (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — AK BRIEFCASE WITH 80 3GEN – FULL RANGE AFV SERIES (Tienda oficial): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive  German Tanks Interior Colors -Set of 3 Markers (www.tistaminis.com): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive  Late German AFV Camo Colors -Set of 3 Markers (www.tistaminis.com): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive  WWII Allied Aircraft Cockpit Colors -Set of 3 Markers (www.tistaminis.com): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive  WWII Axis Aircraft Cockpit Colors -Set of 3 Markers (www.tistaminis.com): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive  WWII Axis Aircraft Squiggle Camouflage Colors - Set of 3 Markers (www.tistaminis.com): solo 0 pinturas reconocidas
 - AK Interactive — AK Interactive - Artist Dense Acrylic Deluxe Edition Box Full Range (www.gapgames.com.au): solo 0 pinturas reconocidas
 - AK Interactive — AK Interactive - Quick Gen - Metallics Set (www.gapgames.com.au): solo 0 pinturas reconocidas
 - AK Interactive — AK Interactive - Quick Gen - Quick Paint Combo Set 100 Colors (www.gapgames.com.au): solo 0 pinturas reconocidas
@@ -342,6 +449,14 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - AK Interactive — AK Interactive Olive Drab Color Modulation Set AK-131 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - AK Interactive — AK Interactive PLA Army Colors Addon Set Set AK-4260 (scalemodelshop.co.uk): solo 1 pinturas reconocidas
 - AK Interactive — AK Interactive Pigment Fantasy & Metallics - Pigment Set (www.gapgames.com.au): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Playmarkers Set - Clothes & Ornaments (6 Colours) (www.gapgames.com.au): solo 2 pinturas reconocidas
+- AK Interactive — AK Interactive Playmarkers Set - Full Metal (6 Colours) (www.gapgames.com.au): solo 2 pinturas reconocidas
+- AK Interactive — AK Interactive Playmarkers Set - Heroes (6 Colours) (www.gapgames.com.au): solo 2 pinturas reconocidas
+- AK Interactive — AK Interactive Playmarkers Set - Skeletons & Zombies (6 Colours) (www.gapgames.com.au): solo 2 pinturas reconocidas
+- AK Interactive — AK Interactive Playmarkers Set - Skin & Flesh Tones (6 Colours) (www.gapgames.com.au): solo 1 pinturas reconocidas
+- AK Interactive — AK Interactive Playmarkers Set - Space Knight (6 Colours) (www.gapgames.com.au): solo 2 pinturas reconocidas
+- AK Interactive — AK Interactive Playmarkers Set - Viscera (3 Colours) (www.gapgames.com.au): solo 1 pinturas reconocidas
+- AK Interactive — AK Interactive Playmarkers: Special Box Full Range 34 Colour Set (www.gapgames.com.au): solo 1 pinturas reconocidas
 - AK Interactive — AK Interactive Primary & Secondary Acrylic Set AK-AD102 (scalemodelshop.co.uk): solo 1 pinturas reconocidas
 - AK Interactive — AK Interactive Quick Gen - Metallics (Set) (www.tistaminis.com): solo 0 pinturas reconocidas
 - AK Interactive — AK Interactive Quick Gen - Quick Paint Combo Set 100 Colors (www.tistaminis.com): solo 0 pinturas reconocidas
@@ -370,6 +485,16 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - AK Interactive — AK Interactive Quick Gen: Winter Blue Soldiers Acrylic Paint Set (4 Colours) (www.gapgames.com.au): solo 1 pinturas reconocidas
 - AK Interactive — AK Interactive Quick Gen: Yellow Soldiers Acrylic Paint Set (4 Colours) (www.gapgames.com.au): solo 0 pinturas reconocidas
 - AK Interactive — AK Interactive Quick Gen: Zombies Acrylic Paint Set (4 Colours) (www.gapgames.com.au): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Quick Marker Set: Dragons & Beasts - 5 Colour Set (www.gapgames.com.au): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Quick Marker Set: Dwarfs - 5 Colour Set (www.gapgames.com.au): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Quick Marker Set: Elves - 5 Colour Set (www.gapgames.com.au): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Quick Marker Set: Goblins - 5 Colour Set (www.gapgames.com.au): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Quick Marker Set: Humans - 5 Colour Set (www.gapgames.com.au): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Quick Marker Set: Imperial Troopers - 5 Colour Set (www.gapgames.com.au): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Quick Marker Set: Revenant - 5 Colour Set (www.gapgames.com.au): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Quick Marker Set: Skeletons - 5 Colour Set (www.gapgames.com.au): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Quick Marker Set: Special Box Full Range - 34 Colours (www.gapgames.com.au): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Quick Marker Set: Star Plague - 5 Colour Set (www.gapgames.com.au): solo 0 pinturas reconocidas
 - AK Interactive — AK Interactive RAF Camouflage Colours Set AK-2010 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - AK Interactive — AK Interactive Real Color Paint Set – British Army AFV Colors RCS128 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - AK Interactive — AK Interactive Real Color Paint Set – British Army AFV Desert Colors RCS127 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
@@ -404,6 +529,24 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - AK Interactive — AK Interactive Real Color Paint Set – WWII US Navy & USMC Aircraft Colors RCS111 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - AK Interactive — AK Interactive Real Color Paint Set – WWII US Navy & USMC Aircraft Late War Colors RCS112 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - AK Interactive — AK Interactive Real Color Paint Set – WWII USAAF Aircraft Colors RCS113 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Real Colors Markers Chipping Set of 3 Markers (www.tistaminis.com): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Real Colors Markers Weapons Set of 3 Markers (www.tistaminis.com): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Real Colors Markers Wheels Set of 3 Markers (www.tistaminis.com): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Real Colors Markers – Chipping – Set 3 RCM105 (scalemodelshop.co.uk): solo 1 pinturas reconocidas
+- AK Interactive — AK Interactive Real Colors Markers – German Tanks Interior Colors – Set 3 RCM107 (scalemodelshop.co.uk): solo 1 pinturas reconocidas
+- AK Interactive — AK Interactive Real Colors Markers – Late German AFV Camo Colors – Set 3 RCM108 (scalemodelshop.co.uk): solo 1 pinturas reconocidas
+- AK Interactive — AK Interactive Real Colors Markers – Ships & Decks – Set 3 RCM104 (scalemodelshop.co.uk): solo 1 pinturas reconocidas
+- AK Interactive — AK Interactive Real Colors Markers – Tactical Markings – Set 3 RCM106 (scalemodelshop.co.uk): solo 1 pinturas reconocidas
+- AK Interactive — AK Interactive Real Colors Markers – WWII Allied Aircraft Cockpit Colors – Set 3 RCM109 (scalemodelshop.co.uk): solo 1 pinturas reconocidas
+- AK Interactive — AK Interactive Real Colors Markers – WWII Axis Aircraft Cockpit Colors – Set 3 RCM110 (scalemodelshop.co.uk): solo 1 pinturas reconocidas
+- AK Interactive — AK Interactive Real Colors Markers – WWII Axis Aircraft Squiggle Camouflage Colors – Set 3 RCM111 (scalemodelshop.co.uk): solo 1 pinturas reconocidas
+- AK Interactive — AK Interactive Real Colors Markers – Weapons – Set 3 RCM103 (scalemodelshop.co.uk): solo 1 pinturas reconocidas
+- AK Interactive — AK Interactive Real Colors Markers – Wheels – Set 3 RCM102 (scalemodelshop.co.uk): solo 1 pinturas reconocidas
+- AK Interactive — AK Interactive Real Colors Markers: Chipping - Set 3 Arcylic Paint Markers (www.gapgames.com.au): solo 2 pinturas reconocidas
+- AK Interactive — AK Interactive Real Colors Markers: Deluxe Case - Set 34 Acrylic Paint Markers (www.gapgames.com.au): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Real Colors Markers: Late German AFV Camo Colors - Set 3 Arcylic Paint Markers (www.gapgames.com.au): solo 2 pinturas reconocidas
+- AK Interactive — AK Interactive Real Colors Markers: Tactical Markings - Set 3 Arcylic Paint Markers (www.gapgames.com.au): solo 2 pinturas reconocidas
+- AK Interactive — AK Interactive Real Colors Markers: Weapons - Set 3 Arcylic Paint Markers (www.gapgames.com.au): solo 2 pinturas reconocidas
 - AK Interactive — AK Interactive Red & Blue Interior Colors Set AK-9030 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - AK Interactive — AK Interactive Red Primer Modulation Set AK-124 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - AK Interactive — AK Interactive Red Uniform Colours Paint Set AK-3170 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
@@ -413,6 +556,7 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - AK Interactive — AK Interactive Soviet Aircraft Colors Set (1937-1941) AK-2250 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - AK Interactive — AK Interactive Soviet Fighter Colors 1943-1945 Set 3rd Gen Aircraft Series AK-11742 (scalemodelshop.co.uk): solo 2 pinturas reconocidas
 - AK Interactive — AK Interactive Spanish Civil War Colors Set (1936-1939) AK-4190 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Special Box Real Colors Markers (www.tistaminis.com): solo 0 pinturas reconocidas
 - AK Interactive — AK Interactive Splittermuster Uniform Colours Paint Set AK-3040 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - AK Interactive — AK Interactive The INKS Special Box Full Range Set (28 Colors X 30 ml) (www.gapgames.com.au): solo 0 pinturas reconocidas
 - AK Interactive — AK Interactive Transparent Colors Set 3G (www.tistaminis.com): solo 0 pinturas reconocidas
@@ -467,13 +611,14 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - AK Interactive — Bundeswehr Early & Complementary Colour Set (www.thecombatcompany.com): solo 0 pinturas reconocidas
 - AK Interactive — CEMETERY ACCESORIES – SCENOGRAPHY WARGAME SET -100% POLYURETHANE RESIN COMPATIBLE WITH 30-35MM SCALE (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — CHIPPING & Aging set (Tienda oficial): solo 2 pinturas reconocidas
+- AK Interactive — CHIPPING – RC MARKERS SET (Tienda oficial): solo 2 pinturas reconocidas
+- AK Interactive — CLOTHES & ORNAMENTS – PLAYMARKER SET (Tienda oficial): solo 2 pinturas reconocidas
 - AK Interactive — COLUMNS SET – SCENOGRAPHY WARGAME SET – 100% POLYURETHANE RESIN COMPATIBLE WITH 30-35MM SCALE (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — CONSTRUCTION ACCESSORIES – SCENOGRAPHY WARGAME SET – 100% POLYURETHANE RESIN COMPATIBLE WITH 30-35MM SCALE (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — CONTROL STAGE- SCENOGRAPHY WARGAME SET – 100% POLYURETHANE RESIN COMPATIBLE WITH 30-35MM SCALE (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — CRAFT SAW SET (3 BLADES) (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — Castle Rampart Pack (Set of 4) – Add On- 28mm scale (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — Classic Fantasy Pigments set vol.3 (Tienda oficial): solo 0 pinturas reconocidas
-- AK Interactive — DECAY & ABANDONED WEATHERING SET (Tienda oficial): solo 3 nombres reconocidos y el set no dice cuántas trae
 - AK Interactive — DEFENSIVE WALLS- SCENOGRAPHY WARGAME SET – 100% POLYURETHANE RESIN COMPATIBLE WITH 30-35MM SCALE (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — DELUXE EDITION BOX “18 BASIC COLORS” – ARTIST DENSE ACRYLIC COLOR (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — DELUXE EDITION BOX “EXPANSION 01” – ARTIST DENSE ACRYLIC COLOR (Tienda oficial): solo 0 pinturas reconocidas
@@ -502,49 +647,34 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - AK Interactive — DUAL EXO SET 9 – 9A RANGER PINK & 9B LASER MAGENTA (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — Dust Effects and White Spirit Set (Tienda oficial): solo 2 pinturas reconocidas
 - AK Interactive — ELECTRIC ROUTER BIT SET (5 PCS.) (Tienda oficial): solo 0 pinturas reconocidas
-- AK Interactive — ENERGY – INK SET (Tienda oficial): anuncia 30 pero solo se reconocieron 3
 - AK Interactive — ENHANCE Roll on a Scroll™ Dice Rolling Mat & 7pc Acrylic Dice Set (Tienda oficial): solo 2 pinturas reconocidas
 - AK Interactive — ESD TWEEZERS SET 6 PCS. (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — EXTINGUISHERS, BOXES AND CANS SET (Tienda oficial): solo 0 pinturas reconocidas
-- AK Interactive — Early Cold War RAF Aircraft Colors SET 3G (www.thecombatcompany.com): solo 3 nombres reconocidos y el set no dice cuántas trae
-- AK Interactive — Early Panzers Weathering Set (Tienda oficial): solo 3 nombres reconocidos y el set no dice cuántas trae
 - AK Interactive — Eldfall Chronicles Two-Player Starter Set: Coalition of Thenion vs Sand Kingdoms (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — Eldfall Chronicles Two-Player Starter Set: Empire of Soga vs Helian League (Tienda oficial): solo 0 pinturas reconocidas
-- AK Interactive — Engines and Metal Weathering Set (Tienda oficial): anuncia 2 pero se reconocieron 6: el texto mezcla otros productos
 - AK Interactive — F-14D Tomcat SJU-17/A (Mk.14) Ejection seat set / twin(for Tamiya kit) (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — FINE DRILL SET (Tienda oficial): solo 0 pinturas reconocidas
+- AK Interactive — FULL METAL – PLAYMARKER SET (Tienda oficial): solo 2 pinturas reconocidas
 - AK Interactive — FULL RANGE DUAL EXO – 43 references (Tienda oficial): solo 2 pinturas reconocidas
 - AK Interactive — FULL RANGE QUICK GEN (79 COLORS +1 MEDIUM 18ML) (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — Fire! Modern Combat Starter Box – Spanish (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — GARBAGE BOX SET (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — GERMAN CAMOUFLAGE MASK / STENCIL SET 1:48 (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — German Army Dark Yellow 1943-1945 Colour Set (www.thecombatcompany.com): solo 0 pinturas reconocidas
-- AK Interactive — German Army Early WWII Colour Set (www.thecombatcompany.com): anuncia 10 pero solo se reconocieron 4
 - AK Interactive — German Army Pre-WWII Colour Set (www.thecombatcompany.com): solo 2 pinturas reconocidas
 - AK Interactive — German Sturmpanzer IV Brummbar Mid/Late Main Gun canvas cover  set (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — German Waffen Soldier 08/09 – German Waffen Soldier Execution Set (Tienda oficial): solo 0 pinturas reconocidas
+- AK Interactive — HEROES – PLAYMARKER SET (Tienda oficial): solo 2 pinturas reconocidas
 - AK Interactive — HEXAGONAL PUNCH AND DIE SET (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — IWATA QUICKFIT QUICK DISCONNECT SET (QD & ADAPTOR) (Tienda oficial): solo 0 pinturas reconocidas
-- AK Interactive — Interactive 3Gen Sets - Metallics (www.gapgames.com.au): anuncia 3 pero se reconocieron 6: el texto mezcla otros productos
-- AK Interactive — Interactive Civil Series: Red And Blue Interior Colors 3rd Generation (www.gapgames.com.au): anuncia 3 pero se reconocieron 6: el texto mezcla otros productos
-- AK Interactive — Interactive Modern Russian Colours Vol 2 AFV Set AK-11663 (scalemodelshop.co.uk): anuncia 3 pero se reconocieron 6: el texto mezcla otros productos
-- AK Interactive — Interactive Quick Gen Paints – Complete Set Bulk Deal (scalemodelshop.co.uk): anuncia 18 pero se reconocieron 79: el texto mezcla otros productos
-- AK Interactive — Interactive Red And Blue Interior Colors Set AK-11685 (scalemodelshop.co.uk): anuncia 3 pero se reconocieron 6: el texto mezcla otros productos
-- AK Interactive — Interactive US Air Force European I Camo Colors 1980s Set 3rd Gen Aircraft Series AK-11749 (scalemodelshop.co.uk): solo 3 nombres reconocidos y el set no dice cuántas trae
-- AK Interactive — Interactive US Army & USMC Camouflage Colors Set AK-4220 (scalemodelshop.co.uk): anuncia 2 pero se reconocieron 5: el texto mezcla otros productos
-- AK Interactive — Interactive Vietnam Green And Camouflage Colors AFV Set AK-11682 (scalemodelshop.co.uk): anuncia 3 pero se reconocieron 6: el texto mezcla otros productos
-- AK Interactive — Interactive WWI German Aircraft Colors Set 3rd Gen Aircraft Series AK-11710 (scalemodelshop.co.uk): anuncia 7 pero solo se reconocieron 3
-- AK Interactive — Interactive WWII Luftwaffe Late War Colors Set 3rd Gen Aircraft Series AK-11718 (scalemodelshop.co.uk): solo 3 nombres reconocidos y el set no dice cuántas trae
-- AK Interactive — Interactive WWII Luftwaffe Seaplane Colors Set 3rd Gen Aircraft Series AK-11721 (scalemodelshop.co.uk): solo 3 nombres reconocidos y el set no dice cuántas trae
-- AK Interactive — Interactive WWII Soviet Uniform Colors Set 3rd Gen Aircraft Series AK-11692 (scalemodelshop.co.uk): solo 3 nombres reconocidos y el set no dice cuántas trae
-- AK Interactive — Interactive Weathering: Engines And Metal Weathering Enamel Paint Set (www.gapgames.com.au): anuncia 2 pero se reconocieron 5: el texto mezcla otros productos
 - AK Interactive — Interior Weathering Set (Tienda oficial): solo 1 pinturas reconocidas
 - AK Interactive — JERSEY WALLS- SCENOGRAPHY WARGAME SET – 100% POLYURETHANE RESIN COMPATIBLE WITH 30-35MM SCALE (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — LARGE HEXAGONAL PUNCH AND DIE SET (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — LARGE PUNCH AND DIE SET (Tienda oficial): solo 0 pinturas reconocidas
+- AK Interactive — LATE GERMAN AFV CAMO COLORS – RC MARKERS SET (Tienda oficial): solo 2 pinturas reconocidas
 - AK Interactive — LIVING ROOM ACCESSORIES – SCENOGRAPHY WARGAME SET -100% POLYURETHANE RESIN COMPATIBLE WITH 30-35MM SCALE (Tienda oficial): solo 0 pinturas reconocidas
-- AK Interactive — MAGIC – INK SET (Tienda oficial): anuncia 30 pero solo se reconocieron 3
 - AK Interactive — MASTER ACRYLIC WASH SET – FULL RANGE (18 COLORS) (Tienda oficial): solo 0 pinturas reconocidas
+- AK Interactive — METALLIC MARKERS – 4 UNITS SET (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — METALLICS: Effect set (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — MICRO ROLLING SET (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — MODELER’S KNIFE SET MINT GREEN VERSION (Tienda oficial): solo 1 pinturas reconocidas
@@ -564,6 +694,24 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - AK Interactive — PRIMARY & SECONDARY SET – ARTISTIC DENSE ACRYLIC COLOR (Tienda oficial): solo 1 pinturas reconocidas
 - AK Interactive — PROPELLANT CAN ATTACHMENT SET (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — PUNCHING SHEET SET (Tienda oficial): solo 0 pinturas reconocidas
+- AK Interactive — Playmarkers: Clothes & Ornaments Set - AK Playmarkers (www.goblingaming.co.uk): solo 2 pinturas reconocidas
+- AK Interactive — Playmarkers: Full Metal Set - AK Playmarkers (www.goblingaming.co.uk): solo 2 pinturas reconocidas
+- AK Interactive — Playmarkers: Heroes Set - AK Playmarkers (www.goblingaming.co.uk): solo 2 pinturas reconocidas
+- AK Interactive — Playmarkers: Skeletons & Zombies Set - AK Playmarkers (www.goblingaming.co.uk): solo 2 pinturas reconocidas
+- AK Interactive — Playmarkers: Skin & Flesh Tones Set - AK Playmarkers (www.goblingaming.co.uk): solo 1 pinturas reconocidas
+- AK Interactive — Playmarkers: Special Box - AK Playmarkers (www.goblingaming.co.uk): solo 1 pinturas reconocidas
+- AK Interactive — Playmarkers: Viscera Set - AK Playmarkers (www.goblingaming.co.uk): solo 1 pinturas reconocidas
+- AK Interactive — Quick Markers: Dragons & Beasts Set (www.goblingaming.co.uk): solo 0 pinturas reconocidas
+- AK Interactive — Quick Markers: Dwarfs Set (www.goblingaming.co.uk): solo 0 pinturas reconocidas
+- AK Interactive — Quick Markers: Elves Set (www.goblingaming.co.uk): solo 0 pinturas reconocidas
+- AK Interactive — Quick Markers: Goblins Set (www.goblingaming.co.uk): solo 0 pinturas reconocidas
+- AK Interactive — Quick Markers: Humans Set (www.goblingaming.co.uk): solo 0 pinturas reconocidas
+- AK Interactive — Quick Markers: Imperial Troopers Set (www.goblingaming.co.uk): solo 0 pinturas reconocidas
+- AK Interactive — Quick Markers: Orcs Set (www.goblingaming.co.uk): solo 0 pinturas reconocidas
+- AK Interactive — Quick Markers: Revenant Set (www.goblingaming.co.uk): solo 0 pinturas reconocidas
+- AK Interactive — Quick Markers: Skeletons Set (www.goblingaming.co.uk): solo 0 pinturas reconocidas
+- AK Interactive — Quick Markers: Special Box Full Range 34 Units (www.goblingaming.co.uk): solo 0 pinturas reconocidas
+- AK Interactive — Quick Markers: Star Plague Set (www.goblingaming.co.uk): solo 0 pinturas reconocidas
 - AK Interactive — Quick Paint Combo Set 100 - AK Quick Gen (www.goblingaming.co.uk): solo 0 pinturas reconocidas
 - AK Interactive — Quick Paint Set 36 - AK Quick Gen (www.goblingaming.co.uk): solo 0 pinturas reconocidas
 - AK Interactive — Quick Paint Set 72 - AK Quick Gen (www.goblingaming.co.uk): solo 0 pinturas reconocidas
@@ -573,20 +721,26 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - AK Interactive — RIVET MARKING SET 2 (RECOMMENDED FOR 1:48 SCALE) (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — RIVET MARKING SET 3 (RECOMMENDED FOR 1:32 AND 1:35 SCALE) (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — RIVET SET (Tienda oficial): solo 0 pinturas reconocidas
+- AK Interactive — Real Color Markers Boxed Set (www.thecombatcompany.com): solo 0 pinturas reconocidas
 - AK Interactive — SANDING STICK SET (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — SCULPTING BURNISHER SET (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — SET 1 DE BROCAS (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — SET 2 DE BROCAS (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — SET AVANZADO (ZEP) – S06 (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — SET EFECTO OXIDO (Tienda oficial): solo 2 pinturas reconocidas
-- AK Interactive — SET EFECTO VERDIGRIS (Tienda oficial): solo 3 nombres reconocidos y el set no dice cuántas trae
 - AK Interactive — SET OF SODA CANS (Tienda oficial): solo 0 pinturas reconocidas
+- AK Interactive — SKELETONS & ZOMBIES – PLAYMARKER SET (Tienda oficial): solo 2 pinturas reconocidas
+- AK Interactive — SKINS & FLESH TONES – PLAYMARKER SET (Tienda oficial): solo 1 pinturas reconocidas
 - AK Interactive — SODA VENDING MACHINE SETS 1 (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — SOFT SMOOTH SPONGE – SANDING SET 4 UNITS (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — SPECIAL BOX FULL RANGE ABT 502 OILS (Tienda oficial): solo 0 pinturas reconocidas
+- AK Interactive — SPECIAL BOX FULL RANGE QUICK MARKERS (34 units) (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — SPECIAL BOX FULL RANGE THE INKS (Tienda oficial): solo 0 pinturas reconocidas
-- AK Interactive — SPELL – INK SET (Tienda oficial): anuncia 30 pero solo se reconocieron 3
+- AK Interactive — SPECIAL BOX PLAYMARKERS (34 units) (Tienda oficial): solo 1 pinturas reconocidas
+- AK Interactive — SPECIAL BOX RC MARKERS – 34 units (Tienda oficial): solo 0 pinturas reconocidas
+- AK Interactive — Starter Combo Quick Markers + 3GEN Set (www.goblingaming.co.uk): solo 0 pinturas reconocidas
 - AK Interactive — T-34/85 Fac no.112 Mod.1945 Turret set (for Academy T-34/85 Factory No.112) (Tienda oficial): solo 0 pinturas reconocidas
+- AK Interactive — TACTICAL MARKINGS – RC MARKERS SET (Tienda oficial): solo 2 pinturas reconocidas
 - AK Interactive — TAMIYA CA CEMENT & PRIMER SET PP/PE/POM/EVA (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — TAMIYA COMPOUND APPLICATOR (3 COLOR SET) (Tienda oficial): solo 1 pinturas reconocidas
 - AK Interactive — TRAFFIC CONES SET (Tienda oficial): solo 0 pinturas reconocidas
@@ -602,8 +756,9 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - AK Interactive — USMC AH-1Z Viper pilot set (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — USMC Helicopter Pilot standing set (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — VENDING MACHINES- SCENOGRAPHY WARGAME SET – 100% POLYURETHANE RESIN COMPATIBLE WITH 30-35MM SCALE (Tienda oficial): solo 0 pinturas reconocidas
+- AK Interactive — VISCERA – PLAYMARKER SET (Tienda oficial): solo 1 pinturas reconocidas
 - AK Interactive — WEAPON CASES – SCENOGRAPHY WARGAME SET – 100% POLYURETHANE RESIN COMPATIBLE WITH 30-35MM SCALE (Tienda oficial): solo 0 pinturas reconocidas
-- AK Interactive — WINTER WEATHERING SET (Tienda oficial): solo 3 nombres reconocidos y el set no dice cuántas trae
+- AK Interactive — WEAPONS – RC MARKERS SET (Tienda oficial): solo 2 pinturas reconocidas
 - AK Interactive — WWI RFC & RNAS. British Aircraft Colors  SET 3G (www.thecombatcompany.com): solo 0 pinturas reconocidas
 - AK Interactive — WWII Finnish Air Force Colors SET 3G (www.thecombatcompany.com): solo 0 pinturas reconocidas
 - AK Interactive — WWII German Pz.III / Stug.III External box set (for Pz.III/ Stug.III kit) (Tienda oficial): solo 0 pinturas reconocidas
@@ -632,7 +787,6 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - Ammo by Mig — AFV Argentinian Colors Set [19] Ammo A.MIG-7167 (scalemodelshop.co.uk): solo 2 pinturas reconocidas
 - Ammo by Mig — AH64 Apache Paint Set A.MIG-7253 Ammo (scalemodelshop.co.uk): solo 2 pinturas reconocidas
 - Ammo by Mig — ATOM Basic Colors Set Ammo ATOM-20820 (scalemodelshop.co.uk): solo 2 pinturas reconocidas
-- Ammo by Mig — ATOM Beginners Set: SCI-FI Colors Ammo ATOM-20810 (scalemodelshop.co.uk): anuncia 20 pero solo se reconocieron 3
 - Ammo by Mig — ATOM Cement and Concrete Colors Set Ammo ATOM-20850 (scalemodelshop.co.uk): solo 2 pinturas reconocidas
 - Ammo by Mig — ATOM D.A.K Colors WWII Set Ammo ATOM-20738 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - Ammo by Mig — ATOM FAA IA-58 Pucará Colors Set Ammo ATOM-20936 (scalemodelshop.co.uk): solo 1 pinturas reconocidas
@@ -684,7 +838,6 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - Ammo by Mig — Bare Metal Aircraft Colors Set Ammo A.MIG-7216 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - Ammo by Mig — Basic Acrylic Colours Set Ammo A.MIG-7178 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - Ammo by Mig — Bear Cavalry Paints - Ammo Box (Full) (www.gapgames.com.au): solo 0 pinturas reconocidas
-- Ammo by Mig — British 1939-45 European Colours Set [10] Ammo A.MIG-7140 (scalemodelshop.co.uk): anuncia 45 pero solo se reconocieron 3
 - Ammo by Mig — British Berlin Camouflage Colors 1988-1991 Set [16] Ammo A.MIG-7150 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - Ammo by Mig — British Paratroopers Red Devils WWII Paint Set AMIG7045 Ammo (scalemodelshop.co.uk): solo 1 pinturas reconocidas
 - Ammo by Mig — Chipping Painting Special Set Mig Productions MP1020 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
@@ -693,8 +846,6 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - Ammo by Mig — Early WWII RAF Colour Set Ammo A.MIG-7215 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - Ammo by Mig — First Aid Basic Washes Set Ammo A.MIG-7447 (scalemodelshop.co.uk): solo 2 pinturas reconocidas
 - Ammo by Mig — French SNCF Locomotives Paint Set AMMOR1016 Ammo (scalemodelshop.co.uk): solo 0 pinturas reconocidas
-- Ammo by Mig — Futuristic Warzone Scenarios Color Set Ammo A.MIG-7154 (scalemodelshop.co.uk): anuncia 24 pero solo se reconocieron 5
-- Ammo by Mig — German Accessories WWII Paint Set Ammo ATOM-20745 (scalemodelshop.co.uk): anuncia 20 pero solo se reconocieron 3
 - Ammo by Mig — German Electric Locomotives Paint Set AMMOR1013 Ammo (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - Ammo by Mig — German Marineflieger Paint Set Ammo A.MIG-7243 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - Ammo by Mig — German Out Of Factory Colors Set [12] Ammo A.MIG-7142 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
@@ -710,7 +861,6 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - Ammo by Mig — Late War German Colours Set Ammo A.MIG-7101 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - Ammo by Mig — Leather Color Range Set Ammo A.MIG-7036 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - Ammo by Mig — Luftwaffe Desert Colors Set Ammo A.MIG-7218 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
-- Ammo by Mig — Luftwaffe Late WWII Colour Set Ammo A.MIG-7209 (scalemodelshop.co.uk): solo 3 nombres reconocidos y el set no dice cuántas trae
 - Ammo by Mig — Luftwaffe WWII Early Colors Set Ammo A.MIG-7210 (scalemodelshop.co.uk): solo 1 pinturas reconocidas
 - Ammo by Mig — Luftwaffe WWII End War Colors Set Mig 7221 (scalemodelshop.co.uk): solo 2 pinturas reconocidas
 - Ammo by Mig — Luftwaffe WWII Mid War Colors Set Ammo A.MIG-7220 (scalemodelshop.co.uk): solo 1 pinturas reconocidas
@@ -718,10 +868,7 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - Ammo by Mig — Metallic Colors Set A.MIG-7175 Ammo A.MIG-7175 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - Ammo by Mig — Metallics Super Pack Set Ammo A.MIG-7809 (scalemodelshop.co.uk): solo 2 pinturas reconocidas
 - Ammo by Mig — Middle East Air Forces Colours Set Ammo A.MIG-7217 (scalemodelshop.co.uk): solo 1 pinturas reconocidas
-- Ammo by Mig — Missing Link Aircraft Set A.MIG-0401 (scalemodelshop.co.uk): anuncia 12 pero solo se reconocieron 4
-- Ammo by Mig — Missing Link Trains Set AMMO.R-1070 (scalemodelshop.co.uk): solo 3 nombres reconocidos y el set no dice cuántas trae
 - Ammo by Mig — Modern French Armed Forces Colours Set [17] Ammo A.MIG-7151 (scalemodelshop.co.uk): solo 1 pinturas reconocidas
-- Ammo by Mig — Modern Russian Camo Colors Vol.2?Set Ammo A.MIG-7161 (scalemodelshop.co.uk): solo 3 nombres reconocidos y el set no dice cuántas trae
 - Ammo by Mig — Mythical Russian Green Colors 1935-2016 Set Ammo A.MIG-7160 (scalemodelshop.co.uk): solo 1 pinturas reconocidas
 - Ammo by Mig — NATO Colour Set Ammo Mig 7188 (scalemodelshop.co.uk): solo 2 pinturas reconocidas
 - Ammo by Mig — NATO Colour Set [1] Ammo A.MIG-7114 (scalemodelshop.co.uk): solo 2 pinturas reconocidas
@@ -738,12 +885,9 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - Ammo by Mig — Sci-Fi Ground Vehicles Color Set Ammo A.MIG-7155 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - Ammo by Mig — Soviet Camouflage 1935-45 Paint Set Ammo ATOM-20715 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - Ammo by Mig — Space Fighters Sci-Fi Colors Set Ammo A.MIG-7131 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
-- Ammo by Mig — Space Legions Color Set Ammo A.MIG-7153 (scalemodelshop.co.uk): solo 3 nombres reconocidos y el set no dice cuántas trae
 - Ammo by Mig — Star Defenders Sci-Fi Colors Set Ammo A.MIG-7130 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
-- Ammo by Mig — StuG III Ausf. G Exterior & Interior Paint Set Ammo ATOM-20730 (scalemodelshop.co.uk): anuncia 12 pero solo se reconocieron 3
 - Ammo by Mig — Stug III Early & Mid Colors 1939 To 1943 Set Ammo A.MIG-7185 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - Ammo by Mig — Stug III Mid & Late Colors 1944 To 1945 Set Ammo A.MIG-7186 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
-- Ammo by Mig — U.S. Carrier Deck Paint Set A.MIG-7457 Ammo (scalemodelshop.co.uk): solo 3 nombres reconocidos y el set no dice cuántas trae
 - Ammo by Mig — U.S. Navy Ships Modern Colors Paint Set Ammo ATOM-20604 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - Ammo by Mig — U.S. Navy Ships WWII Basic Colors Paint Set Ammo ATOM-20602 (scalemodelshop.co.uk): solo 1 pinturas reconocidas
 - Ammo by Mig — U.S. Navy Ships WWII Camouflage Colors Paint Set Ammo ATOM-20603 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
@@ -759,7 +903,6 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - Ammo by Mig — WWII Imperial Japanese Navy Aircraft Paint Set Ammo ATOM-20928 (scalemodelshop.co.uk): solo 2 pinturas reconocidas
 - Ammo by Mig — WWII Japanese AFV Early Colours Set [8] Ammo A.MIG-7137 (scalemodelshop.co.uk): solo 1 pinturas reconocidas
 - Ammo by Mig — WWII Regia Aeronautic Late Colors Set Ammo A.MIG-7238 (scalemodelshop.co.uk): solo 2 pinturas reconocidas
-- Citadel — Age of Sigmar: Skaven Paint Set (www.goblingaming.co.uk): anuncia 12 pero solo se reconocieron 4
 - Citadel — Tone Pro: Blackstone Void paint bundle (www.thecombatcompany.com): solo 1 pinturas reconocidas
 - Citadel — Tone Pro: Bloodtoof Red paint bundle (www.thecombatcompany.com): solo 1 pinturas reconocidas
 - Citadel — Tone Pro: Blue Gorkshroom paint bundle (www.thecombatcompany.com): solo 1 pinturas reconocidas
@@ -795,35 +938,6 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - Citadel — Warhammer Painting Handle (MkIII) (6 Pack) (www.gapgames.com.au): solo 0 pinturas reconocidas
 - Citadel — Warhammer Space Wolves Jump Pack Captain Well Painted JYS69 (www.tistaminis.com): solo 0 pinturas reconocidas
 - Citadel — Warhammer Space Wolves Primaris Ancient Pack Leader Well Painted A13 (www.tistaminis.com): solo 0 pinturas reconocidas
-- Citadel — Warhammer Tone Pro Bundle - Blackstone Void: 1-5 (www.goblingaming.co.uk): anuncia 12 pero solo se reconocieron 5
-- Citadel — Warhammer Tone Pro Bundle - Bloodtoof Red: 1-5 (www.goblingaming.co.uk): anuncia 12 pero solo se reconocieron 5
-- Citadel — Warhammer Tone Pro Bundle - Blue Gorkshroom: 1-5 (www.goblingaming.co.uk): anuncia 12 pero solo se reconocieron 5
-- Citadel — Warhammer Tone Pro Bundle - Carmine Blades: 1-5 (www.goblingaming.co.uk): anuncia 12 pero solo se reconocieron 5
-- Citadel — Warhammer Tone Pro Bundle - Carthalos Skin: 1-5 (www.goblingaming.co.uk): anuncia 12 pero solo se reconocieron 5
-- Citadel — Warhammer Tone Pro Bundle - Celestine Skin: 1-5 (www.goblingaming.co.uk): anuncia 12 pero solo se reconocieron 5
-- Citadel — Warhammer Tone Pro Bundle - Chotec Orange: 1-5 (www.goblingaming.co.uk): anuncia 12 pero solo se reconocieron 5
-- Citadel — Warhammer Tone Pro Bundle - Craventhrone Cloak: 1-5 (www.goblingaming.co.uk): anuncia 12 pero solo se reconocieron 5
-- Citadel — Warhammer Tone Pro Bundle - Dataslate Grey: 1-5 (www.goblingaming.co.uk): anuncia 12 pero solo se reconocieron 5
-- Citadel — Warhammer Tone Pro Bundle - Enrapturess Dusk: 1-5 (www.goblingaming.co.uk): anuncia 12 pero solo se reconocieron 5
-- Citadel — Warhammer Tone Pro Bundle - Eye of Terror: 1-5 (www.goblingaming.co.uk): anuncia 12 pero solo se reconocieron 5
-- Citadel — Warhammer Tone Pro Bundle - Gnarlwood: 1-5 (www.goblingaming.co.uk): anuncia 12 pero solo se reconocieron 5
-- Citadel — Warhammer Tone Pro Bundle - Green Morkshroom: 1-5 (www.goblingaming.co.uk): anuncia 12 pero solo se reconocieron 5
-- Citadel — Warhammer Tone Pro Bundle - Hawkshroud Yellow: 1-5 (www.goblingaming.co.uk): anuncia 12 pero solo se reconocieron 5
-- Citadel — Warhammer Tone Pro Bundle - Hierotek Green: 1-5 (www.goblingaming.co.uk): anuncia 12 pero solo se reconocieron 5
-- Citadel — Warhammer Tone Pro Bundle - Hive Fleet Purple: 1-5 (www.goblingaming.co.uk): anuncia 12 pero solo se reconocieron 5
-- Citadel — Warhammer Tone Pro Bundle - Kasrkin Green: 1-5 (www.goblingaming.co.uk): anuncia 12 pero solo se reconocieron 5
-- Citadel — Warhammer Tone Pro Bundle - Khemri Sands: 1-5 (www.goblingaming.co.uk): anuncia 12 pero solo se reconocieron 5
-- Citadel — Warhammer Tone Pro Bundle - Kruleboyz Green: 1-5 (www.goblingaming.co.uk): anuncia 12 pero solo se reconocieron 5
-- Citadel — Warhammer Tone Pro Bundle - Lustria Green: 1-5 (www.goblingaming.co.uk): anuncia 12 pero solo se reconocieron 5
-- Citadel — Warhammer Tone Pro Bundle - Magnus The Red: 1-5 (www.goblingaming.co.uk): anuncia 12 pero solo se reconocieron 5
-- Citadel — Warhammer Tone Pro Bundle - Necrolith Bone: 1-5 (www.goblingaming.co.uk): anuncia 12 pero solo se reconocieron 5
-- Citadel — Warhammer Tone Pro Bundle - Plague Toad Venom: 1-5 (www.goblingaming.co.uk): anuncia 12 pero solo se reconocieron 5
-- Citadel — Warhammer Tone Pro Bundle - Scinari Blue: 1-5 (www.goblingaming.co.uk): anuncia 12 pero solo se reconocieron 5
-- Citadel — Warhammer Tone Pro Bundle - Seraphon Blue: 1-5 (www.goblingaming.co.uk): anuncia 12 pero solo se reconocieron 5
-- Citadel — Warhammer Tone Pro Bundle - Shalaxi Violet: 1-5 (www.goblingaming.co.uk): anuncia 12 pero solo se reconocieron 5
-- Citadel — Warhammer Tone Pro Bundle - Stormwolf Blue: 1-5 (www.goblingaming.co.uk): anuncia 12 pero solo se reconocieron 5
-- Citadel — Warhammer Tone Pro Bundle - Ta'unar Ochre: 1-5 (www.goblingaming.co.uk): anuncia 12 pero solo se reconocieron 5
-- Citadel — Warhammer Tone Pro Bundle - Ultramar Blue: 1-5 (www.goblingaming.co.uk): anuncia 12 pero solo se reconocieron 5
 - DSPIAE — DSPIAE Acrylic Sanding Pad Set-Azure PT-SP10 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - DSPIAE — DSPIAE Acrylic Sanding Pad Set-Dark blue PT-SP12 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - DSPIAE — DSPIAE Acrylic Sanding Pad Set-Green PT-SP15 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
@@ -849,6 +963,8 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - Green Stuff World — GREEN STUFF WORLD Basic Mega Paint Set - Vol. 1.0 (www.gapgames.com.au): solo 0 pinturas reconocidas
 - Green Stuff World — GREEN STUFF WORLD Liquid Pigments Paint Set - Dust (Box x6) (www.gapgames.com.au): solo 0 pinturas reconocidas
 - Green Stuff World — GREEN STUFF WORLD Paint Set Metal Filters - Interference Colours (www.gapgames.com.au): solo 0 pinturas reconocidas
+- Green Stuff World — Green Stuff World	Refillable paint pen 0.5 (pack x6) (www.tistaminis.com): solo 0 pinturas reconocidas
+- Green Stuff World — Green Stuff World	Refillable paint pen 0.7 (pack x6) (www.tistaminis.com): solo 0 pinturas reconocidas
 - Green Stuff World — Green Stuff World Paint Set - Special Effects Vol. 1 (www.tistaminis.com): solo 1 pinturas reconocidas
 - Green Stuff World — Green Stuff World – Dipping Collection Paint Set 1 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - Green Stuff World — Green Stuff World – Dipping Collection Paint Set 2 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
@@ -856,6 +972,7 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - Green Stuff World — Green Stuff World – Dipping Collection Paint Set 4 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - Green Stuff World — Green Stuff World – Dipping Collection Paint Set 5 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - Green Stuff World — Green Stuff World – Dipping Collection Paint Set 6 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
+- Green Stuff World — GreenStuffWorld Dipping Ink Marker Set & Case (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - Green Stuff World — GreenStuffWorld Metallic Pigments Set 11290 (scalemodelshop.co.uk): solo 1 pinturas reconocidas
 - Green Stuff World — GreenStuffWorld Vivid Metallic Paints Set 10132 (scalemodelshop.co.uk): solo 1 pinturas reconocidas
 - Green Stuff World — Liquid Pigments Set - Dust (Tienda oficial): solo 0 pinturas reconocidas
@@ -920,8 +1037,6 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - Green Stuff World — Starter Mega Paint Set (Tienda oficial): solo 0 pinturas reconocidas
 - Green Stuff World — Vivid Metallic Paints Set (Tienda oficial): solo 0 pinturas reconocidas
 - Green Stuff World — Water soluble patina set (Tienda oficial): solo 0 pinturas reconocidas
-- Green Stuff World — World Paint Set - Special Effects Vol. 2 (www.tistaminis.com): solo 3 nombres reconocidos y el set no dice cuántas trae
-- Green Stuff World — World Special Effects Mega Paint Set (www.tistaminis.com): anuncia 48 pero solo se reconocieron 8
 - Humbrol — Humbrol Acrylic Landscape Paint Set AB9061 (scalemodelshop.co.uk): solo 1 pinturas reconocidas
 - Humbrol — NHS Charities Together Rainbow Colour Set Humbrol DB9061 (scalemodelshop.co.uk): solo 2 pinturas reconocidas
 - Kaleido Colorworks — 0.28mm Upgrade Pack for Swallowtail (Tienda oficial): solo 0 pinturas reconocidas
@@ -929,23 +1044,14 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - Kaleido Colorworks — 0.5mm Upgrade Pack for Ace Series (Tienda oficial): solo 0 pinturas reconocidas
 - Kaleido Colorworks — 0.7mm Upgrade Pack for Swallowtail (Tienda oficial): solo 0 pinturas reconocidas
 - Kaleido Colorworks — 1937-1946 Panzer Colors Set (Tienda oficial): solo 0 pinturas reconocidas
-- Kaleido Colorworks — AE86 Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 4
-- Kaleido Colorworks — AMS-129 Geara Zulu Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 6
 - Kaleido Colorworks — Acrylic (12 Colors Set) (Tienda oficial): solo 0 pinturas reconocidas
 - Kaleido Colorworks — Acrylic (56 Colors Set) (Tienda oficial): solo 0 pinturas reconocidas
 - Kaleido Colorworks — Aventus Gold Spring Case (Tienda oficial): solo 0 pinturas reconocidas
 - Kaleido Colorworks — Aventus II 0.2mm Vortex Nozzle & Cap Set (Tienda oficial): solo 0 pinturas reconocidas
 - Kaleido Colorworks — Aventus Silver Spring Case (Tienda oficial): solo 0 pinturas reconocidas
 - Kaleido Colorworks — Blue & Green NMM Colors Set (Tienda oficial): solo 2 pinturas reconocidas
-- Kaleido Colorworks — Bmw Z4 Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 4
 - Kaleido Colorworks — British Army Colors 1940-1945 Set (Tienda oficial): solo 0 pinturas reconocidas
-- Kaleido Colorworks — DEMI BARDING Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 5
-- Kaleido Colorworks — Ferarri Enzo F60 Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 4
 - Kaleido Colorworks — Fiendish Flesh & Daemon Colors Set (Tienda oficial): solo 0 pinturas reconocidas
-- Kaleido Colorworks — Ford GT Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 4
-- Kaleido Colorworks — Ford Mustang Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 5
-- Kaleido Colorworks — GAT-04 Windam Colors Bundle (Tienda oficial): anuncia 4 pero se reconocieron 10: el texto mezcla otros productos
-- Kaleido Colorworks — GAT-X207 Blitz Gundam Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 6
 - Kaleido Colorworks — GHAC-Swallowtail 0.5mm Upgrade Pack (Tienda oficial): solo 0 pinturas reconocidas
 - Kaleido Colorworks — Gaahleri 12 Colour Metal Set (www.gapgames.com.au): solo 0 pinturas reconocidas
 - Kaleido Colorworks — Gaahleri 12 Colour Primary Set (www.gapgames.com.au): solo 0 pinturas reconocidas
@@ -953,46 +1059,16 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - Kaleido Colorworks — Gaahleri 24 Colour Mecha Set (www.gapgames.com.au): solo 0 pinturas reconocidas
 - Kaleido Colorworks — Gaahleri 24 Colour Primary Set (www.gapgames.com.au): solo 0 pinturas reconocidas
 - Kaleido Colorworks — Gold & Brass NMM Colors Set (Tienda oficial): solo 0 pinturas reconocidas
-- Kaleido Colorworks — Grimoire Red Beret Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 7
-- Kaleido Colorworks — Gundam GQuuuuuuX Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 9
-- Kaleido Colorworks — Gundam Throne Eins Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 6
-- Kaleido Colorworks — HG Char's Zaku II (Red Comet Ver.) Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 4
 - Kaleido Colorworks — High-Saturation Game Colors Set (Tienda oficial): solo 1 pinturas reconocidas
 - Kaleido Colorworks — Human Skin Colors Set (Tienda oficial): solo 0 pinturas reconocidas
-- Kaleido Colorworks — Lamborghini Murcielago Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 5
 - Kaleido Colorworks — Limited Edition Majestic Snake Collection 2025 (Tienda oficial): solo 0 pinturas reconocidas
-- Kaleido Colorworks — MBF-P02 Gundam Astray Red Frame(Flight Unit) Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 5
-- Kaleido Colorworks — MS-07H-8 GOUF FLYING TYPE Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 6
-- Kaleido Colorworks — MS-08TX/S Efreet Schneid Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 8
-- Kaleido Colorworks — MS07B3 Gouf Custom Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 7
-- Kaleido Colorworks — MS09 DOM Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 5
-- Kaleido Colorworks — MS18E KAMPFER Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 8
-- Kaleido Colorworks — MSN-07S Z'Gok Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 5
-- Kaleido Colorworks — Mazinger Z Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 6
-- Kaleido Colorworks — McLaren Senna Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 4
 - Kaleido Colorworks — Mega Military Colors Set 2026 | Kickstarter Edition (Tienda oficial): solo 0 pinturas reconocidas
 - Kaleido Colorworks — Mega Omni Paint Set 2026 | Kickstarter Edition (Tienda oficial): solo 0 pinturas reconocidas
-- Kaleido Colorworks — Mitsubishi Lancer Evolution V Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 3
-- Kaleido Colorworks — NRX-044 Asshimar Pumpkin Pie Warrior Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 6
-- Kaleido Colorworks — Nissan GT-R 35 Colors Bundle (Tienda oficial): anuncia 35 pero solo se reconocieron 4
 - Kaleido Colorworks — Omni Primary 10-Colors Set (Tienda oficial): solo 0 pinturas reconocidas
 - Kaleido Colorworks — Paint Box (Tienda oficial): solo 0 pinturas reconocidas
-- Kaleido Colorworks — Porsche 911 Turbo (964) Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 4
 - Kaleido Colorworks — ProCare Kit (Tienda oficial): solo 0 pinturas reconocidas
-- Kaleido Colorworks — RGM-79GM Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 6
-- Kaleido Colorworks — RGM-79S GM Spartan Color Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 4
-- Kaleido Colorworks — RGM-79SP GM SNIPER-II Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 8
-- Kaleido Colorworks — RGM-89S Stark Jegan-II Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 5
-- Kaleido Colorworks — RMS-108 MARASAI Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 9
-- Kaleido Colorworks — RX-77-2 Guncannon Colors Bundle (Tienda oficial): anuncia 2 pero se reconocieron 6: el texto mezcla otros productos
-- Kaleido Colorworks — RX-78(G)E Gundam EX Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 9
-- Kaleido Colorworks — RX-78-2 Gundam Colors Bundle (Tienda oficial): anuncia 2 pero se reconocieron 7: el texto mezcla otros productos
 - Kaleido Colorworks — Red & Brown NMM Colors Set (Tienda oficial): solo 1 pinturas reconocidas
-- Kaleido Colorworks — STTS/F-400 MURASAME KAI Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 7
 - Kaleido Colorworks — Silver & Chrome NMM Colors Set (Tienda oficial): solo 0 pinturas reconocidas
-- Kaleido Colorworks — Subaru Brz Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 4
-- Kaleido Colorworks — TMF/A-802 BuCUE Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 8
-- Kaleido Colorworks — Toyota Supra Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 4
 - Kaleido Colorworks — TurboX Pro Base Kit (Corded Edition) (Tienda oficial): solo 0 pinturas reconocidas
 - Kaleido Colorworks — TurboX Pro Base Kit (Cordless Edition) (Tienda oficial): solo 0 pinturas reconocidas
 - Kaleido Colorworks — Turbox Mini Kit with GHAD-39 (Tienda oficial): solo 0 pinturas reconocidas
@@ -1009,28 +1085,26 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - Kaleido Colorworks — WWII US Aircraft Interior Colors Set (Tienda oficial): solo 1 pinturas reconocidas
 - Kaleido Colorworks — WWII US Navy & USMC & USAAF Aircraft Colors Set (Tienda oficial): solo 0 pinturas reconocidas
 - Kaleido Colorworks — WWIl German Tank Interior Colors Set (Tienda oficial): solo 0 pinturas reconocidas
-- Kaleido Colorworks — X-EX01 Gundam Calibarn Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 4
-- Kaleido Colorworks — ZGMF-103 HD ZAFT Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 7
-- Kaleido Colorworks — ZGMF-19A JUSTICE GUNDAM Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 8
-- Kaleido Colorworks — ZGMF-2027/A GYAN Strom Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 9
-- Kaleido Colorworks — ZGMF-X20A STRIKE FREEDOM Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 8
-- Kaleido Colorworks — ZGMF-X42S Destiny Gundam Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 9
-- Kaleido Colorworks — ZGMF-X56S/α Force Impulse Gundam Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 9
-- Kaleido Colorworks — gMS-01 Sugai's Gelgoog Colors Bundle (Tienda oficial): anuncia 20 pero solo se reconocieron 7
 - Kimera Kolors — Kimera Kolors Signature Set: F. Russo - Dark Side of Paint (www.gapgames.com.au): solo 2 pinturas reconocidas
 - Mr. Hobby — Aqueous Hobby Color Starter Set Mr Hobby HS-30 (scalemodelshop.co.uk): solo 1 pinturas reconocidas
-- Mr. Hobby — Imperial Japanese Army Tank Late Camouflage Color Set Mr Hobby CS663 (scalemodelshop.co.uk): solo 3 nombres reconocidos y el set no dice cuántas trae
+- Mr. Hobby — Gundam Marker Basic Colour Set (www.gapgames.com.au): solo 0 pinturas reconocidas
+- Mr. Hobby — Gundam Metallic Marker Set (www.gapgames.com.au): solo 0 pinturas reconocidas
 - Mr. Hobby — Mr Color Colour Modulation Set Russian Green Version Mr Hobby CS584 (scalemodelshop.co.uk): solo 1 pinturas reconocidas
 - Mr. Hobby — Mr Color IDF AFV Colour Set Mr Hobby CS631 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
+- Mr. Hobby — Mr Hobby Gundam Marker EX Holographic 3 Colour Set XGMS-200 (scalemodelshop.co.uk): solo 1 pinturas reconocidas
 - Mr. Hobby — Mr Hobby Water-based Weathering Paint Gouache 6 Colour Set WTS-01 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
+- Mr. Hobby — Mr Hobby – Basic 6 Color Set Gundammarker GMS-105 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - Mr. Hobby — Mr Hobby – Dark Yellow Colour Modulation Set CS582 (scalemodelshop.co.uk): solo 1 pinturas reconocidas
 - Mr. Hobby — Mr Hobby – German Gray Colour Modulation Set CS583 (scalemodelshop.co.uk): solo 1 pinturas reconocidas
+- Mr. Hobby — Mr Hobby – Gundam Metallic Marker Set (6 Pens) GMS-121 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
+- Mr. Hobby — Mr Hobby – Gundammarker Metallic Marker Set 2 GMS-125 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - Mr. Hobby — Mr Hobby – Imperial Japanese Army Tank Early Camouflage Color Set CS662 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - Mr. Hobby — Mr Hobby – J.A.S.D.F. Aluiminized Old-Timer Colour Set CS666 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - Mr. Hobby — Mr Hobby – J.A.S.D.F. Oceanic Camouflage Color Set CS665 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - Mr. Hobby — Mr Hobby – J.G.S.D.F. Japan Vehicle Color Set CS661 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - Mr. Hobby — Mr Hobby – Japanese Naval Arsenal Colour Set CS641 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - Mr. Hobby — Mr Hobby – Japanese Naval Camouflage Colour Set CS642 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
+- Mr. Hobby — Mr Hobby – Marker Metallic Set CMS-01 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - Mr. Hobby — Mr Hobby – Mechanical Colour Set Ver.Blue CS512 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - Mr. Hobby — Mr Hobby – Mechanical Colour Set Ver.Red CS511 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - Mr. Hobby — Mr Hobby – Mechanical Colour Set Ver.Yellow CS513 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
@@ -1049,13 +1123,8 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - Mr. Hobby — Mr Hobby – Yakumo Colour Set D WWII Basics | WY-04 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - P3 — Goreshade, Lord of Ruin (box) (www.thecombatcompany.com): solo 0 pinturas reconocidas
 - P3 — P3 Paints - Starter Box Of 10 Paints - Paint Set (www.gapgames.com.au): solo 0 pinturas reconocidas
-- Pro Acryl — AdeptiCon Paint Set (Tienda oficial): anuncia 22 pero solo se reconocieron 6
 - Pro Acryl — Dauntless Synthetic Set (Tienda oficial): solo 0 pinturas reconocidas
 - Pro Acryl — Expert Acrylics Set # 1 (Tienda oficial): solo 0 pinturas reconocidas
-- Pro Acryl — Fluorescents Set (Tienda oficial): anuncia 22 pero solo se reconocieron 6
-- Pro Acryl — Hobbies - Atomic Mass - Cosmic Paint Set #2 (www.thecombatcompany.com): anuncia 18 pero solo se reconocieron 8
-- Pro Acryl — Hobbies - Signature Series Set 1 - Vince Venturella (www.gameology.com.au): anuncia 22 pero solo se reconocieron 6
-- Pro Acryl — Hobbies - Signature Series Set 2 - Ninjon (www.gameology.com.au): anuncia 22 pero solo se reconocieron 6
 - Pro Acryl — Monument Agitators   (50 pack) (Tienda oficial): solo 0 pinturas reconocidas
 - Pro Acryl — Monument Hobbies Pro Acryl Base Set - 24 Colors (www.tistaminis.com): solo 0 pinturas reconocidas
 - Pro Acryl — Monument Hobbies Pro Acryl Vince Venturella Signature Set - 6 Colors (www.tistaminis.com): solo 0 pinturas reconocidas
@@ -1063,15 +1132,8 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - Pro Acryl — PRO Acryl Wizard's Butt Set! (Tienda oficial): solo 0 pinturas reconocidas
 - Pro Acryl — PRO Sable Set (Tienda oficial): solo 0 pinturas reconocidas
 - Pro Acryl — PRO Synthetic Set (Tienda oficial): solo 0 pinturas reconocidas
-- Pro Acryl — Pro Acryl - Atomic Mass - Cosmic Paint Set #2 (www.gapgames.com.au): anuncia 18 pero solo se reconocieron 8
 - Pro Acryl — Pro Acryl Alternate Lid Set - Dropper (Tienda oficial): solo 0 pinturas reconocidas
 - Pro Acryl — Pro Acryl Alternate Lid Set - Flip Top (Tienda oficial): solo 0 pinturas reconocidas
-- Pro Acryl — Signature Series Set 1 - Vince Venturella (Tienda oficial): anuncia 22 pero solo se reconocieron 6
-- Pro Acryl — Signature Series Set 2 (Tienda oficial): anuncia 22 pero solo se reconocieron 6
-- Pro Acryl — Signature Series Set 3 - Ben Komets (Tienda oficial): anuncia 22 pero solo se reconocieron 6
-- Pro Acryl — Signature Series Set 4 - Matt Cexwish (Tienda oficial): anuncia 22 pero solo se reconocieron 6
-- Pro Acryl — Signature Series Set 5 - Flameon Miniatures (Tienda oficial): anuncia 22 pero solo se reconocieron 6
-- Pro Acryl — Signature Series Set 6 - Rogue Hobbies (Tienda oficial): anuncia 22 pero solo se reconocieron 6
 - Scale75 — ANCIENT PACK (Tienda oficial): solo 0 pinturas reconocidas
 - Scale75 — BIG STIX MULTI SET (Tienda oficial): solo 0 pinturas reconocidas
 - Scale75 — BLACK and WHITE Paint set (Tienda oficial): solo 0 pinturas reconocidas
@@ -1082,9 +1144,6 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - Scale75 — COLLECTION 2 (Tienda oficial): solo 0 pinturas reconocidas
 - Scale75 — COLORS of NATURE Green Paint Set (Tienda oficial): solo 0 pinturas reconocidas
 - Scale75 — DR FLOWS PAINT CASE (Tienda oficial): solo 0 pinturas reconocidas
-- Scale75 — Drop and Paints - Blue Moon 2 Paint Set (www.gapgames.com.au): anuncia 2 pero se reconocieron 8: el texto mezcla otros productos
-- Scale75 — Drop and Paints - Color Palace Vol 2 Paint Set (www.gapgames.com.au): anuncia 2 pero se reconocieron 64: el texto mezcla otros productos
-- Scale75 — Drop and Paints - Green Manalishi 2 Paint Set (www.gapgames.com.au): anuncia 2 pero se reconocieron 8: el texto mezcla otros productos
 - Scale75 — ESSENTIALS 2 BASIC COLORS SET (Tienda oficial): solo 0 pinturas reconocidas
 - Scale75 — ESSENTIALS BASIC COLORS SET (Tienda oficial): solo 0 pinturas reconocidas
 - Scale75 — FANTASY and GAMES COLLECTION (Tienda oficial): solo 0 pinturas reconocidas
@@ -1210,7 +1269,6 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - Scale75 — Wood And Leather Paint Set: ScaleColor 17mL acrylic (www.thecombatcompany.com): solo 0 pinturas reconocidas
 - Tamiya — Tamiya Metal Paint Stirrers Set 74017 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - Tamiya — Tamiya Spray Work Painting Stand Set 74522 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
-- The Army Painter — "You Make Me Sick" Bundle (Tienda oficial): solo 3 nombres reconocidos y el set no dice cuántas trae
 - The Army Painter — ARMY PAINTER WARPAINTS: AIR MOST WANTED PAINT SET (www.tistaminis.com): solo 0 pinturas reconocidas
 - The Army Painter — ARMY PAINTER WARPAINTS: FANATIC MOST WANTED PAINT SET (www.tistaminis.com): solo 1 pinturas reconocidas
 - The Army Painter — ARMY PAINTER WW2 British Paint Set (www.tistaminis.com): solo 1 pinturas reconocidas
@@ -1229,17 +1287,22 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - The Army Painter — Army Painter HISTORICAL: WWII IMPERIAL JAPANESE PAINT SET (www.tistaminis.com): solo 0 pinturas reconocidas
 - The Army Painter — Army Painter HISTORICAL: WWII SOVIET UNION PAINT SET (www.tistaminis.com): solo 0 pinturas reconocidas
 - The Army Painter — Army Painter HYDRO PACK WARGAMERS EDITION (www.tistaminis.com): solo 0 pinturas reconocidas
+- The Army Painter — Army Painter Speedpaint Marker Introductory set (www.tistaminis.com): solo 0 pinturas reconocidas
+- The Army Painter — Army Painter Speedpaint Marker set (www.tistaminis.com): solo 0 pinturas reconocidas
 - The Army Painter — Army Painter Speedpaint Most Wanted Set 2.0 (www.gapgames.com.au): solo 1 pinturas reconocidas
 - The Army Painter — Army Painter Speedpaint Starter Set 2.0 (www.gapgames.com.au): solo 0 pinturas reconocidas
 - The Army Painter — Army Painter WARPAINTS: FANATIC COMPLETE PAINT SET (www.tistaminis.com): solo 0 pinturas reconocidas
 - The Army Painter — Army Painter WARPAINTS: FANATIC MEGA PAINT SET (www.tistaminis.com): solo 0 pinturas reconocidas
 - The Army Painter — Army Painter WILDERNESS ADVENTURES ROLE-PLAYING PAINT SET (www.tistaminis.com): solo 0 pinturas reconocidas
 - The Army Painter — Army Painter WW2 American Paint Set (www.tistaminis.com): solo 1 pinturas reconocidas
+- The Army Painter — Army Painter Warpaints - Speedpaint Marker Starter Set (www.gapgames.com.au): solo 0 pinturas reconocidas
 - The Army Painter — Army Painter Warpaints Fanatic - Most Wanted Paint Set (www.gapgames.com.au): solo 1 pinturas reconocidas
 - The Army Painter — Army Painter World War II German Paint Set - Warpaints Fanatic (www.tistaminis.com): solo 0 pinturas reconocidas
 - The Army Painter — Complete Starter Bundle (Tienda oficial): solo 1 pinturas reconocidas
 - The Army Painter — D&D Undead Paint Set (Tienda oficial): solo 0 pinturas reconocidas
 - The Army Painter — Death Guard Bundle (Tienda oficial): solo 0 pinturas reconocidas
+- The Army Painter — Deepcut Army Painter Speedpaint Markers – Full Set (www.tistaminis.com): solo 0 pinturas reconocidas
+- The Army Painter — Deepcut Army Painter Speedpaint Markers – Starter Set (www.tistaminis.com): solo 0 pinturas reconocidas
 - The Army Painter — Emperor's Children Bundle (Tienda oficial): solo 0 pinturas reconocidas
 - The Army Painter — Essentials Starter Bundle (Tienda oficial): solo 1 pinturas reconocidas
 - The Army Painter — Exalted Paint Collection (Tienda oficial): solo 0 pinturas reconocidas
@@ -1263,7 +1326,6 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - The Army Painter — Infinity: O-12 Paint Set (Tienda oficial): solo 0 pinturas reconocidas
 - The Army Painter — Infinity: PanOceania Paint Set (Tienda oficial): solo 0 pinturas reconocidas
 - The Army Painter — Infinity: Yu Jing Paint Set (Tienda oficial): solo 0 pinturas reconocidas
-- The Army Painter — John Blanche Volume 2 Paint Set (www.goblingaming.co.uk): anuncia 2 pero se reconocieron 8: el texto mezcla otros productos
 - The Army Painter — John Blanche Volume 3 Paint Set (www.goblingaming.co.uk): solo 0 pinturas reconocidas
 - The Army Painter — John Blanche: Masterclass Volume 1 Paint Set (www.thecombatcompany.com): solo 0 pinturas reconocidas
 - The Army Painter — John Blanche: Masterclass Volume 2 Paint Set (www.thecombatcompany.com): solo 0 pinturas reconocidas
@@ -1277,19 +1339,22 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - The Army Painter — Ork Bundle (Tienda oficial): solo 0 pinturas reconocidas
 - The Army Painter — Poxwalker Bundle (Tienda oficial): solo 0 pinturas reconocidas
 - The Army Painter — Reichbusters Projekt Vrill Army Painter Box (www.gapgames.com.au): solo 0 pinturas reconocidas
-- The Army Painter — Rust Effects Bundle (Tienda oficial): solo 3 nombres reconocidos y el set no dice cuántas trae
 - The Army Painter — Salamanders (Horus Heresy) Bundle (Tienda oficial): solo 2 pinturas reconocidas
-- The Army Painter — Shades Bundle (Tienda oficial): solo 3 nombres reconocidos y el set no dice cuántas trae
 - The Army Painter — Slapchop Bundle (Tienda oficial): solo 0 pinturas reconocidas
 - The Army Painter — Space Wolves Bundle (Tienda oficial): solo 0 pinturas reconocidas
 - The Army Painter — Speedpaint Complete Set 2.0 (Tienda oficial): solo 0 pinturas reconocidas
 - The Army Painter — Speedpaint Complete Set 2.0 (www.goblingaming.co.uk): solo 1 pinturas reconocidas
+- The Army Painter — Speedpaint Marker Mega Set (www.goblingaming.co.uk): solo 0 pinturas reconocidas
+- The Army Painter — Speedpaint Marker Starter Set (www.goblingaming.co.uk): solo 0 pinturas reconocidas
+- The Army Painter — Speedpaint Marker: Expansion Set (Tienda oficial): solo 0 pinturas reconocidas
+- The Army Painter — Speedpaint Marker: Mega Set (Tienda oficial): solo 0 pinturas reconocidas
+- The Army Painter — Speedpaint Marker: Metallics Set (Tienda oficial): solo 0 pinturas reconocidas
+- The Army Painter — Speedpaint Marker: Most Wanted Set (Tienda oficial): solo 0 pinturas reconocidas
 - The Army Painter — Speedpaint Mega Set 1.0 (www.goblingaming.co.uk): solo 1 pinturas reconocidas
 - The Army Painter — Speedpaint Mega Set 2.0 (Tienda oficial): solo 0 pinturas reconocidas
 - The Army Painter — Speedpaint Mega Set 2.0 (www.goblingaming.co.uk): solo 1 pinturas reconocidas
 - The Army Painter — Speedpaint Mega Set 2.0 (www.thecombatcompany.com): solo 1 pinturas reconocidas
 - The Army Painter — Speedpaint Metallics Set 2.0 (Tienda oficial): solo 0 pinturas reconocidas
-- The Army Painter — Speedpaint Metallics Set 2.0 (www.goblingaming.co.uk): anuncia 10 pero solo se reconocieron 4
 - The Army Painter — Speedpaint Most Wanted Set 2.0 (Tienda oficial): solo 0 pinturas reconocidas
 - The Army Painter — Speedpaint Most Wanted Set 2.0 (www.goblingaming.co.uk): solo 1 pinturas reconocidas
 - The Army Painter — Speedpaint Most Wanted Set 2.0 (www.thecombatcompany.com): solo 1 pinturas reconocidas
@@ -1303,6 +1368,8 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - The Army Painter — The Army Painter - Historical: World War II British 8th Army Paint Set (www.gapgames.com.au): solo 0 pinturas reconocidas
 - The Army Painter — The Army Painter - Historical: World War II German Paint Set (www.gapgames.com.au): solo 0 pinturas reconocidas
 - The Army Painter — The Army Painter - Historical: World War II Soviet Union Paint Set - Pre-Order (www.gapgames.com.au): solo 0 pinturas reconocidas
+- The Army Painter — The Army Painter - Speedpaint Marker: Mega Set (www.gapgames.com.au): solo 0 pinturas reconocidas
+- The Army Painter — The Army Painter - Speedpaint Marker: Metallics Set (www.gapgames.com.au): solo 0 pinturas reconocidas
 - The Army Painter — The Army Painter - Warpaints Air: Starter Set (www.gapgames.com.au): solo 0 pinturas reconocidas
 - The Army Painter — The Army Painter D & D Adventurers Paint Set 75001 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - The Army Painter — The Army Painter D & D Monsters Paint Set 75002 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
@@ -1320,10 +1387,12 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - The Army Painter — The Army Painter Skin Tones Paint Set WP8909P (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - The Army Painter — The Army Painter Speedpaint Complete Set 2.0 (www.gapgames.com.au): solo 1 pinturas reconocidas
 - The Army Painter — The Army Painter Speedpaint Complete Set 2.0 WP8061 (scalemodelshop.co.uk): solo 1 pinturas reconocidas
+- The Army Painter — The Army Painter Speedpaint Marker Mega Set SM8004P (scalemodelshop.co.uk): solo 0 pinturas reconocidas
+- The Army Painter — The Army Painter Speedpaint Marker Metallics Set SM8002P (scalemodelshop.co.uk): solo 0 pinturas reconocidas
+- The Army Painter — The Army Painter Speedpaint Markers Most Wanted Set SM8005P (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - The Army Painter — The Army Painter Speedpaint Mega Paint Set 2.0 (www.gapgames.com.au): solo 1 pinturas reconocidas
 - The Army Painter — The Army Painter Speedpaint Mega Set 2.0 WP8057 (scalemodelshop.co.uk): solo 1 pinturas reconocidas
 - The Army Painter — The Army Painter Speedpaint Mega Set WP8053P (scalemodelshop.co.uk): solo 1 pinturas reconocidas
-- The Army Painter — The Army Painter Speedpaint Metallic Set 2.0 WP8062 (scalemodelshop.co.uk): anuncia 18 pero solo se reconocieron 4
 - The Army Painter — The Army Painter Speedpaint Most Wanted Set 2.0 WP8060 (scalemodelshop.co.uk): solo 1 pinturas reconocidas
 - The Army Painter — The Army Painter Speedpaint Starter Set 2.0 WP8059 (scalemodelshop.co.uk): solo 1 pinturas reconocidas
 - The Army Painter — The Army Painter Speedpaint Starter Set WP8054P (scalemodelshop.co.uk): solo 1 pinturas reconocidas
@@ -1342,11 +1411,11 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - The Army Painter — The Army Painter Warpaints Metallic Paint Set WP8043P (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - The Army Painter — The Army Painter Warpaints Metallics: Metallic Colours Paint Set WP8048P (scalemodelshop.co.uk): solo 1 pinturas reconocidas
 - The Army Painter — The Army Painter Zombicide 2nd Edition Set WP8042P (scalemodelshop.co.uk): solo 0 pinturas reconocidas
+- The Army Painter — The Army Painter: Speedpaint Marker: Mega Set (www.tistaminis.com): solo 0 pinturas reconocidas
 - The Army Painter — Thousand Sons Bundle (Tienda oficial): solo 0 pinturas reconocidas
 - The Army Painter — Trovarions Bundle (Tienda oficial): solo 0 pinturas reconocidas
 - The Army Painter — Tweezers Set (Tienda oficial): solo 0 pinturas reconocidas
 - The Army Painter — Ultimate Starter Bundle (Tienda oficial): solo 1 pinturas reconocidas
-- The Army Painter — WANDERING MONSTERS STARTER ROLE-PLAYING PAINT SET (www.tistaminis.com): solo 3 nombres reconocidos y el set no dice cuántas trae
 - The Army Painter — WARPAINTS: FANATIC METALLICS PAINT SET (www.tistaminis.com): solo 0 pinturas reconocidas
 - The Army Painter — WARPAINTS: FANATIC STARTER SET (www.tistaminis.com): solo 1 pinturas reconocidas
 - The Army Painter — WARPAINTS: FANATIC WASHES PAINT SET (www.tistaminis.com): solo 2 pinturas reconocidas
@@ -1383,8 +1452,6 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - The Army Painter — Warpaints Fanatic: Wargamers Paint Set (Tienda oficial): solo 0 pinturas reconocidas
 - The Army Painter — Warpaints Fanatic: Wargamers Paint Set (www.tistaminis.com): solo 0 pinturas reconocidas
 - The Army Painter — Warpaints Fanatic: Washes Paint Set (Tienda oficial): solo 2 pinturas reconocidas
-- The Army Painter — Warpaints Historical - WWII British Paint Set (www.gapgames.com.au): anuncia 3 pero se reconocieron 18: el texto mezcla otros productos
-- The Army Painter — Warpaints Historical - WWII British Paint Set (www.thecombatcompany.com): anuncia 3 pero se reconocieron 18: el texto mezcla otros productos
 - The Army Painter — Warpaints Metallics: Paint Set (Tienda oficial): solo 0 pinturas reconocidas
 - The Army Painter — Warpaints: Mega Paint Set (Tienda oficial): solo 0 pinturas reconocidas
 - The Army Painter — Warpaints: Starter Paint Set (Tienda oficial): solo 0 pinturas reconocidas
@@ -1495,7 +1562,6 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - Turbo Dork — Maguro Half Case (3 Count for Retailers) (Tienda oficial): solo 0 pinturas reconocidas
 - Turbo Dork — Malum Malus Full Case (6 Count for Retailers) (Tienda oficial): solo 0 pinturas reconocidas
 - Turbo Dork — Malum Malus Half Case (3 Count for Retailers) (Tienda oficial): solo 0 pinturas reconocidas
-- Turbo Dork — Metallic Starter Set (Tienda oficial): solo 3 nombres reconocidos y el set no dice cuántas trae
 - Turbo Dork — Metallic Starter Set (1 Count for Retailers) (Tienda oficial): solo 0 pinturas reconocidas
 - Turbo Dork — Miami Sunset Full Case (6 Count for Retailers) (Tienda oficial): solo 0 pinturas reconocidas
 - Turbo Dork — Miami Sunset Half Case (3 Count for Retailers) (Tienda oficial): solo 0 pinturas reconocidas
@@ -1563,7 +1629,6 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - Turbo Dork — Summoning Sickness Half Case (3 Count for Retailers) (Tienda oficial): solo 0 pinturas reconocidas
 - Turbo Dork — Syringa Full Case (6 Count for Retailers) (Tienda oficial): solo 0 pinturas reconocidas
 - Turbo Dork — Syringa Half Case (3 Count for Retailers) (Tienda oficial): solo 0 pinturas reconocidas
-- Turbo Dork — TDK x Pathfinder Series 1 Paint Set (Tienda oficial): solo 3 nombres reconocidos y el set no dice cuántas trae
 - Turbo Dork — TDK x Pathfinder Series 1 Paint Set (1 Count for Retailers) (Tienda oficial): solo 0 pinturas reconocidas
 - Turbo Dork — TDK x Starfinder Series 1 Paint Set (Tienda oficial): solo 2 pinturas reconocidas
 - Turbo Dork — TDK x Starfinder Series 1 Paint Set (1 Count for Retailers) (Tienda oficial): solo 0 pinturas reconocidas
@@ -1585,82 +1650,29 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - Turbo Dork — Wavelength Half Case (3 Count for Retailers) (Tienda oficial): solo 0 pinturas reconocidas
 - Turbo Dork — ZeniShift Starter Set (Tienda oficial): solo 0 pinturas reconocidas
 - Turbo Dork — ZeniShift Starter Set (1 Count for Retailers) (Tienda oficial): solo 0 pinturas reconocidas
-- Vallejo — 8x Face & Skin Tones Paint Set 70.124 (scalemodelshop.co.uk): anuncia 8 pero solo se reconocieron 3
 - Vallejo — AFV German Afrika Korps 1942/44 (DaK) - Armour Paint Set (www.goblingaming.co.uk): solo 0 pinturas reconocidas
 - Vallejo — Allied jerrycan set (Tienda oficial): solo 0 pinturas reconocidas
-- Vallejo — Amber Green Paint Set 77.266 (scalemodelshop.co.uk): anuncia 18 pero solo se reconocieron 4
-- Vallejo — Arcane Elements Paint Set - WizKids (www.goblingaming.co.uk): anuncia 8 pero solo se reconocieron 3
-- Vallejo — Arcane Gold True Metallic Paint Set 77.268 (scalemodelshop.co.uk): anuncia 18 pero solo se reconocieron 4
 - Vallejo — Basic Range Paint Set - Model Air (www.goblingaming.co.uk): solo 0 pinturas reconocidas
-- Vallejo — Beetle Green Paint Set 77.265 (scalemodelshop.co.uk): anuncia 18 pero solo se reconocieron 4
-- Vallejo — Black and White Paint Set - Model Colour (www.goblingaming.co.uk): anuncia 17 pero solo se reconocieron 5
-- Vallejo — British Caunter Colors 1940-41 Paint Set - Model Air (www.goblingaming.co.uk): anuncia 41 pero solo se reconocieron 5
-- Vallejo — Celestial Violet Paint Set 77.262 (scalemodelshop.co.uk): anuncia 18 pero solo se reconocieron 4
 - Vallejo — Complete nozzle set, nozzle cap and needle 0.2 (Tienda oficial): solo 0 pinturas reconocidas
 - Vallejo — Complete nozzle set, nozzle cap and needle 0.3 (Tienda oficial): solo 0 pinturas reconocidas
 - Vallejo — Complete nozzle set, nozzle cap and needle 0.5 (Tienda oficial): solo 0 pinturas reconocidas
-- Vallejo — Crimson Magenta Paint Set 77.261 (scalemodelshop.co.uk): anuncia 18 pero solo se reconocieron 4
 - Vallejo — Crimson Red Paint Set 8x - Fantasy Pro (www.goblingaming.co.uk): solo 0 pinturas reconocidas
-- Vallejo — D&D Prismatic Paint Basic Starter Case (www.gapgames.com.au): anuncia 60 pero solo se reconocieron 19
-- Vallejo — D&D Prismatic Paint Intermediate Case (www.gapgames.com.au): anuncia 60 pero solo se reconocieron 16
 - Vallejo — Detail – Definition Set (Tienda oficial): solo 0 pinturas reconocidas
 - Vallejo — Detail – Design Set (Tienda oficial): solo 0 pinturas reconocidas
-- Vallejo — Eccentric Colors The Shifters – Galaxy Dust Set 77.092 (scalemodelshop.co.uk): solo 3 nombres reconocidos y el set no dice cuántas trae
-- Vallejo — Faces Painting Set Paint Set - Model Colour (www.goblingaming.co.uk): anuncia 17 pero solo se reconocieron 6
-- Vallejo — Forged Red Paint Set 77.260 (scalemodelshop.co.uk): anuncia 18 pero solo se reconocieron 4
-- Vallejo — French Camo Colors Paint Set 8x - Model Air (www.goblingaming.co.uk): anuncia 4 pero se reconocieron 8: el texto mezcla otros productos
-- Vallejo — Galaxy Dust Paint Set - Colour Shifters (www.goblingaming.co.uk): anuncia 17 pero solo se reconocieron 3
-- Vallejo — Game Air - set Plastic Case 51 colours, 8 primers, 5 auxiliary (www.gameology.com.au): anuncia 51 pero solo se reconocieron 20
-- Vallejo — Game Colour - Cold Green Color Set (www.gapgames.com.au): anuncia 10 pero solo se reconocieron 4
-- Vallejo — Game Colour - Pale Skin Set (www.gapgames.com.au): anuncia 10 pero solo se reconocieron 4
-- Vallejo — Game Colour - Purple Color Set (www.gapgames.com.au): anuncia 10 pero solo se reconocieron 3
-- Vallejo — Game Colour - Red Color Set (www.gapgames.com.au): anuncia 10 pero solo se reconocieron 4
-- Vallejo — Game Colour - Tanned Skin Set (www.gapgames.com.au): anuncia 10 pero solo se reconocieron 4
-- Vallejo — Game Colour Blue Colours (www.gapgames.com.au): anuncia 10 pero solo se reconocieron 4
-- Vallejo — Game Colour Foundation Case - 80 Colour (www.gapgames.com.au): anuncia 18 pero se reconocieron 80: el texto mezcla otros productos
-- Vallejo — Game Colour Green Colours (www.gapgames.com.au): anuncia 10 pero solo se reconocieron 4
-- Vallejo — Game Colour Leather (www.gapgames.com.au): anuncia 10 pero solo se reconocieron 4
-- Vallejo — Game Colour Orange Colours (www.gapgames.com.au): anuncia 10 pero solo se reconocieron 4
-- Vallejo — Game Colour Yellow Colours (www.gapgames.com.au): anuncia 10 pero solo se reconocieron 4
-- Vallejo — German AFV Colors WWII Model Color Paint Set 70.255 (scalemodelshop.co.uk): anuncia 3 pero se reconocieron 16: el texto mezcla otros productos
 - Vallejo — German Camouflage 1943/1944 6x8ml - Armour Paint Set (www.goblingaming.co.uk): solo 0 pinturas reconocidas
 - Vallejo — German jerrycan set (Tienda oficial): solo 0 pinturas reconocidas
-- Vallejo — Greenish Gold Paint Set 77.267 (scalemodelshop.co.uk): anuncia 18 pero solo se reconocieron 4
 - Vallejo — Hobby Range Carry Case - Model Colour (www.goblingaming.co.uk): solo 0 pinturas reconocidas
-- Vallejo — Hydra Turquoise Paint Set 77.264 (scalemodelshop.co.uk): anuncia 18 pero solo se reconocieron 4
 - Vallejo — IDF jerrycan set (Tienda oficial): solo 0 pinturas reconocidas
 - Vallejo — Imperial Purple Paint Set 8x - Fantasy Pro (www.goblingaming.co.uk): solo 1 pinturas reconocidas
-- Vallejo — Ink Paint Set - Game Colour (www.goblingaming.co.uk): anuncia 18 pero solo se reconocieron 8
-- Vallejo — Magic Dust Paint Set - Colour Shifters (www.goblingaming.co.uk): anuncia 17 pero solo se reconocieron 4
 - Vallejo — Metal Color Liquid Gold Set (4) (www.goblingaming.co.uk): solo 1 pinturas reconocidas
 - Vallejo — Metallic Colors Paint Set - Model Air (www.goblingaming.co.uk): solo 0 pinturas reconocidas
-- Vallejo — Military Paint Set - 76 Colours & 4 Auxiliaries - Model Colour (www.goblingaming.co.uk): anuncia 4 pero se reconocieron 79: el texto mezcla otros productos
 - Vallejo — Military Range Paint Set - Model Colour (www.goblingaming.co.uk): solo 0 pinturas reconocidas
-- Vallejo — Mode Air German/Allied WWII Colors Paint Set 71.190 (scalemodelshop.co.uk): anuncia 16 pero solo se reconocieron 3
-- Vallejo — Model Air Starter Set (Tienda oficial): anuncia 2 pero se reconocieron 12: el texto mezcla otros productos
-- Vallejo — Model Color – Combination Case Paint Set 70.254 (scalemodelshop.co.uk): anuncia 18 pero se reconocieron 80: el texto mezcla otros productos
 - Vallejo — NATO Camouflage 6x8ml - Armour Paint Set (www.goblingaming.co.uk): solo 0 pinturas reconocidas
-- Vallejo — NCO US Infantry Europe 1944-45 Model Color Paint Set 70.244 (scalemodelshop.co.uk): anuncia 45 pero solo se reconocieron 8
-- Vallejo — New Formula Vallejo Game Colour - Game Color Bundle (80 droppers) (www.gapgames.com.au): anuncia 18 pero se reconocieron 70: el texto mezcla otros productos
-- Vallejo — New Formula Vallejo Game Colour - Metallics Bundle (9 droppers) (www.gapgames.com.au): anuncia 18 pero solo se reconocieron 7
 - Vallejo — New Formula Vallejo Game Colour 18ml - Ink Bundle (12 droppers) (www.gapgames.com.au): solo 2 pinturas reconocidas
 - Vallejo — O-rings set for the Innovator model (Tienda oficial): solo 0 pinturas reconocidas
-- Vallejo — Old & New Wood Effects Paint Set - Model Air (www.goblingaming.co.uk): anuncia 17 pero solo se reconocieron 4
-- Vallejo — Paint Set French Camo Colors Pre-War & WWII 71.644 (scalemodelshop.co.uk): anuncia 4 pero se reconocieron 8: el texto mezcla otros productos
-- Vallejo — Paint Set Titanic Colors 71.646 (scalemodelshop.co.uk): anuncia 17 pero solo se reconocieron 4
-- Vallejo — Paint Set Weathering 71.194 (scalemodelshop.co.uk): anuncia 16 pero solo se reconocieron 3
 - Vallejo — Panzerfaust 60 m set (Tienda oficial): solo 0 pinturas reconocidas
 - Vallejo — Pro Modeler – Definition Set (Tienda oficial): solo 0 pinturas reconocidas
 - Vallejo — Pro Modeler – Design Set (Tienda oficial): solo 0 pinturas reconocidas
-- Vallejo — RAF & FAA Air 1939 - 45 Paint Set - Model Air (www.goblingaming.co.uk): anuncia 45 pero solo se reconocieron 8
-- Vallejo — RAF & FAA Coastal 1939-45 Paint Set - Model Air (www.goblingaming.co.uk): anuncia 45 pero solo se reconocieron 8
-- Vallejo — RAF & FAA Fleet Air 1939-45 Paint Set - Model Air (www.goblingaming.co.uk): anuncia 45 pero solo se reconocieron 8
-- Vallejo — RAF & FAA SEAC 1942-45 Paint Set - Model Air (www.goblingaming.co.uk): anuncia 45 pero solo se reconocieron 8
-- Vallejo — Radiant Yellow Paint Set 77.259 (scalemodelshop.co.uk): anuncia 18 pero solo se reconocieron 4
-- Vallejo — Red Army Scout 1943-45 Model Color Paint Set 70.248 (scalemodelshop.co.uk): anuncia 45 pero solo se reconocieron 8
-- Vallejo — Rust, Stains and Streaking Set Paint Set - Model Colour (www.goblingaming.co.uk): anuncia 17 pero solo se reconocieron 7
-- Vallejo — Rusty Metal True Metallic Paint Set 77.269 (scalemodelshop.co.uk): anuncia 18 pero solo se reconocieron 4
-- Vallejo — SQUIDMAR COLOR MEGA SET Dec 2026 Pre-Order (www.tistaminis.com): anuncia 6 pero se reconocieron 68: el texto mezcla otros productos
 - Vallejo — Set of 10 Curved Files (Tienda oficial): solo 0 pinturas reconocidas
 - Vallejo — Set of 10 Needle Files (Tienda oficial): solo 0 pinturas reconocidas
 - Vallejo — Set of 20 Drill Bits, 0.3-1.6 mm (Tienda oficial): solo 0 pinturas reconocidas
@@ -1677,22 +1689,10 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - Vallejo — Set of 5 Blades – #68 Stencil blades (Tienda oficial): solo 0 pinturas reconocidas
 - Vallejo — Set of 5 Diamond Files (Tienda oficial): solo 0 pinturas reconocidas
 - Vallejo — Set of 5 Mini Diamond Files (Tienda oficial): solo 0 pinturas reconocidas
-- Vallejo — Soviet Air Force VVS 1941 - 43 Paint Set - Model Air (www.goblingaming.co.uk): anuncia 43 pero solo se reconocieron 7
-- Vallejo — Soviet Air Force VVS 1943 - 45 Paint Set - Model Air (www.goblingaming.co.uk): anuncia 45 pero solo se reconocieron 6
-- Vallejo — Soviet Schemes Pt.I 1960-20 Paint Set - Model Air (www.goblingaming.co.uk): anuncia 20 pero solo se reconocieron 8
-- Vallejo — Space Dust Paint Set - Colour Shifters (www.goblingaming.co.uk): anuncia 17 pero solo se reconocieron 5
 - Vallejo — Starter Set (Tienda oficial): solo 0 pinturas reconocidas
 - Vallejo — Studio Acrylic 5 set (Tienda oficial): solo 1 pinturas reconocidas
 - Vallejo — Studio Acrylic 6 Set (Tienda oficial): solo 2 pinturas reconocidas
-- Vallejo — TMM Colour Case - 80 Colours & Carry Case (www.goblingaming.co.uk): anuncia 20 pero se reconocieron 80: el texto mezcla otros productos
-- Vallejo — Titanic Colours Paint Set 8x - Model Air (www.goblingaming.co.uk): anuncia 17 pero solo se reconocieron 4
-- Vallejo — True Metallic Metal Case - 80 Colour Paint Set (www.gapgames.com.au): anuncia 20 pero se reconocieron 80: el texto mezcla otros productos
-- Vallejo — True Metallic Metal Case - 80 Colour Paint Set (www.thecombatcompany.com): anuncia 20 pero se reconocieron 80: el texto mezcla otros productos
-- Vallejo — True Metallic Metal Starter Set 77.272 (scalemodelshop.co.uk): anuncia 4 pero se reconocieron 12: el texto mezcla otros productos
-- Vallejo — True Metallic Metal – Full Collection (Tienda oficial): anuncia 20 pero se reconocieron 80: el texto mezcla otros productos
 - Vallejo — Turbo Dork - Box Wine Metallic Acrylic Paint 22ml Bottle (www.gapgames.com.au): solo 0 pinturas reconocidas
-- Vallejo — USAAF Aircraft Paint Set - Model Air (www.goblingaming.co.uk): anuncia 17 pero solo se reconocieron 8
-- Vallejo — Ultramarine Blue Paint Set 77.263 (scalemodelshop.co.uk): anuncia 18 pero solo se reconocieron 4
 - Vallejo — VALLEJO 8 COLOURS WASH SET New (www.tistaminis.com): solo 0 pinturas reconocidas
 - Vallejo — VALLEJO ADVANCED SET GAME COLOR - 16 COLOURS New (www.tistaminis.com): solo 0 pinturas reconocidas
 - Vallejo — VALLEJO AZTEC DRAGONS - 8 COLOUR SET New (www.tistaminis.com): solo 0 pinturas reconocidas
@@ -1849,14 +1849,6 @@ Sets publicados: 588 — ok 315, parcial 41, revisar 232. Descartados: 1580.
 - Vallejo — Vallejo Xpress Color Artists Selection Case of 60 Paints (www.tistaminis.com): solo 0 pinturas reconocidas
 - Vallejo — Vallejo Xpress Color Starter Set (www.gameology.com.au): solo 0 pinturas reconocidas
 - Vallejo — WWII Allied Colour Set - 16pcs (www.thecombatcompany.com): solo 0 pinturas reconocidas
-- Vallejo — WWII British Colors Africa 1939-43 Paint Set - Model Air (www.goblingaming.co.uk): anuncia 43 pero solo se reconocieron 8
-- Vallejo — WWII Wargames – Vehicles Basic Paint Set Paint Set 70.157 (scalemodelshop.co.uk): anuncia 2 pero se reconocieron 6: el texto mezcla otros productos
-- Vallejo — WWIII NATO Armour & Infantry Model Color Paint Set 70.223 (scalemodelshop.co.uk): anuncia 3 pero se reconocieron 6: el texto mezcla otros productos
-- Vallejo — Waffen-SS Tank Crew, Kursk 1943 Model Color Paint Set 70.249 (scalemodelshop.co.uk): anuncia 3 pero se reconocieron 8: el texto mezcla otros productos
-- Vallejo — Wizkids Premium Paint Set by Vallejo: Arcane Elements (www.gapgames.com.au): anuncia 8 pero solo se reconocieron 3
 - Vallejo — Wizkids Premium Paint Set by Vallejo: Basic Starter Case (www.gapgames.com.au): solo 0 pinturas reconocidas
 - Vallejo — Wizkids Premium Paint Set by Vallejo: Intermediate Case (www.gapgames.com.au): solo 0 pinturas reconocidas
-- Vallejo — Wood & Leather Paint Set - Model Colour (www.goblingaming.co.uk): anuncia 17 pero solo se reconocieron 4
 - Vallejo — World of Tanks Miniatures Game Paint Set (www.goblingaming.co.uk): solo 1 pinturas reconocidas
-- Vallejo — Xpress Color Set Artist’s Selection Case 72.184 (scalemodelshop.co.uk): anuncia 18 pero se reconocieron 60: el texto mezcla otros productos
-- Vallejo — Xpress Color Starter Set (Tienda oficial): anuncia 2 pero se reconocieron 11: el texto mezcla otros productos
