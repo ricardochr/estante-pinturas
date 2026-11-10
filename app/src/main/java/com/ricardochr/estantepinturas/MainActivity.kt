@@ -191,36 +191,33 @@ private fun App(vm: MainViewModel = viewModel()) {
             val accent = tabPigment(tab)
             Column(Modifier.background(MaterialTheme.colorScheme.background).statusBarsPadding()) {
                 Row(
-                    Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 6.dp),
+                    Modifier.fillMaxWidth().padding(start = 16.dp, end = 10.dp, top = 6.dp, bottom = 6.dp),
                     verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
-                    Column(Modifier.weight(1f)) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            BrandDrops(7.dp)
-                            Text(
-                                "GOTARIO",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = accent[1],
-                                letterSpacing = 3.sp,
-                                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                            )
+                    if (tab == Tab.Inventario) {
+                        // En Inventario el encabezado es el selector entre tus pinturas y el catálogo
+                        Box(Modifier.weight(1f)) {
+                            SegmentedPill(
+                                listOf("Mis pinturas", "Catálogo"), invMode, accent,
+                            ) { invMode = it }
                         }
-                        Text(
-                            if (tab == Tab.Inventario && invMode == 1) "Catálogo" else if (tab == Tab.Inventario) "Mis pinturas" else tab.label,
-                            style = MaterialTheme.typography.headlineMedium,
-                        )
+                    } else {
+                        Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Box(Modifier.size(10.dp).clip(CircleShape).background(diagonal(accent)))
+                            Text(tab.label, style = MaterialTheme.typography.headlineSmall, maxLines = 1)
+                        }
                     }
-                    val toBuy = vm.shoppingCount
                     HeaderButton(Icons.Rounded.Layers, "Superponer referencia", Pigment.Magenta) { showCompare = true }
                     Box {
                         HeaderButton(Icons.Rounded.ShoppingCart, "Lista de compras", Pigment.Tangerine) { showShopping = true }
+                        val toBuy = vm.shoppingCount
                         if (toBuy > 0) {
                             Badge(Modifier.align(Alignment.TopEnd), containerColor = Pigment.Crimson[0], contentColor = Color.White) { Text(toBuy.toString()) }
                         }
                     }
                 }
-                // Franja de pintura bajo el encabezado, del color de la pestaña
-                Box(Modifier.fillMaxWidth().height(3.dp).background(Brush.horizontalGradient(listOf(accent[0], accent[1], accent[1].copy(alpha = 0f)))))
+                Box(Modifier.fillMaxWidth().height(2.dp).background(Brush.horizontalGradient(listOf(accent[0], accent[1], accent[1].copy(alpha = 0f)))))
             }
         },
         bottomBar = { GotarioNavBar(tab) { tab = it } },
@@ -229,10 +226,6 @@ private fun App(vm: MainViewModel = viewModel()) {
         Surface(Modifier.padding(padding).fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             when (tab) {
                 Tab.Inventario -> Column(Modifier.fillMaxSize()) {
-                    Row(Modifier.padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        FilterChip(selected = invMode == 0, onClick = { invMode = 0 }, label = { Text("Mis pinturas (${vm.owned.values.count { it.qty > 0 }})") })
-                        FilterChip(selected = invMode == 1, onClick = { invMode = 1 }, label = { Text("Catálogo") })
-                    }
                     Box(Modifier.weight(1f)) {
                         if (invMode == 0) {
                             InventoryScreen(
@@ -542,8 +535,7 @@ private fun tabIcon(t: Tab): ImageVector = when (t) {
 private fun HeaderButton(icon: ImageVector, description: String, colors: List<Color>, onClick: () -> Unit) {
     Box(
         Modifier
-            .padding(4.dp)
-            .size(42.dp)
+            .size(40.dp)
             .clip(CircleShape)
             .background(diagonal(colors))
             .clickable(onClick = onClick)
@@ -555,65 +547,22 @@ private fun HeaderButton(icon: ImageVector, description: String, colors: List<Co
 }
 
 /**
- * Barra de navegación flotante: tarjeta redondeada con sombra, cada pestaña con su color de
- * pigmento y Escanear al centro como botón grande y elevado.
+ * Barra de navegación: las cinco secciones con el mismo peso, cada una con su color de pigmento.
+ * Solo la sección abierta se resalta (píldora con degradado e ícono blanco).
  */
 @Composable
 private fun GotarioNavBar(current: Tab, onSelect: (Tab) -> Unit) {
-    Box(
-        Modifier
-            .fillMaxWidth()
-            .navigationBarsPadding()
-            .padding(start = 12.dp, end = 12.dp, bottom = 10.dp),
-        contentAlignment = Alignment.BottomCenter,
+    Surface(
+        shape = RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        shadowElevation = 12.dp,
+        modifier = Modifier.fillMaxWidth(),
     ) {
-        Surface(
-            shape = RoundedCornerShape(28.dp),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            shadowElevation = 14.dp,
-            modifier = Modifier.fillMaxWidth().height(70.dp),
+        Row(
+            Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 4.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Row(Modifier.fillMaxSize().padding(horizontal = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-                Tab.values().forEach { t ->
-                    if (t == Tab.Escanear) {
-                        // Espacio para el botón central
-                        Box(Modifier.weight(1f))
-                    } else {
-                        NavItem(t, current == t, Modifier.weight(1f)) { onSelect(t) }
-                    }
-                }
-            }
-        }
-        // Botón central de escanear, elevado sobre la barra
-        val scanSelected = current == Tab.Escanear
-        val scale by animateFloatAsState(if (scanSelected) 1.08f else 1f, label = "scan")
-        Column(
-            Modifier.padding(bottom = 22.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Box(
-                Modifier
-                    .graphicsLayer { scaleX = scale; scaleY = scale }
-                    .shadow(12.dp, CircleShape)
-                    .size(64.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                    .padding(4.dp)
-                    .clip(CircleShape)
-                    .background(diagonal(Pigment.Emerald))
-                    .clickable { onSelect(Tab.Escanear) }
-                    .semantics { contentDescription = "Escanear" },
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(Icons.Rounded.QrCodeScanner, contentDescription = null, tint = Color.White, modifier = Modifier.size(28.dp))
-            }
-            Text(
-                "Escanear",
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = if (scanSelected) androidx.compose.ui.text.font.FontWeight.Bold else null,
-                color = if (scanSelected) Pigment.Emerald[1] else MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 2.dp),
-            )
+            Tab.values().forEach { t -> NavItem(t, current == t, Modifier.weight(1f)) { onSelect(t) } }
         }
     }
 }
@@ -621,8 +570,8 @@ private fun GotarioNavBar(current: Tab, onSelect: (Tab) -> Unit) {
 @Composable
 private fun NavItem(t: Tab, selected: Boolean, modifier: Modifier, onClick: () -> Unit) {
     val pg = tabPigment(t)
-    val pillWidth by animateDpAsState(if (selected) 52.dp else 36.dp, label = "pill")
-    val iconTint by animateColorAsState(if (selected) Color.White else pg[0], label = "tint")
+    val pillWidth by animateDpAsState(if (selected) 56.dp else 40.dp, label = "pill")
+    val iconTint by animateColorAsState(if (selected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, label = "tint")
     Column(
         modifier
             .clip(RoundedCornerShape(18.dp))
@@ -636,7 +585,7 @@ private fun NavItem(t: Tab, selected: Boolean, modifier: Modifier, onClick: () -
                 .height(32.dp)
                 .width(pillWidth)
                 .clip(RoundedCornerShape(16.dp))
-                .background(if (selected) diagonal(pg) else Brush.linearGradient(listOf(pg[0].copy(alpha = 0.12f), pg[0].copy(alpha = 0.12f)))),
+                .background(if (selected) diagonal(pg) else Brush.linearGradient(listOf(Color.Transparent, Color.Transparent))),
             contentAlignment = Alignment.Center,
         ) {
             Icon(tabIcon(t), contentDescription = null, tint = iconTint, modifier = Modifier.size(22.dp))
@@ -648,5 +597,35 @@ private fun NavItem(t: Tab, selected: Boolean, modifier: Modifier, onClick: () -
             color = if (selected) pg[1] else MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1,
         )
+    }
+}
+
+/** Selector de dos o más opciones en forma de píldora; la elegida va con el degradado de la pestaña. */
+@Composable
+private fun SegmentedPill(options: List<String>, selected: Int, colors: List<Color>, onSelect: (Int) -> Unit) {
+    Row(
+        Modifier
+            .clip(RoundedCornerShape(22.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+            .padding(3.dp),
+    ) {
+        options.forEachIndexed { i, label ->
+            val on = i == selected
+            Box(
+                Modifier
+                    .clip(RoundedCornerShape(19.dp))
+                    .background(if (on) diagonal(colors) else Brush.linearGradient(listOf(Color.Transparent, Color.Transparent)))
+                    .clickable { onSelect(i) }
+                    .padding(horizontal = 14.dp, vertical = 7.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    label,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = if (on) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                )
+            }
+        }
     }
 }

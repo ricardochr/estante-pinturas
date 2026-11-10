@@ -94,6 +94,7 @@ private fun <T> rememberFiltered(
     return result
 }
 
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 fun InventoryScreen(
     vm: MainViewModel,
@@ -128,71 +129,131 @@ fun InventoryScreen(
     }
     val totalBottles = ownedPaints.sumOf { it.second.qty }
 
-    Column(Modifier.fillMaxSize()) {
-        Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            if (ownedPaints.isNotEmpty() && query.isEmpty()) {
-                SummaryCard(ownedPaints.map { it.first }, totalBottles, brands.size)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.height(IntrinsicSize.Min)) {
-                    StorageCard(vm.spots.size, vm.locations.keys.count { it in vm.owned }, onOpenStorage, Modifier.weight(1f).fillMaxHeight())
-                    ShoppingCard(vm.shoppingCount, onOpenShopping, Modifier.weight(1f).fillMaxHeight())
-                }
-            }
-            SearchField(query, { query = it }, "Buscar: nombre, código, marca, color…")
-        }
-        BrandChips(brands, effectiveBrand) { brand = it }
+    val listState = rememberLazyListState()
+    LaunchedEffect(query, effectiveBrand, sortMode, onlyMultiple) {
+        // Al cambiar filtros vuelve al principio de la lista, con el buscador a la vista
+        if (listState.firstVisibleItemIndex > 1) listState.scrollToItem(1)
+    }
+
+    // Una sola lista que se desplaza completa: el resumen se va hacia arriba y el buscador
+    // con los filtros queda fijo arriba mientras recorres tus pinturas.
+    LazyColumn(Modifier.fillMaxSize(), state = listState, contentPadding = PaddingValues(bottom = 16.dp)) {
         if (ownedPaints.isNotEmpty()) {
-            Row(
-                Modifier.padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                androidx.compose.material3.FilterChip(
-                    selected = onlyMultiple,
-                    onClick = { onlyMultiple = !onlyMultiple },
-                    label = { Text("Más de 1 bote ($multipleCount)") },
+            item(key = "summary") {
+                SummaryCard(
+                    ownedPaints.map { it.first }, totalBottles, brands.size,
+                    Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 6.dp),
                 )
-                androidx.compose.foundation.layout.Box {
-                    androidx.compose.material3.AssistChip(onClick = { sortMenu = true }, label = { Text("Ordenar: ${sortMode.label}") })
-                    androidx.compose.material3.DropdownMenu(expanded = sortMenu, onDismissRequest = { sortMenu = false }) {
-                        InvSort.values().forEach { m ->
-                            androidx.compose.material3.DropdownMenuItem(
-                                text = { Text((if (m == sortMode) "✓ " else "") + m.label) },
-                                onClick = { sortMode = m; sortMenu = false },
+            }
+        }
+        stickyHeader(key = "filters") {
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.background)
+                    .padding(top = 4.dp, bottom = 6.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Row(
+                    Modifier.padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    SearchField(query, { query = it }, "Buscar en tus pinturas", Modifier.weight(1f))
+                    // Encontrar dónde está una pintura (gaveta o estante)
+                    androidx.compose.foundation.layout.Box(
+                        Modifier
+                            .size(48.dp)
+                            .clip(androidx.compose.foundation.shape.CircleShape)
+                            .background(diagonal(Pigment.Emerald))
+                            .clickable(onClick = onOpenStorage),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        androidx.compose.material3.Icon(
+                            Icons.Rounded.TravelExplore,
+                            contentDescription = "Encontrar una pintura",
+                            tint = androidx.compose.ui.graphics.Color.White,
+                        )
+                    }
+                }
+                if (ownedPaints.isNotEmpty()) {
+                    androidx.compose.foundation.lazy.LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        contentPadding = PaddingValues(horizontal = 16.dp),
+                    ) {
+                        item {
+                            androidx.compose.foundation.layout.Box {
+                                androidx.compose.material3.FilterChip(
+                                    selected = true,
+                                    onClick = { sortMenu = true },
+                                    label = { Text("↕ ${sortMode.label}") },
+                                )
+                                androidx.compose.material3.DropdownMenu(expanded = sortMenu, onDismissRequest = { sortMenu = false }) {
+                                    InvSort.values().forEach { m ->
+                                        androidx.compose.material3.DropdownMenuItem(
+                                            text = { Text((if (m == sortMode) "✓ " else "") + "Ordenar por " + m.label.lowercase()) },
+                                            onClick = { sortMode = m; sortMenu = false },
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        item {
+                            androidx.compose.material3.FilterChip(
+                                selected = onlyMultiple,
+                                onClick = { onlyMultiple = !onlyMultiple },
+                                label = { Text("Repetidas ($multipleCount)") },
                             )
+                        }
+                        if (brands.size > 1) {
+                            item {
+                                androidx.compose.material3.FilterChip(
+                                    selected = effectiveBrand == null,
+                                    onClick = { brand = null },
+                                    label = { Text("Todas") },
+                                )
+                            }
+                            items(brands, key = { "b-" + it.first }) { (b, n) ->
+                                androidx.compose.material3.FilterChip(
+                                    selected = effectiveBrand == b,
+                                    onClick = { brand = if (effectiveBrand == b) null else b },
+                                    label = { Text("$b $n") },
+                                )
+                            }
                         }
                     }
                 }
             }
         }
-        Spacer(Modifier.height(4.dp))
-
         when {
-            vm.loading || shown == null -> EmptyState("Cargando…", "Abriendo el catálogo de pinturas.")
-            onlyMultiple && shown.isEmpty() -> EmptyState("Ninguna repetida", "No tienes más de un bote de ninguna pintura con estos filtros.")
-            ownedPaints.isEmpty() -> Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                EmptyState(
-                    "Tu estante está vacío",
-                    "Escanea la etiqueta o el código de barras de un bote, o búscalo en el catálogo de ${vm.catalog.size} pinturas y tócalo para agregarlo.",
-                )
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TextButton(onClick = onGoScan) { Text("Escanear") }
-                    TextButton(onClick = onGoCatalog) { Text("Abrir catálogo") }
+            vm.loading || shown == null -> item { EmptyState("Cargando…", "Abriendo el catálogo de pinturas.") }
+            ownedPaints.isEmpty() -> item {
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                    EmptyState(
+                        "Tu estante está vacío",
+                        "Escanea la etiqueta o el código de barras de un bote, o búscalo en el catálogo de ${vm.catalog.size} pinturas y tócalo para agregarlo.",
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        TextButton(onClick = onGoScan) { Text("Escanear") }
+                        TextButton(onClick = onGoCatalog) { Text("Abrir catálogo") }
+                    }
                 }
             }
-            shown.isEmpty() -> Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                EmptyState("No la tienes", "Ninguna pintura de tu inventario coincide con “$query”.")
-                TextButton(onClick = onGoCatalog) { Text("Buscar en el catálogo") }
+            onlyMultiple && shown.isEmpty() -> item { EmptyState("Ninguna repetida", "No tienes más de un bote de ninguna pintura con estos filtros.") }
+            shown.isEmpty() -> item {
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                    EmptyState("No la tienes", "Ninguna pintura de tu inventario coincide con “$query”.")
+                    TextButton(onClick = onGoCatalog) { Text("Buscar en el catálogo") }
+                }
             }
-            else -> LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 24.dp)) {
-                items(shown, key = { it.first.id }, contentType = { 0 }) { (p, e) ->
-                    val where = vm.spotOf(p.id)?.name
-                    PaintRow(p, extra = listOfNotNull(where?.let { "📍 $it" }, e.notes.ifBlank { null }).joinToString(" · "), onClick = { onEdit(p) }) {
-                        QtyStepper(
-                            e.qty,
-                            onMinus = { vm.add(p.id, -1) },
-                            onPlus = { vm.add(p.id, 1) },
-                        )
-                    }
+            else -> items(shown, key = { it.first.id }, contentType = { 0 }) { (p, e) ->
+                val where = vm.spotOf(p.id)?.name
+                PaintRow(p, extra = listOfNotNull(where?.let { "📍 $it" }, e.notes.ifBlank { null }).joinToString(" · "), onClick = { onEdit(p) }) {
+                    QtyStepper(
+                        e.qty,
+                        onMinus = { vm.add(p.id, -1) },
+                        onPlus = { vm.add(p.id, 1) },
+                    )
                 }
             }
         }
@@ -271,7 +332,7 @@ fun OwnedBadge(qty: Int) {
 
 /** Resumen del estante: cifras y una franja con todos tus colores ordenados por tono. */
 @Composable
-private fun SummaryCard(paints: List<Paint>, bottles: Int, brands: Int) {
+private fun SummaryCard(paints: List<Paint>, bottles: Int, brands: Int, modifier: Modifier = Modifier) {
     val strip = remember(paints) {
         paints.filter { it.hasColor }
             .sortedWith(compareBy<Paint>({
@@ -286,8 +347,8 @@ private fun SummaryCard(paints: List<Paint>, bottles: Int, brands: Int) {
             }))
             .map { androidx.compose.ui.graphics.Color(it.argb) }
     }
-    PigmentCard(Pigment.Night, Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    PigmentCard(Pigment.Night, modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium) {
+        Column(Modifier.padding(horizontal = 14.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(Modifier.fillMaxWidth()) {
                 Stat(paints.size.toString(), "colores", Pigment.Cobalt[0], Modifier.weight(1f))
                 Stat(bottles.toString(), "botes", Pigment.Emerald[0], Modifier.weight(1f))
@@ -297,8 +358,8 @@ private fun SummaryCard(paints: List<Paint>, bottles: Int, brands: Int) {
                 androidx.compose.foundation.Canvas(
                     Modifier
                         .fillMaxWidth()
-                        .height(14.dp)
-                        .clip(RoundedCornerShape(7.dp))
+                        .height(10.dp)
+                        .clip(RoundedCornerShape(5.dp))
                 ) {
                     val w = size.width / strip.size
                     strip.forEachIndexed { i, c ->
@@ -312,51 +373,9 @@ private fun SummaryCard(paints: List<Paint>, bottles: Int, brands: Int) {
 
 @Composable
 private fun Stat(value: String, label: String, accent: androidx.compose.ui.graphics.Color, modifier: Modifier = Modifier) {
-    Column(modifier) {
-        Text(value, style = MaterialTheme.typography.headlineMedium, color = androidx.compose.ui.graphics.Color.White)
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-            androidx.compose.foundation.layout.Box(
-                Modifier.size(7.dp).clip(RoundedCornerShape(4.dp)).background(accent)
-            )
-            Text(label.uppercase(), style = MaterialTheme.typography.labelSmall, color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.75f))
-        }
-    }
-}
-
-@Composable
-private fun StorageCard(spots: Int, located: Int, onOpen: () -> Unit, modifier: Modifier = Modifier) {
-    QuickCard(
-        androidx.compose.material.icons.Icons.Rounded.TravelExplore, Pigment.Emerald, "Encontrar una pintura",
-        if (spots == 0) "Por foto o con la cámara" else "$spots ${if (spots == 1) "foto" else "fotos"} · $located ubicadas",
-        onOpen, modifier,
-    )
-}
-
-@Composable
-private fun ShoppingCard(count: Int, onOpen: () -> Unit, modifier: Modifier = Modifier) {
-    QuickCard(
-        androidx.compose.material.icons.Icons.Rounded.ShoppingCart, Pigment.Tangerine, "Lista de compras",
-        if (count == 0) "Vacía · ve recomendaciones" else "$count por comprar",
-        onOpen, modifier,
-    )
-}
-
-@Composable
-private fun QuickCard(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    colors: List<androidx.compose.ui.graphics.Color>,
-    title: String,
-    subtitle: String,
-    onOpen: () -> Unit,
-    modifier: Modifier,
-) {
-    PigmentCard(colors, modifier, shape = MaterialTheme.shapes.medium, onClick = onOpen) {
-        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            IconBubble(icon, 36.dp)
-            Column {
-                Text(title, style = MaterialTheme.typography.titleSmall, color = androidx.compose.ui.graphics.Color.White, maxLines = 2)
-                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.85f), maxLines = 2)
-            }
-        }
+    Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+        androidx.compose.foundation.layout.Box(Modifier.size(7.dp).clip(RoundedCornerShape(4.dp)).background(accent))
+        Text(value, style = MaterialTheme.typography.titleLarge, color = androidx.compose.ui.graphics.Color.White, maxLines = 1)
+        Text(label, style = MaterialTheme.typography.labelSmall, color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.75f), maxLines = 1)
     }
 }

@@ -217,7 +217,8 @@ fun SearchField(value: String, onChange: (String) -> Unit, placeholder: String, 
         onValueChange = onChange,
         modifier = modifier.fillMaxWidth(),
         singleLine = true,
-        placeholder = { Text(placeholder) },
+        placeholder = { Text(placeholder, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+        textStyle = MaterialTheme.typography.bodyMedium,
         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
         trailingIcon = {
             if (value.isNotEmpty()) {
@@ -263,7 +264,8 @@ fun CodeTag(code: String) {
     Text(
         code,
         fontFamily = FontFamily.Monospace,
-        fontSize = 12.sp,
+        fontSize = 11.sp,
+        maxLines = 1,
         color = MaterialTheme.colorScheme.onPrimaryContainer,
         modifier = Modifier
             .clip(RoundedCornerShape(4.dp))
@@ -282,23 +284,23 @@ fun PaintRow(
 ) {
     Row(
         Modifier
-            .padding(horizontal = 12.dp, vertical = 4.dp)
+            .padding(horizontal = 12.dp, vertical = 3.dp)
             .fillMaxWidth()
-            .clip(MaterialTheme.shapes.medium)
+            .clip(MaterialTheme.shapes.small)
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)
             .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 10.dp),
+            .padding(start = 10.dp, end = 8.dp, top = 7.dp, bottom = 7.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Swatch(paint.hex, size = 42.dp, metallic = paint.type == "Metálica")
+        Swatch(paint.hex, size = 34.dp, metallic = paint.type == "Metálica")
         Column(Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
                     paint.name,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 2,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f, fill = false),
                 )
@@ -308,7 +310,7 @@ fun PaintRow(
                 paint.subtitle + (if (extra.isNullOrBlank()) "" else " — $extra"),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 2,
+                maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
         }
@@ -320,18 +322,18 @@ fun PaintRow(
 fun QtyStepper(qty: Int, onMinus: () -> Unit, onPlus: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Box(
-            Modifier.size(34.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceContainerHighest).clickable(onClick = onMinus),
+            Modifier.size(30.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceContainerHighest).clickable(onClick = onMinus),
             contentAlignment = Alignment.Center,
         ) { Text("−", fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface) }
         Text(
             qty.toString(),
             fontWeight = FontWeight.Bold,
             style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.width(32.dp),
+            modifier = Modifier.width(28.dp),
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
         )
         Box(
-            Modifier.size(34.dp).clip(CircleShape).background(diagonal(Pigment.Cobalt)).clickable(onClick = onPlus),
+            Modifier.size(30.dp).clip(CircleShape).background(diagonal(Pigment.Cobalt)).clickable(onClick = onPlus),
             contentAlignment = Alignment.Center,
         ) { Text("+", fontSize = 18.sp, color = Color.White, fontWeight = FontWeight.Bold) }
     }
