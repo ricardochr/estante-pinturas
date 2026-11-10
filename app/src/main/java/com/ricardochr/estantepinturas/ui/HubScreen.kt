@@ -23,6 +23,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.MenuBook
 import androidx.compose.material.icons.rounded.AddCircle
 import androidx.compose.material.icons.rounded.Air
+import androidx.compose.material.icons.rounded.AutoAwesome
+import androidx.compose.material.icons.rounded.GridView
 import androidx.compose.material.icons.rounded.Backup
 import androidx.compose.material.icons.rounded.ColorLens
 import androidx.compose.material.icons.rounded.DeleteSweep
@@ -55,7 +57,7 @@ import com.ricardochr.estantepinturas.MainViewModel
 
 /** Acciones que abre el Taller; cada una la resuelve la pantalla principal. */
 enum class HubAction {
-    Compare, Wheel, Guide, Gear,
+    Compare, Wheel, Schemes, Gaps, Guide, Gear,
     Shopping, Sets, Find, AddCustom,
     UpdateCatalog, Backup, ExportInventory, ImportInventory,
     ImportCatalog, ExportCatalog, ClearImported, About,
@@ -93,6 +95,8 @@ fun HubScreen(vm: MainViewModel, onAction: (HubAction) -> Unit) {
     val paint = listOf(
         HubTile(HubAction.Compare, Icons.Rounded.Layers, "Superponer referencia", "Compara tu figura con una foto", Pigment.Magenta),
         HubTile(HubAction.Wheel, Icons.Rounded.ColorLens, "Círculo cromático", "Armonías con tus pinturas", Pigment.Violet),
+        HubTile(HubAction.Schemes, Icons.Rounded.AutoAwesome, "Esquemas de color", "Arma una paleta sin foto", Pigment.Cobalt),
+        HubTile(HubAction.Gaps, Icons.Rounded.GridView, "Huecos de tu colección", "Qué tonos te faltan", Pigment.Emerald),
         HubTile(HubAction.Guide, Icons.AutoMirrored.Rounded.MenuBook, "Guía de técnicas", "Capas, lavados, veladuras", Pigment.Teal),
         HubTile(HubAction.Gear, Icons.Rounded.Air, "Mi equipo", if (airbrushes == 0) "Registra tu aerógrafo" else "$airbrushes aerógrafo" + (if (airbrushes > 1) "s" else ""), Pigment.Slate),
     )

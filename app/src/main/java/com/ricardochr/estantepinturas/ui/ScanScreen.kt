@@ -45,6 +45,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -71,6 +72,9 @@ import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.ricardochr.estantepinturas.MainViewModel
 import com.ricardochr.estantepinturas.Paint
 import java.util.concurrent.Executors
+
+/** Un bote anotado en el escaneo en serie y cuántos tenías antes de escanearlo. */
+private class ScanLog(val paint: Paint, val hadBefore: Int)
 
 /** Analiza cuadros de la cámara con ML Kit (sin internet): códigos de barras + texto. */
 class PaintAnalyzer(
@@ -155,6 +159,12 @@ fun ScanScreen(
     val activeState by rememberUpdatedState(active)
     val showingState by rememberUpdatedState(showingResult)
 
+    // Escaneo en serie: cada bote reconocido se anota solo y la cámara sigue buscando
+    var serial by rememberSaveable { mutableStateOf(false) }
+    val serialState by rememberUpdatedState(serial)
+    var session by remember { mutableStateOf<List<ScanLog>>(emptyList()) }
+    val recent = remember { HashMap<String, Long>() }
+
     fun reset() {
         found = emptyList()
         unknownBarcode = null
@@ -174,9 +184,22 @@ fun ScanScreen(
                         .sortedByDescending { if (it.id in stable) 1 else 0 }
                         .distinctBy { it.id }
                         .take(5)
-                    found = ordered
+                    if (serialState && (ordered.size == 1 || byBarcode)) {
+                        // Una sola candidata: se anota sin detener la cámara. La misma pintura no se repite en 5 s.
+                        val p = ordered.first()
+                        val now = SystemClock.elapsedRealtime()
+                        if (now - (recent[p.id] ?: 0L) > 5000) {
+                            recent[p.id] = now
+                            val had = vmState.qtyOf(p.id)
+                            if (had == 0) vmState.add(p.id, 1)
+                            session = listOf(ScanLog(p, had)) + session.filterNot { it.paint.id == p.id }
+                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                        }
+                    } else {
+                        found = ordered
+                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                    }
                     lastIds = emptySet()
-                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                 } else {
                     lastIds = ids
                 }
@@ -226,6 +249,16 @@ fun ScanScreen(
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                 )
             }
+            androidx.compose.material3.FilterChip(
+                selected = serial,
+                onClick = { serial = !serial; if (!serial) session = emptyList() },
+                label = { Text("En serie") },
+                colors = androidx.compose.material3.FilterChipDefaults.filterChipColors(
+                    containerColor = Color.Black.copy(alpha = 0.6f),
+                    labelColor = Color.White,
+                ),
+                modifier = Modifier.align(Alignment.BottomStart).padding(10.dp),
+            )
             FilledTonalButton(
                 onClick = { torch = !torch },
                 modifier = Modifier
@@ -272,6 +305,43 @@ fun ScanScreen(
                         Button(onClick = { onLinkBarcode(ub); reset() }) { Text("Asociar") }
                         OutlinedButton(onClick = { reset() }) { Text("Escanear otra") }
                     }
+                }
+                serial -> Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(vertical = 10.dp)) {
+                    Text(
+                        if (session.isEmpty()) "Escaneo en serie" else "Escaneadas: ${session.size}",
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                    )
+                    Text(
+                        "Pasa los botes uno tras otro: las que no tienes se agregan solas y te aviso de las que ya tienes.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                    )
+                    session.forEach { log ->
+                        val qty = vm.qtyOf(log.paint.id)
+                        Row(
+                            Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        ) {
+                            Swatch(log.paint.hex, size = 36.dp, metallic = log.paint.type == "Metálica")
+                            Column(Modifier.weight(1f)) {
+                                Text(log.paint.name, style = MaterialTheme.typography.titleSmall, maxLines = 1)
+                                Text(
+                                    if (log.hadBefore == 0) "Agregada · tienes $qty" else "Ya la tenías · tienes $qty",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = if (log.hadBefore == 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary,
+                                )
+                            }
+                            if (log.hadBefore == 0 && qty > 0) {
+                                TextButton(onClick = { vm.remove(log.paint.id); session = session.filterNot { it.paint.id == log.paint.id } }) { Text("Deshacer") }
+                            } else {
+                                TextButton(onClick = { vm.add(log.paint.id, 1) }) { Text("+1 bote") }
+                            }
+                        }
+                    }
+                    TextButton(onClick = onNotFound, modifier = Modifier.padding(horizontal = 8.dp)) { Text("Buscar a mano en el catálogo") }
                 }
                 else -> Column(
                     Modifier

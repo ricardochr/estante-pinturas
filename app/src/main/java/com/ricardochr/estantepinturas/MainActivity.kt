@@ -171,6 +171,8 @@ private fun App(vm: MainViewModel = viewModel()) {
     var showSets by rememberSaveable { mutableStateOf(false) }
     var showGuide by rememberSaveable { mutableStateOf(false) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
+    var showSchemes by rememberSaveable { mutableStateOf(false) }
+    var showGaps by rememberSaveable { mutableStateOf(false) }
     var showWheel by rememberSaveable { mutableStateOf(false) }
     fun goCatalog() { tab = Tab.Inventario; invMode = 1 }
     val snackbar = remember { SnackbarHostState() }
@@ -205,6 +207,8 @@ private fun App(vm: MainViewModel = viewModel()) {
         when (action) {
                         HubAction.Compare -> showCompare = true
                         HubAction.Wheel -> showWheel = true
+                        HubAction.Schemes -> showSchemes = true
+                        HubAction.Gaps -> showGaps = true
                         HubAction.Guide -> showGuide = true
                         HubAction.Gear -> showGear = true
                         HubAction.Shopping -> showShopping = true
@@ -313,7 +317,7 @@ private fun App(vm: MainViewModel = viewModel()) {
                 Tab.Escanear -> ScanScreen(
                     vm,
                     active = linking == null && editing == null && !creating && storage == null && liveFind == null &&
-                        openProject == null && !showShopping && !showBackup && !showGear && !showSets && !showCompare && !showWheel && !showGuide && !showSettings && wheelFor == null,
+                        openProject == null && !showShopping && !showBackup && !showGear && !showSets && !showCompare && !showWheel && !showGuide && !showSettings && !showSchemes && !showGaps && wheelFor == null,
                     onLinkBarcode = { linking = it },
                     onNotFound = { goCatalog() },
                     onAdded = { say(it) },
@@ -454,6 +458,20 @@ private fun App(vm: MainViewModel = viewModel()) {
                 }
             },
         )
+    }
+
+    if (showSchemes) {
+        com.ricardochr.estantepinturas.ui.SchemeScreen(
+            vm,
+            onClose = { showSchemes = false },
+            onOpenPaint = { editing = it },
+            onProjectCreated = { showSchemes = false; say(tr("Proyecto creado: {}", it.name)); openProject = it.id },
+            say = { say(it) },
+        )
+    }
+
+    if (showGaps) {
+        com.ricardochr.estantepinturas.ui.GapsScreen(vm, onClose = { showGaps = false }, onOpenPaint = { editing = it }, say = { say(it) })
     }
 
     if (showSettings) {

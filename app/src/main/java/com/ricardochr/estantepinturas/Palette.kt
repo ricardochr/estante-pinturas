@@ -494,6 +494,12 @@ private fun pickTone(base: Lab, candidates: List<Paint>, exclude: String?, darke
         ?.first
 }
 
+/** Sombra y luz del inventario para una pintura base (opacas, mismo tono, más oscura y más clara). */
+fun tonesFor(base: Paint, inventory: List<Paint>): Pair<Paint?, Paint?> {
+    val inv = inventory.filter { it.hasColor && typeGroup(it.type) == "opaca" && it.type != "Imprimación" }
+    return pickTone(base.lab, inv, base.id, darker = true) to pickTone(base.lab, inv, base.id, darker = false)
+}
+
 /**
  * Para cada color de la imagen: la pintura más parecida de tu inventario, dos alternativas,
  * una pintura más oscura para la sombra y una más clara para la luz. Si nada de lo que tienes
