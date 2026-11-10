@@ -154,13 +154,50 @@ fun Swatch(hex: String, size: Dp = 40.dp, metallic: Boolean = false) {
             Brush.radialGradient(listOf(Color.White.copy(alpha = 0.18f).compositeOver(base), base, Color.Black.copy(alpha = 0.15f).compositeOver(base)))
         }
     }
-    Box(
-        Modifier
-            .size(size)
-            .clip(CircleShape)
-            .background(brush)
-            .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
-    )
+    if (size < 34.dp) {
+        Box(
+            Modifier
+                .size(size)
+                .clip(CircleShape)
+                .background(brush)
+                .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
+        )
+        return
+    }
+    // Tamaño grande: un bote de pintura (tapa oscura y cuerpo con el color, con brillo)
+    val outline = MaterialTheme.colorScheme.outline
+    androidx.compose.foundation.Canvas(Modifier.size(size)) {
+        val w = this.size.width
+        val h = this.size.height
+        val bodyTop = h * 0.26f
+        val r = androidx.compose.ui.geometry.CornerRadius(w * 0.2f, w * 0.2f)
+        drawRoundRect(
+            Brush.verticalGradient(listOf(Color(0xFF4A4D57), Color(0xFF1E2027))),
+            topLeft = androidx.compose.ui.geometry.Offset(w * 0.14f, 0f),
+            size = androidx.compose.ui.geometry.Size(w * 0.72f, h * 0.34f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(w * 0.1f, w * 0.1f),
+        )
+        drawRoundRect(
+            brush,
+            topLeft = androidx.compose.ui.geometry.Offset(w * 0.06f, bodyTop),
+            size = androidx.compose.ui.geometry.Size(w * 0.88f, h - bodyTop),
+            cornerRadius = r,
+        )
+        drawRoundRect(
+            outline,
+            topLeft = androidx.compose.ui.geometry.Offset(w * 0.06f, bodyTop),
+            size = androidx.compose.ui.geometry.Size(w * 0.88f, h - bodyTop),
+            cornerRadius = r,
+            style = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.dp.toPx()),
+        )
+        // Brillo vertical a la izquierda
+        drawRoundRect(
+            Color.White.copy(alpha = if (metallic) 0.55f else 0.32f),
+            topLeft = androidx.compose.ui.geometry.Offset(w * 0.18f, bodyTop + h * 0.1f),
+            size = androidx.compose.ui.geometry.Size(w * 0.1f, (h - bodyTop) * 0.55f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(w * 0.05f, w * 0.05f),
+        )
+    }
 }
 
 private fun Color.compositeOver(bg: Color): Color {
@@ -245,13 +282,16 @@ fun PaintRow(
 ) {
     Row(
         Modifier
+            .padding(horizontal = 12.dp, vertical = 4.dp)
             .fillMaxWidth()
+            .clip(MaterialTheme.shapes.medium)
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 10.dp),
+            .padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Swatch(paint.hex, metallic = paint.type == "Metálica")
+        Swatch(paint.hex, size = 42.dp, metallic = paint.type == "Metálica")
         Column(Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
@@ -274,20 +314,26 @@ fun PaintRow(
         }
         trailing()
     }
-    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 }
 
 @Composable
 fun QtyStepper(qty: Int, onMinus: () -> Unit, onPlus: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        FilledTonalIconButton(onClick = onMinus, modifier = Modifier.size(36.dp)) { Text("−", fontSize = 18.sp) }
+        Box(
+            Modifier.size(34.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceContainerHighest).clickable(onClick = onMinus),
+            contentAlignment = Alignment.Center,
+        ) { Text("−", fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface) }
         Text(
             qty.toString(),
-            fontFamily = FontFamily.Monospace,
-            modifier = Modifier.width(30.dp),
+            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.width(32.dp),
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
         )
-        FilledTonalIconButton(onClick = onPlus, modifier = Modifier.size(36.dp)) { Text("+", fontSize = 18.sp) }
+        Box(
+            Modifier.size(34.dp).clip(CircleShape).background(diagonal(Pigment.Cobalt)).clickable(onClick = onPlus),
+            contentAlignment = Alignment.Center,
+        ) { Text("+", fontSize = 18.sp, color = Color.White, fontWeight = FontWeight.Bold) }
     }
 }
 

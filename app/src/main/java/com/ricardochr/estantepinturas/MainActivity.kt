@@ -107,6 +107,14 @@ import androidx.compose.ui.semantics.semantics
 import com.ricardochr.estantepinturas.ui.BrandDrops
 import com.ricardochr.estantepinturas.ui.Pigment
 import com.ricardochr.estantepinturas.ui.diagonal
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.graphicsLayer
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -215,24 +223,7 @@ private fun App(vm: MainViewModel = viewModel()) {
                 Box(Modifier.fillMaxWidth().height(3.dp).background(Brush.horizontalGradient(listOf(accent[0], accent[1], accent[1].copy(alpha = 0f)))))
             }
         },
-        bottomBar = {
-            NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh, tonalElevation = 0.dp) {
-                Tab.values().forEach { t ->
-                    val pg = tabPigment(t)
-                    NavigationBarItem(
-                        selected = tab == t,
-                        onClick = { tab = t },
-                        icon = { Icon(tabIcon(t), contentDescription = null) },
-                        label = { Text(t.label, fontWeight = if (tab == t) androidx.compose.ui.text.font.FontWeight.Bold else null) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Color.White,
-                            selectedTextColor = pg[1],
-                            indicatorColor = pg[0],
-                        ),
-                    )
-                }
-            }
-        },
+        bottomBar = { GotarioNavBar(tab) { tab = it } },
         snackbarHost = { SnackbarHost(snackbar) },
     ) { padding ->
         Surface(Modifier.padding(padding).fillMaxSize(), color = MaterialTheme.colorScheme.background) {
@@ -560,5 +551,102 @@ private fun HeaderButton(icon: ImageVector, description: String, colors: List<Co
         contentAlignment = Alignment.Center,
     ) {
         Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
+    }
+}
+
+/**
+ * Barra de navegación flotante: tarjeta redondeada con sombra, cada pestaña con su color de
+ * pigmento y Escanear al centro como botón grande y elevado.
+ */
+@Composable
+private fun GotarioNavBar(current: Tab, onSelect: (Tab) -> Unit) {
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .navigationBarsPadding()
+            .padding(start = 12.dp, end = 12.dp, bottom = 10.dp),
+        contentAlignment = Alignment.BottomCenter,
+    ) {
+        Surface(
+            shape = RoundedCornerShape(28.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            shadowElevation = 14.dp,
+            modifier = Modifier.fillMaxWidth().height(70.dp),
+        ) {
+            Row(Modifier.fillMaxSize().padding(horizontal = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                Tab.values().forEach { t ->
+                    if (t == Tab.Escanear) {
+                        // Espacio para el botón central
+                        Box(Modifier.weight(1f))
+                    } else {
+                        NavItem(t, current == t, Modifier.weight(1f)) { onSelect(t) }
+                    }
+                }
+            }
+        }
+        // Botón central de escanear, elevado sobre la barra
+        val scanSelected = current == Tab.Escanear
+        val scale by animateFloatAsState(if (scanSelected) 1.08f else 1f, label = "scan")
+        Column(
+            Modifier.padding(bottom = 22.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Box(
+                Modifier
+                    .graphicsLayer { scaleX = scale; scaleY = scale }
+                    .shadow(12.dp, CircleShape)
+                    .size(64.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                    .padding(4.dp)
+                    .clip(CircleShape)
+                    .background(diagonal(Pigment.Emerald))
+                    .clickable { onSelect(Tab.Escanear) }
+                    .semantics { contentDescription = "Escanear" },
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(Icons.Rounded.QrCodeScanner, contentDescription = null, tint = Color.White, modifier = Modifier.size(28.dp))
+            }
+            Text(
+                "Escanear",
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = if (scanSelected) androidx.compose.ui.text.font.FontWeight.Bold else null,
+                color = if (scanSelected) Pigment.Emerald[1] else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 2.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun NavItem(t: Tab, selected: Boolean, modifier: Modifier, onClick: () -> Unit) {
+    val pg = tabPigment(t)
+    val pillWidth by animateDpAsState(if (selected) 52.dp else 36.dp, label = "pill")
+    val iconTint by animateColorAsState(if (selected) Color.White else pg[0], label = "tint")
+    Column(
+        modifier
+            .clip(RoundedCornerShape(18.dp))
+            .clickable(onClick = onClick)
+            .padding(vertical = 6.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(3.dp),
+    ) {
+        Box(
+            Modifier
+                .height(32.dp)
+                .width(pillWidth)
+                .clip(RoundedCornerShape(16.dp))
+                .background(if (selected) diagonal(pg) else Brush.linearGradient(listOf(pg[0].copy(alpha = 0.12f), pg[0].copy(alpha = 0.12f)))),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(tabIcon(t), contentDescription = null, tint = iconTint, modifier = Modifier.size(22.dp))
+        }
+        Text(
+            t.label,
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = if (selected) androidx.compose.ui.text.font.FontWeight.Bold else null,
+            color = if (selected) pg[1] else MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+        )
     }
 }
