@@ -1,5 +1,7 @@
 package com.ricardochr.estantepinturas.ui
 
+import com.ricardochr.estantepinturas.tr
+
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.SystemClock
@@ -37,7 +39,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -142,8 +143,8 @@ fun ScanScreen(
 
     if (!hasPermission) {
         Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-            EmptyState("Falta permiso de cámara", "Para escanear las etiquetas la app necesita usar la cámara. Todo se procesa en el teléfono.")
-            Button(onClick = { launcher.launch(Manifest.permission.CAMERA) }) { Text("Dar permiso") }
+            EmptyState(tr("Falta permiso de cámara"), tr("Para escanear las etiquetas la app necesita usar la cámara. Todo se procesa en el teléfono."))
+            Button(onClick = { launcher.launch(Manifest.permission.CAMERA) }) { Text(tr("Dar permiso")) }
         }
         return
     }
@@ -243,7 +244,7 @@ fun ScanScreen(
                     .padding(12.dp),
             ) {
                 Text(
-                    if (showingResult) "Detectada — revisa abajo" else "Pon la etiqueta dentro del marco",
+                    if (showingResult) tr("Detectada — revisa abajo") else tr("Pon la etiqueta dentro del marco"),
                     color = Color.White,
                     style = MaterialTheme.typography.labelLarge,
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
@@ -252,7 +253,7 @@ fun ScanScreen(
             androidx.compose.material3.FilterChip(
                 selected = serial,
                 onClick = { serial = !serial; if (!serial) session = emptyList() },
-                label = { Text("En serie") },
+                label = { Text(tr("En serie")) },
                 colors = androidx.compose.material3.FilterChipDefaults.filterChipColors(
                     containerColor = Color.Black.copy(alpha = 0.6f),
                     labelColor = Color.White,
@@ -264,7 +265,7 @@ fun ScanScreen(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(10.dp),
-            ) { Text(if (torch) "Apagar luz" else "Linterna") }
+            ) { Text(if (torch) tr("Apagar luz") else tr("Linterna")) }
         }
 
         // Panel de resultados: fondo opaco y colores del tema para que el texto siempre se lea
@@ -283,7 +284,7 @@ fun ScanScreen(
                     onAdd = { p ->
                         val q = vm.qtyOf(p.id)
                         vm.add(p.id, 1)
-                        onAdded(if (q == 0) "Agregada: ${p.name}" else "${p.name}: ahora ${q + 1} botes")
+                        onAdded(if (q == 0) tr("Agregada: {}", p.name) else tr("{}: ahora {} botes", p.name, q + 1))
                         reset()
                     },
                     onNext = { reset() },
@@ -295,25 +296,25 @@ fun ScanScreen(
                         .padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    Text("Código de barras nuevo", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface)
+                    Text(tr("Código de barras nuevo"), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface)
                     Text(ub, fontFamily = FontFamily.Monospace, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(
-                        "No sé a qué pintura corresponde. Asócialo una vez y la próxima vez se reconocerá solo.",
+                        tr("No sé a qué pintura corresponde. Asócialo una vez y la próxima vez se reconocerá solo."),
                         color = MaterialTheme.colorScheme.onSurface,
                     )
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Button(onClick = { onLinkBarcode(ub); reset() }) { Text("Asociar") }
-                        OutlinedButton(onClick = { reset() }) { Text("Escanear otra") }
+                        Button(onClick = { onLinkBarcode(ub); reset() }) { Text(tr("Asociar")) }
+                        OutlinedButton(onClick = { reset() }) { Text(tr("Escanear otra")) }
                     }
                 }
                 serial -> Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(vertical = 10.dp)) {
                     Text(
-                        if (session.isEmpty()) "Escaneo en serie" else "Escaneadas: ${session.size}",
+                        if (session.isEmpty()) tr("Escaneo en serie") else tr("Escaneadas: {}", session.size),
                         style = MaterialTheme.typography.titleLarge,
                         modifier = Modifier.padding(horizontal = 16.dp),
                     )
                     Text(
-                        "Pasa los botes uno tras otro: las que no tienes se agregan solas y te aviso de las que ya tienes.",
+                        tr("Pasa los botes uno tras otro: las que no tienes se agregan solas y te aviso de las que ya tienes."),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
@@ -329,19 +330,19 @@ fun ScanScreen(
                             Column(Modifier.weight(1f)) {
                                 Text(log.paint.name, style = MaterialTheme.typography.titleSmall, maxLines = 1)
                                 Text(
-                                    if (log.hadBefore == 0) "Agregada · tienes $qty" else "Ya la tenías · tienes $qty",
+                                    if (log.hadBefore == 0) tr("Agregada · tienes {}", qty) else tr("Ya la tenías · tienes {}", qty),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = if (log.hadBefore == 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary,
                                 )
                             }
                             if (log.hadBefore == 0 && qty > 0) {
-                                TextButton(onClick = { vm.remove(log.paint.id); session = session.filterNot { it.paint.id == log.paint.id } }) { Text("Deshacer") }
+                                TextButton(onClick = { vm.remove(log.paint.id); session = session.filterNot { it.paint.id == log.paint.id } }) { Text(tr("Deshacer")) }
                             } else {
-                                TextButton(onClick = { vm.add(log.paint.id, 1) }) { Text("+1 bote") }
+                                TextButton(onClick = { vm.add(log.paint.id, 1) }) { Text(tr("+1 bote")) }
                             }
                         }
                     }
-                    TextButton(onClick = onNotFound, modifier = Modifier.padding(horizontal = 8.dp)) { Text("Buscar a mano en el catálogo") }
+                    TextButton(onClick = onNotFound, modifier = Modifier.padding(horizontal = 8.dp)) { Text(tr("Buscar a mano en el catálogo")) }
                 }
                 else -> Column(
                     Modifier
@@ -350,14 +351,13 @@ fun ScanScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    Text("Buscando…", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onSurface)
+                    Text(tr("Buscando…"), style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onSurface)
                     Text(
-                        "Se reconoce el código (70.955, MPA-040, WP1401), el nombre impreso o el código de barras. " +
-                            "Al detectar una pintura el escáner se detiene para que confirmes.",
+                        tr("Se reconoce el código (70.955, MPA-040, WP1401), el nombre impreso o el código de barras. Al detectar una pintura el escáner se detiene para que confirmes."),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                     )
-                    TextButton(onClick = onNotFound) { Text("Buscar a mano en el catálogo") }
+                    TextButton(onClick = onNotFound) { Text(tr("Buscar a mano en el catálogo")) }
                 }
             }
         }
@@ -379,7 +379,7 @@ private fun FoundPanel(
             .padding(vertical = 12.dp),
     ) {
         Text(
-            if (paints.size == 1) "Encontré esta pintura" else "¿Cuál de estas es?",
+            if (paints.size == 1) tr("Encontré esta pintura") else tr("¿Cuál de estas es?"),
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(horizontal = 16.dp),
@@ -414,7 +414,7 @@ private fun FoundPanel(
                         Box(Modifier.padding(top = 4.dp)) { OwnedBadge(qty) }
                     }
                 }
-                Button(onClick = { onAdd(p) }) { Text(if (qty == 0) "Agregar" else "+1") }
+                Button(onClick = { onAdd(p) }) { Text(if (qty == 0) tr("Agregar") else "+1") }
             }
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         }
@@ -424,8 +424,8 @@ private fun FoundPanel(
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            OutlinedButton(onClick = onNext, modifier = Modifier.weight(1f)) { Text("Escanear otra") }
-            TextButton(onClick = onNotFound) { Text("No es ninguna") }
+            OutlinedButton(onClick = onNext, modifier = Modifier.weight(1f)) { Text(tr("Escanear otra")) }
+            TextButton(onClick = onNotFound) { Text(tr("No es ninguna")) }
         }
     }
 }

@@ -1,5 +1,7 @@
 package com.ricardochr.estantepinturas.ui
 
+import com.ricardochr.estantepinturas.tr
+
 import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -40,7 +42,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -106,23 +107,23 @@ fun LiveFindScreen(vm: MainViewModel, paint: Paint, onClose: () -> Unit) {
                 // Encabezado
                 Surface(color = MaterialTheme.colorScheme.background) {
                     Row(Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        IconButton(onClick = onClose) { Icon(Icons.Default.ArrowBack, contentDescription = "Volver") }
+                        IconButton(onClick = onClose) { Icon(Icons.Default.ArrowBack, contentDescription = tr("Volver")) }
                         Swatch(paint.hex, size = 34.dp, metallic = paint.type == "Metálica")
                         Column(Modifier.weight(1f)) {
                             Text(paint.name, style = MaterialTheme.typography.titleMedium)
                             Text(
-                                if (neutral) "Color neutro: solo puedo reconocer la etiqueta" else "Verde = etiqueta · amarillo = color parecido",
+                                if (neutral) tr("Color neutro: solo puedo reconocer la etiqueta") else tr("Verde = etiqueta · amarillo = color parecido"),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
-                        FilledTonalButton(onClick = { torch = !torch }) { Text(if (torch) "Luz off" else "Luz") }
+                        FilledTonalButton(onClick = { torch = !torch }) { Text(if (torch) tr("Luz off") else "Luz") }
                     }
                 }
                 if (!hasPermission) {
                     Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                        Text("Falta permiso de cámara", color = Color.White)
-                        Button(onClick = { launcher.launch(Manifest.permission.CAMERA) }) { Text("Dar permiso") }
+                        Text(tr("Falta permiso de cámara"), color = Color.White)
+                        Button(onClick = { launcher.launch(Manifest.permission.CAMERA) }) { Text(tr("Dar permiso")) }
                     }
                     return@Column
                 }
@@ -168,10 +169,10 @@ fun LiveFindScreen(vm: MainViewModel, paint: Paint, onClose: () -> Unit) {
                     ) {
                         Text(
                             when {
-                                m == null -> "Apunta a tus pinturas…"
-                                m.labels.isNotEmpty() -> "¡Ahí está! (etiqueta leída)"
-                                m.colors.isNotEmpty() -> "Zonas de color parecido marcadas. Acércate para leer la etiqueta."
-                                else -> "No la veo aquí. Mueve la cámara despacio."
+                                m == null -> tr("Apunta a tus pinturas…")
+                                m.labels.isNotEmpty() -> tr("¡Ahí está! (etiqueta leída)")
+                                m.colors.isNotEmpty() -> tr("Zonas de color parecido marcadas. Acércate para leer la etiqueta.")
+                                else -> tr("No la veo aquí. Mueve la cámara despacio.")
                             },
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                         )

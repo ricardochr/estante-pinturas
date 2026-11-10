@@ -2,6 +2,8 @@
 
 package com.ricardochr.estantepinturas.ui
 
+import com.ricardochr.estantepinturas.tr
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -44,7 +46,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -222,7 +223,7 @@ fun SearchField(value: String, onChange: (String) -> Unit, placeholder: String, 
         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
         trailingIcon = {
             if (value.isNotEmpty()) {
-                IconButton(onClick = { onChange("") }) { Icon(Icons.Default.Clear, contentDescription = "Borrar búsqueda") }
+                IconButton(onClick = { onChange("") }) { Icon(Icons.Default.Clear, contentDescription = tr("Borrar búsqueda")) }
             }
         },
         shape = RoundedCornerShape(28.dp),
@@ -245,7 +246,7 @@ fun BrandChips(brands: List<Pair<String, Int>>, selected: String?, mine: Set<Str
             FilterChip(
                 selected = selected == null,
                 onClick = { onSelect(null) },
-                label = { Text("Todas") },
+                label = { Text(tr("Todas")) },
             )
         }
         items(brands, key = { it.first }) { (b, n) ->
@@ -419,7 +420,7 @@ fun EntrySheet(
                         Column(Modifier.weight(1f)) {
                             Text("Dónde está", style = MaterialTheme.typography.titleSmall)
                             Text(
-                                locationName?.let { "En $it" } ?: "Te ayudo a encontrarla por su etiqueta y su color",
+                                locationName?.let { tr("En {}", it) } ?: "Te ayudo a encontrarla por su etiqueta y su color",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -569,7 +570,7 @@ fun EntrySheet(
                     shape = RoundedCornerShape(12.dp),
                 ) {
                     Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("¿Quitar “${paint.name}” del inventario?")
+                        Text(tr("¿Quitar “{}” del inventario?", paint.name))
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Button(
                                 onClick = onDelete,
@@ -602,30 +603,30 @@ fun CustomPaintDialog(
     var qty by remember { mutableStateOf("1") }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Pintura fuera del catálogo") },
+        title = { Text(tr("Pintura fuera del catálogo")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(brand, { brand = it }, label = { Text("Marca") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(brand, { brand = it }, label = { Text(tr("Marca")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 val sugg = brandSuggestions.filter { it.contains(brand.trim(), ignoreCase = true) && !it.equals(brand.trim(), ignoreCase = true) }.take(8)
                 if (sugg.isNotEmpty()) {
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         items(sugg) { b -> FilterChip(selected = false, onClick = { brand = b }, label = { Text(b) }) }
                     }
                 }
-                OutlinedTextField(line, { line = it }, label = { Text("Línea") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(name, { name = it }, label = { Text("Nombre") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(line, { line = it }, label = { Text(tr("Línea")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(name, { name = it }, label = { Text(tr("Nombre")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(code, { code = it }, label = { Text("Código") }, singleLine = true, modifier = Modifier.weight(1f))
+                    OutlinedTextField(code, { code = it }, label = { Text(tr("Código")) }, singleLine = true, modifier = Modifier.weight(1f))
                     OutlinedTextField(
-                        qty, { qty = it.filter { c -> c.isDigit() }.take(3) }, label = { Text("Botes") }, singleLine = true,
+                        qty, { qty = it.filter { c -> c.isDigit() }.take(3) }, label = { Text(tr("Botes")) }, singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.width(90.dp),
                     )
                 }
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Swatch(validHex(hex), size = 36.dp)
-                    OutlinedTextField(hex, { hex = it.take(7) }, label = { Text("Color (#RRGGBB)") }, singleLine = true, modifier = Modifier.weight(1f))
+                    OutlinedTextField(hex, { hex = it.take(7) }, label = { Text(tr("Color (#RRGGBB)")) }, singleLine = true, modifier = Modifier.weight(1f))
                 }
-                Text("Tipo", style = MaterialTheme.typography.labelMedium)
+                Text(tr("Tipo"), style = MaterialTheme.typography.labelMedium)
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     items(PAINT_TYPES) { t -> FilterChip(selected = type == t, onClick = { type = t }, label = { Text(t) }) }
                 }
@@ -635,9 +636,9 @@ fun CustomPaintDialog(
             TextButton(
                 enabled = name.isNotBlank() || code.isNotBlank(),
                 onClick = { onSave(brand, line, name.ifBlank { code }, code, hex, type, qty.toIntOrNull() ?: 1) },
-            ) { Text("Guardar") }
+            ) { Text(tr("Guardar")) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Cancelar")) } },
     )
 }
 
@@ -671,12 +672,12 @@ fun SimilarSection(
         Text(title, style = MaterialTheme.typography.titleSmall)
         when {
             paint.hex.equals(UNKNOWN_HEX, true) -> Text(
-                "Esta pintura no tiene color registrado, así que no puedo compararla.",
+                tr("Esta pintura no tiene color registrado, así que no puedo compararla."),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodySmall,
             )
             similar.isEmpty() -> Text(
-                "Ninguna pintura de tu inventario se le parece lo suficiente.",
+                tr("Ninguna pintura de tu inventario se le parece lo suficiente."),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodySmall,
             )

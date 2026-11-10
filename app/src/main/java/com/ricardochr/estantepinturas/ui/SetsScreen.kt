@@ -2,6 +2,8 @@
 
 package com.ricardochr.estantepinturas.ui
 
+import com.ricardochr.estantepinturas.tr
+
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -26,7 +28,6 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -70,10 +71,10 @@ fun SetsScreen(vm: MainViewModel, onClose: () -> Unit, onOpenPaint: (Paint) -> U
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             Column(Modifier.fillMaxSize().systemBarsPadding()) {
                 TopAppBar(
-                    title = { Text(open?.name ?: "Sets de pinturas", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                    title = { Text(open?.name ?: tr("Sets de pinturas"), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                     navigationIcon = {
-                        if (open != null) IconButton(onClick = { openKey = null }) { Icon(Icons.Default.ArrowBack, contentDescription = "Volver") }
-                        else IconButton(onClick = onClose) { Icon(Icons.Default.Close, contentDescription = "Cerrar") }
+                        if (open != null) IconButton(onClick = { openKey = null }) { Icon(Icons.Default.ArrowBack, contentDescription = tr("Volver")) }
+                        else IconButton(onClick = onClose) { Icon(Icons.Default.Close, contentDescription = tr("Cerrar")) }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
                 )
@@ -81,14 +82,14 @@ fun SetsScreen(vm: MainViewModel, onClose: () -> Unit, onOpenPaint: (Paint) -> U
                     SetDetail(vm, open, onOpenPaint, say, onChanged = { openKey = it?.uid })
                 } else {
                     Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        SearchField(query, { query = it }, "Buscar set: intro, starter, skin, metal…")
-                        androidx.compose.material3.TextButton(onClick = { creating = true }) { Text("+ Crear un set a mano") }
+                        SearchField(query, { query = it }, tr("Buscar set: intro, starter, skin, metal…"))
+                        androidx.compose.material3.TextButton(onClick = { creating = true }) { Text(tr("+ Crear un set a mano")) }
                     }
                     BrandChips(brands, brand, mine.keys) { brand = it }
                     if (all.isEmpty()) {
-                        EmptyState("Sin sets todavía", "La lista de sets se descarga de las tiendas junto con el catálogo; llegará en la próxima actualización.")
+                        EmptyState(tr("Sin sets todavía"), tr("La lista de sets se descarga de las tiendas junto con el catálogo; llegará en la próxima actualización."))
                     } else if (shown.isEmpty()) {
-                        EmptyState("Nada encontrado", "Ningún set coincide con “$query”.")
+                        EmptyState(tr("Nada encontrado"), tr("Ningún set coincide con “{}”.", query))
                     } else {
                         LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 24.dp)) {
                             items(shown, key = { it.uid }) { s -> SetRow(vm, s) { openKey = s.uid } }
@@ -99,7 +100,7 @@ fun SetsScreen(vm: MainViewModel, onClose: () -> Unit, onOpenPaint: (Paint) -> U
         }
     }
     if (creating) {
-        SetNameDialog("Nuevo set", "", "", onDismiss = { creating = false }) { name, b ->
+        SetNameDialog(tr("Nuevo set"), "", "", onDismiss = { creating = false }) { name, b ->
             creating = false
             openKey = vm.createSet(name, b).uid
         }
@@ -116,12 +117,12 @@ private fun SetNameDialog(title: String, name0: String, brand0: String, onDismis
         title = { Text(title) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                androidx.compose.material3.OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Nombre") }, placeholder = { Text("Fairy Flesh Set") }, singleLine = true)
-                androidx.compose.material3.OutlinedTextField(value = b, onValueChange = { b = it }, label = { Text("Marca") }, placeholder = { Text("Vallejo") }, singleLine = true)
+                androidx.compose.material3.OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(tr("Nombre")) }, placeholder = { Text(tr("Fairy Flesh Set")) }, singleLine = true)
+                androidx.compose.material3.OutlinedTextField(value = b, onValueChange = { b = it }, label = { Text(tr("Marca")) }, placeholder = { Text("Vallejo") }, singleLine = true)
             }
         },
-        confirmButton = { androidx.compose.material3.TextButton(onClick = { onSave(name, b) }, enabled = name.isNotBlank()) { Text("Guardar") } },
-        dismissButton = { androidx.compose.material3.TextButton(onClick = onDismiss) { Text("Cancelar") } },
+        confirmButton = { androidx.compose.material3.TextButton(onClick = { onSave(name, b) }, enabled = name.isNotBlank()) { Text(tr("Guardar")) } },
+        dismissButton = { androidx.compose.material3.TextButton(onClick = onDismiss) { Text(tr("Cancelar")) } },
     )
 }
 
@@ -142,10 +143,10 @@ private fun SetRow(vm: MainViewModel, s: PaintSet, onClick: () -> Unit) {
         }
         Text(
             listOf(s.brand, vm.lineOf(s)).filter { it.isNotBlank() }.distinct().joinToString(" · ") + " · " + when {
-                paints.isEmpty() -> "sin pinturas reconocidas"
-                have == paints.size -> "las tienes todas (${paints.size})"
-                have == 0 -> "no tienes ninguna de sus ${paints.size}"
-                else -> "tienes $have de ${paints.size}"
+                paints.isEmpty() -> tr("sin pinturas reconocidas")
+                have == paints.size -> tr("las tienes todas ({})", paints.size)
+                have == 0 -> tr("no tienes ninguna de sus {}", paints.size)
+                else -> tr("tienes {} de {}", have, paints.size)
             },
             style = MaterialTheme.typography.bodySmall,
             color = if (have == paints.size && paints.isNotEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
@@ -172,7 +173,7 @@ private fun SetDetail(vm: MainViewModel, s: PaintSet, onOpenPaint: (Paint) -> Un
         item {
             Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    listOf(s.brand, vm.lineOf(s), s.code).filter { it.isNotBlank() }.distinct().joinToString(" · ") + " · ${paints.size} pinturas",
+                    listOf(s.brand, vm.lineOf(s), s.code).filter { it.isNotBlank() }.distinct().joinToString(" · ") + tr(" · {} pinturas", paints.size),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -180,8 +181,8 @@ private fun SetDetail(vm: MainViewModel, s: PaintSet, onOpenPaint: (Paint) -> Un
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         SetBadge(s, always = true)
                         Text(
-                            listOf(s.note, s.source.takeIf { it.isNotBlank() }?.let { "Fuente: $it" } ?: "").filter { it.isNotBlank() }.joinToString(" · ") +
-                                if (s.status != "ok") ". Revisa la caja o la tienda antes de comprarlo; puedes corregirlo con “Editar pinturas”." else "",
+                            listOf(s.note, s.source.takeIf { it.isNotBlank() }?.let { tr("Fuente: {}", it) } ?: "").filter { it.isNotBlank() }.joinToString(" · ") +
+                                if (s.status != "ok") tr(". Revisa la caja o la tienda antes de comprarlo; puedes corregirlo con “Editar pinturas”.") else "",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.weight(1f),
@@ -190,10 +191,10 @@ private fun SetDetail(vm: MainViewModel, s: PaintSet, onOpenPaint: (Paint) -> Un
                 }
                 Text(
                     when {
-                        paints.isEmpty() -> "No reconocí pinturas de este set en el catálogo."
-                        missing.isEmpty() -> "Ya tienes todas las pinturas de este set: no necesitas comprarlo."
-                        have.isEmpty() -> "No tienes ninguna de sus pinturas."
-                        else -> "Tienes ${have.size} de ${paints.size}. Te faltan ${missing.size}: compara si te conviene el set completo o solo esas."
+                        paints.isEmpty() -> tr("No reconocí pinturas de este set en el catálogo.")
+                        missing.isEmpty() -> tr("Ya tienes todas las pinturas de este set: no necesitas comprarlo.")
+                        have.isEmpty() -> tr("No tienes ninguna de sus pinturas.")
+                        else -> tr("Tienes {} de {}. Te faltan {}: compara si te conviene el set completo o solo esas.", have.size, paints.size, missing.size)
                     },
                     style = MaterialTheme.typography.titleSmall,
                 )
@@ -201,34 +202,34 @@ private fun SetDetail(vm: MainViewModel, s: PaintSet, onOpenPaint: (Paint) -> Un
                 if (missing.isNotEmpty()) {
                     Button(onClick = {
                         val n = vm.addMissingToShopping(s)
-                        say(if (n == 0) "Ya estaban en tu lista de compras" else "$n agregadas a tu lista de compras")
-                    }, modifier = Modifier.fillMaxWidth()) { Text("Agregar las ${missing.size} que faltan a la lista de compras") }
+                        say(if (n == 0) tr("Ya estaban en tu lista de compras") else tr("{} agregadas a tu lista de compras", n))
+                    }, modifier = Modifier.fillMaxWidth()) { Text(tr("Agregar las {} que faltan a la lista de compras", missing.size)) }
                 }
                 if (paints.isNotEmpty()) {
                     OutlinedButton(onClick = {
                         val n = vm.boughtSet(s)
-                        say("Set agregado: +1 bote de $n pinturas")
-                    }, modifier = Modifier.fillMaxWidth()) { Text("Ya compré el set: agregarlo a mi inventario") }
+                        say(tr("Set agregado: +1 bote de {} pinturas", n))
+                    }, modifier = Modifier.fillMaxWidth()) { Text(tr("Ya compré el set: agregarlo a mi inventario")) }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    androidx.compose.material3.TextButton(onClick = { editing = !editing }) { Text(if (editing) "Listo" else "Editar pinturas") }
+                    androidx.compose.material3.TextButton(onClick = { editing = !editing }) { Text(if (editing) tr("Listo") else tr("Editar pinturas")) }
                     if (editing) {
-                        androidx.compose.material3.TextButton(onClick = { picking = true }) { Text("+ Agregar") }
-                        androidx.compose.material3.TextButton(onClick = { renaming = true }) { Text("Renombrar") }
+                        androidx.compose.material3.TextButton(onClick = { picking = true }) { Text(tr("+ Agregar")) }
+                        androidx.compose.material3.TextButton(onClick = { renaming = true }) { Text(tr("Renombrar")) }
                     }
                 }
                 if (editing && s.custom) {
                     androidx.compose.material3.TextButton(onClick = {
                         vm.deleteSet(s)
-                        say(if (s.replaces != null) "Se restauró el set original de la tienda" else "Set eliminado")
+                        say(if (s.replaces != null) tr("Se restauró el set original de la tienda") else tr("Set eliminado"))
                         onChanged(null)
-                    }) { Text(if (s.replaces != null) "Deshacer mis cambios (volver al original)" else "Eliminar este set", color = MaterialTheme.colorScheme.error) }
+                    }) { Text(if (s.replaces != null) tr("Deshacer mis cambios (volver al original)") else tr("Eliminar este set"), color = MaterialTheme.colorScheme.error) }
                 }
                 Text(
                     when {
-                        s.custom && s.replaces != null -> "Editaste este set; tus cambios se guardan en tu respaldo."
-                        s.custom -> "Set creado por ti."
-                        else -> "La lista sale de la descripción del set en la tienda; si falta o sobra alguna pintura, toca Editar pinturas."
+                        s.custom && s.replaces != null -> tr("Editaste este set; tus cambios se guardan en tu respaldo.")
+                        s.custom -> tr("Set creado por ti.")
+                        else -> tr("La lista sale de la descripción del set en la tienda; si falta o sobra alguna pintura, toca Editar pinturas.")
                     },
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -236,20 +237,20 @@ private fun SetDetail(vm: MainViewModel, s: PaintSet, onOpenPaint: (Paint) -> Un
             }
         }
         if (missing.isNotEmpty()) {
-            item { SectionTitle("Te faltan (${missing.size})") }
+            item { SectionTitle(tr("Te faltan ({})", missing.size)) }
             items(missing, key = { "m-" + it.id }) { p ->
-                PaintRow(p, extra = if (vm.inShopping(p.id)) "en tu lista de compras" else null, onClick = { onOpenPaint(p) }) {
-                    if (editing) IconButton(onClick = { onChanged(vm.removePaintFromSet(s, p.id)) }) { Icon(Icons.Default.Close, contentDescription = "Quitar del set") }
+                PaintRow(p, extra = if (vm.inShopping(p.id)) tr("en tu lista de compras") else null, onClick = { onOpenPaint(p) }) {
+                    if (editing) IconButton(onClick = { onChanged(vm.removePaintFromSet(s, p.id)) }) { Icon(Icons.Default.Close, contentDescription = tr("Quitar del set")) }
                     else Text("✗", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
                 }
             }
         }
         if (have.isNotEmpty()) {
-            item { SectionTitle("Ya las tienes (${have.size})") }
+            item { SectionTitle(tr("Ya las tienes ({})", have.size)) }
             items(have, key = { "h-" + it.id }) { p ->
-                PaintRow(p, extra = "tienes ${vm.qtyOf(p.id)}", onClick = { onOpenPaint(p) }) {
+                PaintRow(p, extra = tr("tienes {}", vm.qtyOf(p.id)), onClick = { onOpenPaint(p) }) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        if (editing) IconButton(onClick = { onChanged(vm.removePaintFromSet(s, p.id)) }) { Icon(Icons.Default.Close, contentDescription = "Quitar del set") }
+                        if (editing) IconButton(onClick = { onChanged(vm.removePaintFromSet(s, p.id)) }) { Icon(Icons.Default.Close, contentDescription = tr("Quitar del set")) }
                         else Text("✓", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                     }
                 }
@@ -257,14 +258,14 @@ private fun SetDetail(vm: MainViewModel, s: PaintSet, onOpenPaint: (Paint) -> Un
         }
     }
     if (picking) {
-        PaintPickerDialog(vm, "Agregar al set", onDismiss = { picking = false }, fromCatalog = true) { p ->
+        PaintPickerDialog(vm, tr("Agregar al set"), onDismiss = { picking = false }, fromCatalog = true) { p ->
             picking = false
             onChanged(vm.addPaintToSet(s, p.id))
-            say("Agregada: ${p.name}")
+            say(tr("Agregada: {}", p.name))
         }
     }
     if (renaming) {
-        SetNameDialog("Renombrar set", s.name, s.brand, onDismiss = { renaming = false }) { name, b ->
+        SetNameDialog(tr("Renombrar set"), s.name, s.brand, onDismiss = { renaming = false }) { name, b ->
             renaming = false
             onChanged(vm.renameSet(s, name, b))
         }
@@ -276,13 +277,13 @@ private fun SetDetail(vm: MainViewModel, s: PaintSet, onOpenPaint: (Paint) -> Un
 @Composable
 private fun SetBadge(s: PaintSet, always: Boolean = false) {
     if (s.custom) {
-        if (always) Badge("Tuyo", MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.onSecondaryContainer)
+        if (always) Badge(tr("Tuyo"), MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.onSecondaryContainer)
         return
     }
     when (s.status) {
-        "parcial" -> Badge("Incompleto", MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onTertiaryContainer)
-        "revisar" -> Badge("Por revisar", MaterialTheme.colorScheme.errorContainer, MaterialTheme.colorScheme.onErrorContainer)
-        else -> if (always) Badge("Verificado", MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer)
+        "parcial" -> Badge(tr("Incompleto"), MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onTertiaryContainer)
+        "revisar" -> Badge(tr("Por revisar"), MaterialTheme.colorScheme.errorContainer, MaterialTheme.colorScheme.onErrorContainer)
+        else -> if (always) Badge(tr("Verificado"), MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer)
     }
 }
 

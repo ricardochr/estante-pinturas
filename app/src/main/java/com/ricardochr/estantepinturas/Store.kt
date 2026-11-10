@@ -64,7 +64,7 @@ class Store(private val context: Context) {
             c.readTimeout = 60000
             c.setRequestProperty("Cache-Control", "no-cache")
             try {
-                if (c.responseCode != 200) throw java.io.IOException("HTTP ${c.responseCode}")
+                if (c.responseCode != 200) throw java.io.IOException(tr("HTTP {}", c.responseCode))
                 return c.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
             } finally {
                 c.disconnect()
@@ -75,7 +75,7 @@ class Store(private val context: Context) {
             val sets = fetch("sets.json")
             // Validar antes de reemplazar: que se pueda leer y que no venga casi vacío
             val n = parseCatalog(cat).size
-            if (n < 1000) return "el catálogo descargado parece incompleto ($n pinturas)"
+            if (n < 1000) return tr("el catálogo descargado parece incompleto ({} pinturas)", n)
             parseSets(sets)
             val t1 = File(context.filesDir, "catalog-remote.json.tmp").apply { writeText(cat, Charsets.UTF_8) }
             val t2 = File(context.filesDir, "sets-remote.json.tmp").apply { writeText(sets, Charsets.UTF_8) }
@@ -84,7 +84,7 @@ class Store(private val context: Context) {
             prefs.edit().putLong("catalog_dl_at", System.currentTimeMillis()).putInt("catalog_dl_vc", BuildConfig.VERSION_CODE).apply()
             null
         } catch (e: java.net.UnknownHostException) {
-            "sin conexión a internet"
+            tr("sin conexión a internet")
         } catch (e: Exception) {
             e.message ?: e.javaClass.simpleName
         }
@@ -262,7 +262,7 @@ class Store(private val context: Context) {
             val sa = o.optJSONArray("spots") ?: JSONArray()
             for (i in 0 until sa.length()) {
                 val e = sa.getJSONObject(i)
-                spots.add(StorageSpot(e.getString("id"), e.optString("name", "Gaveta"), e.getString("photo")))
+                spots.add(StorageSpot(e.getString("id"), e.optString("name", tr("Gaveta")), e.getString("photo")))
             }
             val locations = LinkedHashMap<String, PaintLocation>()
             val la = o.optJSONArray("locations") ?: JSONArray()
@@ -297,7 +297,7 @@ class Store(private val context: Context) {
                 val ps = e.optJSONArray("paints") ?: JSONArray()
                 customSets.add(
                     PaintSet(
-                        brand = e.optString("brand", ""), name = e.optString("name", "Mi set"), code = e.optString("code", ""),
+                        brand = e.optString("brand", ""), name = e.optString("name", tr("Mi set")), code = e.optString("code", ""),
                         paintIds = (0 until ps.length()).map { ps.getString(it) }, custom = true, id = e.getString("id"),
                         replaces = if (e.isNull("replaces")) null else e.optString("replaces", "").ifBlank { null },
                     )

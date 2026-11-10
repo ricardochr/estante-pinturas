@@ -85,10 +85,10 @@ fun typeGroup(type: String): String = when (type) {
 }
 
 fun similarityLabel(d: Double): String = when {
-    d < 2.5 -> "Casi idéntica"
-    d < 6 -> "Muy parecida"
-    d < 12 -> "Parecida"
-    else -> "Aproximada"
+    d < 2.5 -> tr("Casi idéntica")
+    d < 6 -> tr("Muy parecida")
+    d < 12 -> tr("Parecida")
+    else -> tr("Aproximada")
 }
 
 const val UNKNOWN_HEX = "#888888"

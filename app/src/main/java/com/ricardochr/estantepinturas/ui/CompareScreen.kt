@@ -1,5 +1,7 @@
 package com.ricardochr.estantepinturas.ui
 
+import com.ricardochr.estantepinturas.tr
+
 import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -43,7 +45,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -190,7 +191,7 @@ fun CompareScreen(
         chooseTarget?.let { side ->
             androidx.compose.material3.AlertDialog(
                 onDismissRequest = { chooseTarget = null },
-                title = { Text("¿En qué proyecto la guardo?") },
+                title = { Text(tr("¿En qué proyecto la guardo?")) },
                 text = {
                     Column {
                         saveTargets.take(12).forEach { (id, name) ->
@@ -198,7 +199,7 @@ fun CompareScreen(
                         }
                     }
                 },
-                confirmButton = { TextButton(onClick = { chooseTarget = null }) { Text("Cancelar") } },
+                confirmButton = { TextButton(onClick = { chooseTarget = null }) { Text(tr("Cancelar")) } },
             )
         }
         Box(Modifier.fillMaxSize().onSizeChanged { boxWidth = it.width }) {
@@ -217,11 +218,11 @@ fun CompareScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
                 ) {
-                    Text("Falta permiso de cámara", color = Color.White)
-                    Button(onClick = { permission.launch(Manifest.permission.CAMERA) }) { Text("Dar permiso") }
+                    Text(tr("Falta permiso de cámara"), color = Color.White)
+                    Button(onClick = { permission.launch(Manifest.permission.CAMERA) }) { Text(tr("Dar permiso")) }
                 }
                 frozen != null -> Image(
-                    frozen!!.asImageBitmap(), contentDescription = "Tu figura (congelada)",
+                    frozen!!.asImageBitmap(), contentDescription = tr("Tu figura (congelada)"),
                     modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop,
                     colorFilter = if (gray) ColorFilter.colorMatrix(grayMatrix) else null,
                 )
@@ -233,7 +234,7 @@ fun CompareScreen(
             if (shown != null) {
                 Image(
                     shown.asImageBitmap(),
-                    contentDescription = "Referencia",
+                    contentDescription = tr("Referencia"),
                     contentScale = ContentScale.Fit,
                     colorFilter = if (gray && mode != OverlayMode.Edges) ColorFilter.colorMatrix(grayMatrix) else null,
                     modifier = Modifier
@@ -292,22 +293,22 @@ fun CompareScreen(
         Column(Modifier.fillMaxSize().systemBarsPadding()) {
             Surface(color = Color.Black.copy(alpha = 0.55f)) {
                 Row(Modifier.fillMaxWidth().padding(4.dp), verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = onClose) { Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = Color.White) }
+                    IconButton(onClick = onClose) { Icon(Icons.Default.ArrowBack, contentDescription = tr("Volver"), tint = Color.White) }
                     Column(Modifier.weight(1f)) {
-                        Text("Superponer referencia", color = Color.White, style = MaterialTheme.typography.titleMedium)
+                        Text(tr("Superponer referencia"), color = Color.White, style = MaterialTheme.typography.titleMedium)
                         Text(
                             when {
-                                image == null && loadError -> "No pude abrir esa imagen"
-                                image == null -> "Elige una foto de tu galería"
-                                locked -> "Referencia fija · toca “Mover” para ajustarla"
-                                else -> "Dos dedos: mover, acercar y girar la referencia"
+                                image == null && loadError -> tr("No pude abrir esa imagen")
+                                image == null -> tr("Elige una foto de tu galería")
+                                locked -> tr("Referencia fija · toca “Mover” para ajustarla")
+                                else -> tr("Dos dedos: mover, acercar y girar la referencia")
                             },
                             color = Color.White.copy(alpha = 0.8f),
                             style = MaterialTheme.typography.bodySmall,
                         )
                     }
                     TextButton(onClick = { showControls = !showControls }) {
-                        Text(if (showControls) "Ocultar" else "Ajustes", color = Color.White)
+                        Text(if (showControls) tr("Ocultar") else tr("Ajustes"), color = Color.White)
                     }
                 }
             }
@@ -323,44 +324,44 @@ fun CompareScreen(
                                 FilterChip(
                                     selected = false,
                                     onClick = { lineColor = (lineColor + 1) % LINE_COLORS.size },
-                                    label = { Text("Línea: " + LINE_NAMES[lineColor]) },
+                                    label = { Text(tr("Línea: ") + LINE_NAMES[lineColor]) },
                                 )
                             }
                         }
                         if (mode != OverlayMode.Curtain) {
-                            LabeledSlider("Referencia visible ${(opacity * 100).roundToInt()} %", opacity, { opacity = it })
+                            LabeledSlider(tr("Referencia visible {} %", (opacity * 100).roundToInt()), opacity, { opacity = it })
                         } else {
                             Text(
-                                "Desliza el círculo: a la izquierda tu figura, a la derecha la referencia.",
+                                tr("Desliza el círculo: a la izquierda tu figura, a la derecha la referencia."),
                                 color = Color.White, style = MaterialTheme.typography.bodySmall,
                             )
                         }
-                        if (frozen == null) LabeledSlider("Zoom de la cámara", camZoom, { camZoom = it })
+                        if (frozen == null) LabeledSlider(tr("Zoom de la cámara"), camZoom, { camZoom = it })
                         Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            FilterChip(selected = gray, onClick = { gray = !gray }, label = { Text("B/N (valores)") })
-                            FilterChip(selected = mirror, onClick = { mirror = !mirror }, label = { Text("Espejo") })
-                            FilterChip(selected = locked, onClick = { locked = !locked }, label = { Text(if (locked) "Fija" else "Mover") })
+                            FilterChip(selected = gray, onClick = { gray = !gray }, label = { Text(tr("B/N (valores)")) })
+                            FilterChip(selected = mirror, onClick = { mirror = !mirror }, label = { Text(tr("Espejo")) })
+                            FilterChip(selected = locked, onClick = { locked = !locked }, label = { Text(if (locked) tr("Fija") else tr("Mover")) })
                             FilterChip(
                                 selected = frozen != null,
                                 onClick = { if (frozen != null) frozen = null else frozenRequest.value++ },
-                                label = { Text(if (frozen != null) "Reanudar cámara" else "Congelar") },
+                                label = { Text(if (frozen != null) tr("Reanudar cámara") else tr("Congelar")) },
                                 enabled = hasPermission,
                             )
                             FilterChip(selected = torch, onClick = { torch = !torch }, label = { Text("Luz") }, enabled = frozen == null)
                         }
                         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                            TextButton(onClick = { pick() }) { Text("Otra imagen", color = Color.White) }
-                            TextButton(onClick = { resetImage() }) { Text("Centrar referencia", color = Color.White) }
+                            TextButton(onClick = { pick() }) { Text(tr("Otra imagen"), color = Color.White) }
+                            TextButton(onClick = { resetImage() }) { Text(tr("Centrar referencia"), color = Color.White) }
                             if (saveTargets.isNotEmpty() && image != null && hasPermission) {
                                 TextButton(onClick = {
                                     pendingSave = true
                                     if (frozen == null) frozenRequest.value++
-                                }) { Text("Guardar comparación", color = Color.White) }
+                                }) { Text(tr("Guardar comparación"), color = Color.White) }
                             }
                         }
                         if (gray && Build.VERSION.SDK_INT < Build.VERSION_CODES.S && frozen == null) {
                             Text(
-                                "En tu versión de Android el B/N solo se aplica a la referencia; congela la cámara para verla también en B/N.",
+                                tr("En tu versión de Android el B/N solo se aplica a la referencia; congela la cámara para verla también en B/N."),
                                 color = Color.White.copy(alpha = 0.8f), style = MaterialTheme.typography.bodySmall,
                             )
                         }

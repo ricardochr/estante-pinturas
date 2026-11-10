@@ -38,6 +38,7 @@ private fun hueDeg(c: ColorCluster): Double {
 }
 
 /** Nombre del color en español a partir de CIELAB. */
+// i18n:off — los nombres de color son datos internos en español; se traducen al mostrarlos (trData)
 fun colorName(c: ColorCluster): String {
     val ch = chroma(c)
     if (ch < 6) return when {
@@ -61,6 +62,7 @@ fun colorName(c: ColorCluster): String {
     }
     return base
 }
+// i18n:on
 
 private fun hueDiff(a: ColorCluster, b: ColorCluster): Double {
     val d = abs(hueDeg(a) - hueDeg(b))
@@ -125,7 +127,7 @@ fun buildAdvice(palette: ImagePalette, matches: List<PaletteMatch>, inventory: L
         val baseName = colorName(cs[baseIdx])
         val skinLike = g.any { i -> val h = hueDeg(cs[i]); h in 25.0..75.0 && chroma(cs[i]) in 12.0..45.0 && cs[i].l > 45 }
         val name = when {
-            g.size > 1 && skinLike && baseName in setOf("rojo", "naranja", "café") -> "piel o tono cálido"
+            g.size > 1 && skinLike && baseName in setOf("rojo", "naranja", tr("café")) -> tr("piel o tono cálido")
             g.size > 1 && baseName.startsWith("gris") -> "gris"
             else -> baseName
         }
@@ -141,43 +143,43 @@ fun buildAdvice(palette: ImagePalette, matches: List<PaletteMatch>, inventory: L
                 else -> roles[i] ?: "Base"
             }
             val brush = when {
-                isDetail -> "Pincel de detalle talla 0 o 00, con poca pintura en la punta."
-                isLarge -> "Pincel redondo talla 2–4 (o aerógrafo) para cubrir parejo."
-                else -> "Pincel redondo talla 1–2."
+                isDetail -> tr("Pincel de detalle talla 0 o 00, con poca pintura en la punta.")
+                isLarge -> tr("Pincel redondo talla 2–4 (o aerógrafo) para cubrir parejo.")
+                else -> tr("Pincel redondo talla 1–2.")
             }
             val tips = ArrayList<String>()
             when (role) {
                 "Sombra", "Sombra profunda" -> {
-                    tips.add("Va en huecos, pliegues y zonas que no reciben luz del grupo $name.")
+                    tips.add(tr("Va en huecos, pliegues y zonas que no reciben luz del grupo {}.", name))
                     val wash = contrastPaints
                         .map { it to deltaE2000(c.lab, it.lab) }
                         .filter { it.second < 18 }
                         .minByOrNull { it.second }?.first
-                    if (wash != null) tips.add("Puedes hacerla con un lavado o veladura de ${wash.name} (${wash.brand}) sobre la base.")
-                    tips.add("Estilo anime/2D: píntala con borde definido, sin difuminar. Realista: veladuras finas para fundirla.")
+                    if (wash != null) tips.add(tr("Puedes hacerla con un lavado o veladura de {} ({}) sobre la base.", wash.name, wash.brand))
+                    tips.add(tr("Estilo anime/2D: píntala con borde definido, sin difuminar. Realista: veladuras finas para fundirla."))
                 }
                 "Luz", "Punto de luz" -> {
-                    tips.add("Va en bordes y caras que miran hacia arriba o hacia la luz; deja ver el tono de abajo.")
-                    if (z.texture > 3.5) tips.add("La zona tiene textura: aplica la luz con pincel seco (drybrush) usando un pincel viejo de cerdas firmes.")
-                    else tips.add("Capas finas y diluidas (consistencia de leche) para que la transición se vea suave.")
+                    tips.add(tr("Va en bordes y caras que miran hacia arriba o hacia la luz; deja ver el tono de abajo."))
+                    if (z.texture > 3.5) tips.add(tr("La zona tiene textura: aplica la luz con pincel seco (drybrush) usando un pincel viejo de cerdas firmes."))
+                    else tips.add(tr("Capas finas y diluidas (consistencia de leche) para que la transición se vea suave."))
                 }
-                "Base" -> tips.add("Es el color principal de la zona $name: cúbrela entera con él y luego agrega sombra y luz encima.")
-                "Color base" -> tips.add("Color plano: 2–3 capas finas cubren mejor que una gruesa.")
-                "Detalle" -> tips.add("Píntalo al final, después de bases, sombras y luces, para no ensuciarlo.")
+                "Base" -> tips.add(tr("Es el color principal de la zona {}: cúbrela entera con él y luego agrega sombra y luz encima.", name))
+                "Color base" -> tips.add(tr("Color plano: 2–3 capas finas cubren mejor que una gruesa."))
+                "Detalle" -> tips.add(tr("Píntalo al final, después de bases, sombras y luces, para no ensuciarlo."))
             }
             when {
                 c.l > 85 && ch < 10 ->
-                    tips.add("El blanco cubre mal: empieza con un gris muy claro y sube a blanco en 2–3 capas; las sombras en gris azulado o lila se ven más limpias que en gris puro.")
+                    tips.add(tr("El blanco cubre mal: empieza con un gris muy claro y sube a blanco en 2–3 capas; las sombras en gris azulado o lila se ven más limpias que en gris puro."))
                 c.l < 20 && ch < 12 ->
-                    tips.add("Un negro puro se ve plano: mézclalo con un poco de azul o violeta y marca los bordes con gris oscuro.")
+                    tips.add(tr("Un negro puro se ve plano: mézclalo con un poco de azul o violeta y marca los bordes con gris oscuro."))
                 ch > 55 ->
-                    tips.add("Color muy saturado: aplícalo sobre una base blanca o muy clara para que brille; tintas y pinturas de contraste dan más intensidad.")
+                    tips.add(tr("Color muy saturado: aplícalo sobre una base blanca o muy clara para que brille; tintas y pinturas de contraste dan más intensidad."))
             }
             if (ch < 12 && c.l in 30.0..75.0 && g.size >= 3 && isDetail) {
-                tips.add("Si es metal: usa un metálico, o haz NMM (metal no metálico) con saltos marcados de gris oscuro a blanco.")
+                tips.add(tr("Si es metal: usa un metálico, o haz NMM (metal no metálico) con saltos marcados de gris oscuro a blanco."))
             }
             if (z.texture > 3.5 && role != "Luz") {
-                tips.add("Superficie con textura: un lavado oscuro marca los relieves y el pincel seco los resalta.")
+                tips.add(tr("Superficie con textura: un lavado oscuro marca los relieves y el pincel seco los resalta."))
             }
             advice[i] = ZoneAdvice(role, name, brush, tips)
         }
@@ -198,45 +200,45 @@ fun buildAdvice(palette: ImagePalette, matches: List<PaletteMatch>, inventory: L
         when (primerColor) { "blanca" -> l > 80; "negra" -> l < 25; else -> l in 25.0..80.0 }
     }
     plan.add(
-        "Imprimación $primerColor" + (ownedPrimer?.let { " (tienes ${it.name})" } ?: "") +
-            ". Truco para ver luces y sombras: imprima en negro y luego rocía blanco solo desde arriba (zenital); lo que quede claro es donde van las luces."
+        tr("Imprimación {}", primerColor) + (ownedPrimer?.let { tr(" (tienes {})", it.name) } ?: "") +
+            tr(". Truco para ver luces y sombras: imprima en negro y luego rocía blanco solo desde arriba (zenital); lo que quede claro es donde van las luces.")
     )
     val bases = groups.mapNotNull { g ->
         val main = g.maxByOrNull { cs[it].fraction } ?: return@mapNotNull null
         if (cs[main].fraction < 0.05) null else main
     }.sortedByDescending { cs[it].fraction }
     if (bases.isNotEmpty()) {
-        plan.add("Bases, de la zona más grande a la más chica: " + bases.joinToString(", ") { i ->
-            colorName(cs[i]) + (matches.getOrNull(i)?.best?.paint?.name?.let { " ($it)" } ?: "")
+        plan.add(tr("Bases, de la zona más grande a la más chica: ") + bases.joinToString(", ") { i ->
+            trData(colorName(cs[i])) + (matches.getOrNull(i)?.best?.paint?.name?.let { " ($it)" } ?: "")
         } + ".")
     }
     if (kit.hasAirbrush) {
         val wide = kit.wide
         plan.add(
-            "Con aerógrafo: imprima con tu ${wide?.let { gearLabel(it) } ?: "aerógrafo"} a ${pressure(25, 30)}. Zenital: todo en negro y luego blanco solo desde arriba a 45°; " +
-                "las zonas grandes (en cada tarjeta lo indico) se pueden basear y degradar con aerógrafo, y los detalles se terminan a pincel."
+            tr("Con aerógrafo: imprima con tu {} a {}. Zenital: todo en negro y luego blanco solo desde arriba a 45°; ", wide?.let { gearLabel(it) } ?: tr("aerógrafo"), pressure(25, 30)) +
+                tr("las zonas grandes (en cada tarjeta lo indico) se pueden basear y degradar con aerógrafo, y los detalles se terminan a pincel.")
         )
     } else {
-        plan.add("Si tienes aerógrafo, regístralo en el menú → Mi equipo: te diré en qué zonas usarlo, con qué boquilla, presión y dilución.")
+        plan.add(tr("Si tienes aerógrafo, regístralo en el menú → Mi equipo: te diré en qué zonas usarlo, con qué boquilla, presión y dilución."))
     }
-    plan.add("Orden: de lo más interno a lo más externo (piel y cara, luego ropa, luego armadura y equipo). Así si te sales, lo tapas con la capa siguiente.")
-    plan.add("Cada zona tiene su \"Paso a paso\": base → sombra → luz → punto de luz. Termina una zona antes de pasar a la siguiente.")
+    plan.add(tr("Orden: de lo más interno a lo más externo (piel y cara, luego ropa, luego armadura y equipo). Así si te sales, lo tapas con la capa siguiente."))
+    plan.add(tr("Cada zona tiene su \"Paso a paso\": base → sombra → luz → punto de luz. Termina una zona antes de pasar a la siguiente."))
     val details = (0 until n).filter { advice[it]?.role == "Detalle" }
-    if (details.isNotEmpty()) plan.add("Detalles al final con pincel fino: " + details.joinToString(", ") { colorName(cs[it]) } + ".")
+    if (details.isNotEmpty()) plan.add(tr("Detalles al final con pincel fino: ") + details.joinToString(", ") { trData(colorName(cs[it])) } + ".")
     val varnish = inventory.firstOrNull { it.type == "Barniz" }
-    plan.add("Barniz mate para proteger" + (varnish?.let { " (tienes ${it.name})" } ?: "") + "; si algo debe brillar (ojos, metal, joyas), barniz brillante solo ahí.")
+    plan.add(tr("Barniz mate para proteger") + (varnish?.let { tr(" (tienes {})", it.name) } ?: "") + tr("; si algo debe brillar (ojos, metal, joyas), barniz brillante solo ahí."))
 
     families.sortByDescending { f -> f.members.sumOf { cs[it].fraction } }
-    return PaletteAdvice(plan, advice.map { it ?: ZoneAdvice("Color base", "", "Pincel redondo talla 1–2.", emptyList()) }, families)
+    return PaletteAdvice(plan, advice.map { it ?: ZoneAdvice("Color base", "", tr("Pincel redondo talla 1–2."), emptyList()) }, families)
 }
 
 /** Cómo conseguir la sombra o la luz, en palabras: pintura tuya, mezcla o compra. */
 fun toneText(p: Paint?, mix: ToneMix?, buy: Paint?, darker: Boolean): String = when {
     p != null -> p.name
-    mix != null -> "mezcla ${mix.text}"
-    buy != null -> "${buy.name} de ${buy.brand} (no la tienes; está en sugerencias para comprar)"
-    darker -> "la base con una gota de un lavado oscuro o de su color complementario"
-    else -> "la base con un poco de blanco o blanco hueso, agregado de a poco"
+    mix != null -> tr("mezcla {}", mix.text)
+    buy != null -> tr("{} de {} (no la tienes; está en sugerencias para comprar)", buy.name, buy.brand)
+    darker -> tr("la base con una gota de un lavado oscuro o de su color complementario")
+    else -> tr("la base con un poco de blanco o blanco hueso, agregado de a poco")
 }
 
 /**
@@ -247,10 +249,10 @@ fun toneText(p: Paint?, mix: ToneMix?, buy: Paint?, darker: Boolean): String = w
 fun familySteps(f: PaletteFamily, matches: List<PaletteMatch>, zones: List<ZoneAdvice>, kit: GearKit = GearKit(emptyList(), null)): List<String> {
     val mb = matches.getOrNull(f.base) ?: return emptyList()
     val baseAdvice = zones.getOrNull(f.base)
-    val baseName = mb.best?.paint?.name ?: "un color parecido al de la muestra"
-    val brush = baseAdvice?.brush ?: "Pincel redondo talla 1–2."
+    val baseName = mb.best?.paint?.name ?: tr("un color parecido al de la muestra")
+    val brush = baseAdvice?.brush ?: tr("Pincel redondo talla 1–2.")
     fun paintOf(i: Int): String? = matches.getOrNull(i)?.let { m ->
-        m.best?.paint?.name ?: (m.shadowMix ?: m.highlightMix)?.let { "mezcla ${it.text}" } ?: m.toBuy?.let { "${it.name} de ${it.brand} (para comprar)" }
+        m.best?.paint?.name ?: (m.shadowMix ?: m.highlightMix)?.let { tr("mezcla {}", it.text) } ?: m.toBuy?.let { tr("{} de {} (para comprar)", it.name, it.brand) }
     }
     val shadowMembers = f.members.filter { f.roles[it] == "Sombra" }
     val deepMembers = f.members.filter { f.roles[it] == "Sombra profunda" }
@@ -267,68 +269,68 @@ fun familySteps(f: PaletteFamily, matches: List<PaletteMatch>, zones: List<ZoneA
     val light = lightMembers.firstNotNullOfOrNull { paintOf(it) } ?: toneText(mb.highlight, mb.highlightMix, mb.highlightBuy, darker = false)
     val steps = ArrayList<String>()
     if (f.members.size == 1 && baseAdvice?.role == "Detalle") {
-        steps.add("Base: $baseName, diluida a consistencia de leche. $brush Una o dos capas, sin salirte de la zona.")
-        steps.add("Si el detalle es grande, marca la parte de abajo con $shadow.")
-        steps.add("Un solo toque de luz con $light en el borde o punto más alto (o un punto blanco si brilla, como ojos o gemas).")
+        steps.add(tr("Base: {}, diluida a consistencia de leche. {} Una o dos capas, sin salirte de la zona.", baseName, brush))
+        steps.add(tr("Si el detalle es grande, marca la parte de abajo con {}.", shadow))
+        steps.add(tr("Un solo toque de luz con {} en el borde o punto más alto (o un punto blanco si brilla, como ojos o gemas).", light))
         return steps
     }
     steps.add(
-        "Base: $baseName (${mb.best?.paint?.type?.lowercase() ?: "opaca"}) en toda la zona. Dilúyela con un poco de agua hasta que fluya como leche " +
-            "y aplica 2–3 capas finas, dejando secar entre capas, hasta que quede pareja. $brush"
+        tr("Base: {} ({}) en toda la zona. Dilúyela con un poco de agua hasta que fluya como leche ", baseName, mb.best?.paint?.type?.lowercase() ?: "opaca") +
+            tr("y aplica 2–3 capas finas, dejando secar entre capas, hasta que quede pareja. {}", brush)
     )
     // Zonas grandes y lisas: el aerógrafo da bases parejas y degradados suaves
     val zoneFraction = f.members.sumOf { matches.getOrNull(it)?.cluster?.fraction ?: 0.0 }
-    val isBigZone = zoneFraction >= 0.06 && baseAdvice?.role != "Detalle" && (baseAdvice?.tips?.none { it.contains("textura") } ?: true)
+    val isBigZone = zoneFraction >= 0.06 && baseAdvice?.role != "Detalle" && (baseAdvice?.tips?.none { it.contains("textur") } ?: true)
     if (kit.hasAirbrush && isBigZone) {
-        airbrushStep(kit, mb.best?.paint, shadow ?: wash?.name ?: "la sombra", light)?.let { steps.add(it) }
+        airbrushStep(kit, mb.best?.paint, shadow ?: wash?.name ?: tr("la sombra"), light)?.let { steps.add(it) }
     }
     mb.quick?.let { q ->
         steps.add(
-            "Atajo: en vez de base + sombra + luz, puedes usar ${q.name} (${q.brand}, contraste/speedpaint) en una sola capa sobre imprimación blanca o gris claro: " +
-                "se acumula sola en los huecos. Después solo agrega luces opacas en lo más alto."
+            tr("Atajo: en vez de base + sombra + luz, puedes usar {} ({}, contraste/speedpaint) en una sola capa sobre imprimación blanca o gris claro: ", q.name, q.brand) +
+                tr("se acumula sola en los huecos. Después solo agrega luces opacas en lo más alto.")
         )
     }
     if (shadow != null) {
         steps.add(
-            "Sombra: $shadow (opaca) en los huecos, pliegues, debajo de lo que sobresale y en el lado contrario a la luz. " +
-                "Dilúyela más (1 de pintura por 2–3 de agua, una veladura) y pasa varias capas que se vayan juntando hacia lo más hundido. " +
-                "Descarga el pincel en papel antes de tocar la figura." +
-                (wash?.let { " Más rápido: un lavado de ${it.name} (${it.type.lowercase()}) sobre la base seca hace lo mismo." } ?: "")
+            tr("Sombra: {} (opaca) en los huecos, pliegues, debajo de lo que sobresale y en el lado contrario a la luz. ", shadow) +
+                tr("Dilúyela más (1 de pintura por 2–3 de agua, una veladura) y pasa varias capas que se vayan juntando hacia lo más hundido. ") +
+                tr("Descarga el pincel en papel antes de tocar la figura.") +
+                (wash?.let { tr(" Más rápido: un lavado de {} ({}) sobre la base seca hace lo mismo.", it.name, it.type.lowercase()) } ?: "")
         )
     } else if (wash != null) {
         steps.add(
-            "Sombra con lavado: ${wash.name} (${wash.type.lowercase()}, ${wash.brand}) sobre la base ya seca. Aplícalo sin diluir o apenas diluido, " +
-                "con el pincel cargado, para que corra a los huecos y pliegues; quita con un pincel limpio y seco lo que se acumule en zonas planas. " +
-                "Déjalo secar bien (mínimo 30 minutos) antes de la luz."
+            tr("Sombra con lavado: {} ({}, {}) sobre la base ya seca. Aplícalo sin diluir o apenas diluido, ", wash.name, wash.type.lowercase(), wash.brand) +
+                tr("con el pincel cargado, para que corra a los huecos y pliegues; quita con un pincel limpio y seco lo que se acumule en zonas planas. ") +
+                tr("Déjalo secar bien (mínimo 30 minutos) antes de la luz.")
         )
     }
     deepMembers.firstNotNullOfOrNull { paintOf(it) }?.let {
-        steps.add("Sombra profunda: $it solo en lo más hundido y en las uniones (entre piernas, bajo la falda, axilas), sobre la sombra anterior.")
+        steps.add(tr("Sombra profunda: {} solo en lo más hundido y en las uniones (entre piernas, bajo la falda, axilas), sobre la sombra anterior.", it))
     }
     steps.add(
-        "Luz: $light en las caras que miran hacia arriba y hacia la luz. Hazla por capas (layering): " +
-            "la primera cubre casi la mitad de la zona clara; cada capa siguiente, un poco más clara y más pequeña, " +
-            "hacia el punto más alto. Pintura diluida 1:1 y varias capas finas antes que una gruesa."
+        tr("Luz: {} en las caras que miran hacia arriba y hacia la luz. Hazla por capas (layering): ", light) +
+            tr("la primera cubre casi la mitad de la zona clara; cada capa siguiente, un poco más clara y más pequeña, ") +
+            tr("hacia el punto más alto. Pintura diluida 1:1 y varias capas finas antes que una gruesa.")
     )
     val top = topMembers.firstNotNullOfOrNull { paintOf(it) }
     steps.add(
-        if (top != null) "Punto de luz: $top solo en las aristas y puntos más altos, con la punta del pincel."
-        else "Punto de luz (opcional): mezcla la luz con un poco de blanco y marca solo las aristas y puntos más altos con la punta del pincel."
+        if (top != null) tr("Punto de luz: {} solo en las aristas y puntos más altos, con la punta del pincel.", top)
+        else tr("Punto de luz (opcional): mezcla la luz con un poco de blanco y marca solo las aristas y puntos más altos con la punta del pincel.")
     )
     // Técnicas para que no se vean escalones entre sombra, base y luz
     val big = zoneFraction >= 0.06 && baseAdvice?.role != "Detalle"
     steps.add(
-        "Suavizar transiciones: donde se nota el salto entre dos tonos, pinta una franja con la mezcla de ambos 1:1 " +
-            "(sombra + base, o base + luz). " +
-            (if (big) "En zonas grandes funciona muy bien el fundido con dos pinceles: con uno aplicas la capa y con otro limpio y apenas húmedo arrastras el borde antes de que seque. "
-            else "En zonas pequeñas usa capas muy diluidas (1 de pintura por 2–3 de agua) que se superponen poco a poco. ") +
-            "Si aún se ve un escalón, pasa una veladura del tono intermedio justo sobre él."
+        tr("Suavizar transiciones: donde se nota el salto entre dos tonos, pinta una franja con la mezcla de ambos 1:1 ") +
+            tr("(sombra + base, o base + luz). ") +
+            (if (big) tr("En zonas grandes funciona muy bien el fundido con dos pinceles: con uno aplicas la capa y con otro limpio y apenas húmedo arrastras el borde antes de que seque. ")
+            else tr("En zonas pequeñas usa capas muy diluidas (1 de pintura por 2–3 de agua) que se superponen poco a poco. ")) +
+            tr("Si aún se ve un escalón, pasa una veladura del tono intermedio justo sobre él.")
     )
-    val glazeText = mb.glaze?.let { "${it.name} (${it.type.lowercase()}) muy diluida, 1 parte por 4–5 de agua o de medium" }
-        ?: "$baseName muy diluida, 1 parte por 5 de agua (o con medium para veladuras si tienes)"
+    val glazeText = mb.glaze?.let { tr("{} ({}) muy diluida, 1 parte por 4–5 de agua o de medium", it.name, it.type.lowercase()) }
+        ?: tr("{} muy diluida, 1 parte por 5 de agua (o con medium para veladuras si tienes)", baseName)
     steps.add(
-        "Unificar (veladura final): cuando todo esté seco, pasa $glazeText sobre toda la zona, con el pincel casi descargado. " +
-            "Tiñe todo con el mismo tono, junta sombras y luces y disimula pinceladas. Si la luz quedó apagada, recupera solo el punto más alto después."
+        tr("Unificar (veladura final): cuando todo esté seco, pasa {} sobre toda la zona, con el pincel casi descargado. ", glazeText) +
+            tr("Tiñe todo con el mismo tono, junta sombras y luces y disimula pinceladas. Si la luz quedó apagada, recupera solo el punto más alto después.")
     )
     return steps
 }

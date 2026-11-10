@@ -32,7 +32,8 @@ data class Paint(
 
     val hasColor: Boolean get() = !hex.equals(UNKNOWN_HEX, true)
 
-    val subtitle: String by lazy { listOf(brand, line, type).filter { it.isNotBlank() }.joinToString(" · ") }
+    /** Marca · línea · tipo. El tipo se muestra en el idioma de la app; marca y línea nunca se traducen. */
+    val subtitle: String get() = listOf(brand, line, trData(type)).filter { it.isNotBlank() }.joinToString(" · ")
 }
 
 data class OwnedEntry(
@@ -152,7 +153,8 @@ fun validHex(hex: String): String {
     return if (h.length == 6 && h.all { it.isDigit() || it.lowercaseChar() in 'a'..'f' }) "#" + h.uppercase() else "#888888"
 }
 
-/** Palabras de familia de color para poder buscar "rojo", "piel", "azul"... */
+// i18n:off — palabras de búsqueda en español e inglés; no son textos de la interfaz
+/** Palabras de familia de color para poder buscar "rojo", "piel", "azul" (o "red", "skin", "blue")... */
 fun colorWords(hex: String): String {
     val v = parseHex(hex)
     val r = ((v shr 16) and 0xFF) / 255.0
@@ -174,23 +176,24 @@ fun colorWords(hex: String): String {
     if (hue < 0) hue += 360
     val w = mutableListOf<String>()
     if (s < 0.12) {
-        w.add(if (l > 0.85) "blanco" else if (l < 0.15) "negro" else "gris")
+        w.add(if (l > 0.85) "blanco white" else if (l < 0.15) "negro black" else "gris gray grey")
         return w.joinToString(" ")
     }
     when {
-        hue < 15 || hue >= 345 -> w.add("rojo")
-        hue < 40 -> { w.add(if (l < 0.45) "cafe marron" else "naranja"); w.add("piel") }
-        hue < 65 -> { w.add("amarillo"); w.add(if (l < 0.5) "ocre cafe" else "piel crema") }
-        hue < 165 -> w.add("verde")
-        hue < 195 -> w.add("turquesa cian")
-        hue < 255 -> w.add("azul")
-        hue < 290 -> w.add("morado violeta")
-        else -> w.add("rosa magenta")
+        hue < 15 || hue >= 345 -> w.add("rojo red")
+        hue < 40 -> { w.add(if (l < 0.45) "cafe marron brown" else "naranja orange"); w.add("piel skin flesh") }
+        hue < 65 -> { w.add("amarillo yellow"); w.add(if (l < 0.5) "ocre cafe ochre brown" else "piel crema skin cream") }
+        hue < 165 -> w.add("verde green")
+        hue < 195 -> w.add("turquesa cian turquoise cyan teal")
+        hue < 255 -> w.add("azul blue")
+        hue < 290 -> w.add("morado violeta purple violet")
+        else -> w.add("rosa magenta pink")
     }
-    if (l > 0.7) w.add("claro pastel")
-    if (l < 0.3) w.add("oscuro")
+    if (l > 0.7) w.add("claro pastel light")
+    if (l < 0.3) w.add("oscuro dark")
     return w.joinToString(" ")
 }
+// i18n:on
 
 /** Deduce el tipo de pintura por el nombre y la línea (misma regla que tools/build_catalog.py). */
 fun guessType(name: String, line: String): String {

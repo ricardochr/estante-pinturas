@@ -1,5 +1,7 @@
 package com.ricardochr.estantepinturas.ui
 
+import com.ricardochr.estantepinturas.tr
+
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -40,7 +42,6 @@ import androidx.compose.material.icons.rounded.Widgets
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -93,18 +94,18 @@ fun HubScreen(vm: MainViewModel, onAction: (HubAction) -> Unit) {
     }
 
     val paint = listOf(
-        HubTile(HubAction.Compare, Icons.Rounded.Layers, "Superponer referencia", "Compara tu figura con una foto", Pigment.Magenta),
-        HubTile(HubAction.Wheel, Icons.Rounded.ColorLens, "Círculo cromático", "Armonías con tus pinturas", Pigment.Violet),
-        HubTile(HubAction.Schemes, Icons.Rounded.AutoAwesome, "Esquemas de color", "Arma una paleta sin foto", Pigment.Cobalt),
-        HubTile(HubAction.Gaps, Icons.Rounded.GridView, "Huecos de tu colección", "Qué tonos te faltan", Pigment.Emerald),
-        HubTile(HubAction.Guide, Icons.AutoMirrored.Rounded.MenuBook, "Guía de técnicas", "Capas, lavados, veladuras", Pigment.Teal),
-        HubTile(HubAction.Gear, Icons.Rounded.Air, "Mi equipo", if (airbrushes == 0) "Registra tu aerógrafo" else "$airbrushes aerógrafo" + (if (airbrushes > 1) "s" else ""), Pigment.Slate),
+        HubTile(HubAction.Compare, Icons.Rounded.Layers, tr("Superponer referencia"), tr("Compara tu figura con una foto"), Pigment.Magenta),
+        HubTile(HubAction.Wheel, Icons.Rounded.ColorLens, tr("Círculo cromático"), tr("Armonías con tus pinturas"), Pigment.Violet),
+        HubTile(HubAction.Schemes, Icons.Rounded.AutoAwesome, tr("Esquemas de color"), tr("Arma una paleta sin foto"), Pigment.Cobalt),
+        HubTile(HubAction.Gaps, Icons.Rounded.GridView, tr("Huecos de tu colección"), tr("Qué tonos te faltan"), Pigment.Emerald),
+        HubTile(HubAction.Guide, Icons.AutoMirrored.Rounded.MenuBook, tr("Guía de técnicas"), tr("Capas, lavados, veladuras"), Pigment.Teal),
+        HubTile(HubAction.Gear, Icons.Rounded.Air, tr("Mi equipo"), if (airbrushes == 0) tr("Registra tu aerógrafo") else tr("{} aerógrafo", airbrushes) + (if (airbrushes > 1) "s" else ""), Pigment.Slate),
     )
     val shop = listOf(
-        HubTile(HubAction.Shopping, Icons.Rounded.ShoppingCart, "Lista de compras", if (toBuy == 0) "Vacía · ve recomendaciones" else "Por comprar", Pigment.Tangerine, badge = toBuy.takeIf { it > 0 }?.toString()),
-        HubTile(HubAction.Sets, Icons.Rounded.Widgets, "Sets de pinturas", "${vm.allSets.size} sets · cuáles tienes", Pigment.Gold),
-        HubTile(HubAction.Find, Icons.Rounded.TravelExplore, "Encontrar pintura", "En tu gaveta o estante", Pigment.Emerald),
-        HubTile(HubAction.AddCustom, Icons.Rounded.AddCircle, "Fuera del catálogo", "Agrega una pintura a mano", Pigment.Crimson),
+        HubTile(HubAction.Shopping, Icons.Rounded.ShoppingCart, tr("Lista de compras"), if (toBuy == 0) tr("Vacía · ve recomendaciones") else tr("Por comprar"), Pigment.Tangerine, badge = toBuy.takeIf { it > 0 }?.toString()),
+        HubTile(HubAction.Sets, Icons.Rounded.Widgets, tr("Sets de pinturas"), tr("{} sets · cuáles tienes", vm.allSets.size), Pigment.Gold),
+        HubTile(HubAction.Find, Icons.Rounded.TravelExplore, tr("Encontrar pintura"), tr("En tu gaveta o estante"), Pigment.Emerald),
+        HubTile(HubAction.AddCustom, Icons.Rounded.AddCircle, tr("Fuera del catálogo"), tr("Agrega una pintura a mano"), Pigment.Crimson),
     )
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 28.dp)) {
         item {
@@ -112,13 +113,13 @@ fun HubScreen(vm: MainViewModel, onAction: (HubAction) -> Unit) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         BrandDrops(10.dp)
-                        Text("Tu estante", style = MaterialTheme.typography.titleLarge, color = Color.White)
+                        Text(tr("Tu estante"), style = MaterialTheme.typography.titleLarge, color = Color.White)
                     }
                     Row(Modifier.fillMaxWidth()) {
                         HubStat(owned.size.toString(), "colores", Pigment.Cobalt[0], Modifier.weight(1f))
                         HubStat(bottles.toString(), "botes", Pigment.Emerald[0], Modifier.weight(1f))
                         HubStat(active.toString(), "proyectos", Pigment.Magenta[0], Modifier.weight(1f))
-                        HubStat(toBuy.toString(), "por comprar", Pigment.Gold[0], Modifier.weight(1f))
+                        HubStat(toBuy.toString(), tr("por comprar"), Pigment.Gold[0], Modifier.weight(1f))
                     }
                     if (strip.isNotEmpty()) {
                         Canvas(Modifier.fillMaxWidth().height(12.dp).clip(RoundedCornerShape(6.dp))) {
@@ -129,8 +130,8 @@ fun HubScreen(vm: MainViewModel, onAction: (HubAction) -> Unit) {
                 }
             }
         }
-        hubSection("Pintar", Pigment.Magenta[0], paint, onAction)
-        hubSection("Comprar y organizar", Pigment.Tangerine[0], shop, onAction)
+        hubSection(tr("Pintar"), Pigment.Magenta[0], paint, onAction)
+        hubSection(tr("Comprar y organizar"), Pigment.Tangerine[0], shop, onAction)
     }
 }
 

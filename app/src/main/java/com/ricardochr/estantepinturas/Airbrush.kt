@@ -29,16 +29,16 @@ fun gearLabel(g: Gear): String = g.name.ifBlank { "Aerógrafo" } + if (g.kind ==
 
 /** Proporción de dilución para aerógrafo de esa pintura (según su marca y gama). */
 fun airbrushRatio(p: Paint): String {
-    if (p.type == "Aerógrafo") return "lista para usar (ya viene diluida para aerógrafo)"
+    if (p.type == "Aerógrafo") return tr("lista para usar (ya viene diluida para aerógrafo)")
     val g = dilutionFor(p)
-    val u = g.uses.firstOrNull { it.use.contains("aerógrafo", ignoreCase = true) }
-    return (u?.ratio?.let { "$it pintura:diluyente" } ?: "1:1 pintura:diluyente") + " con ${g.thinner}"
+    val u = g.uses.firstOrNull { it.use.contains("aerógrafo", ignoreCase = true) || it.use.contains("airbrush", ignoreCase = true) }
+    return (u?.ratio?.let { tr("{} pintura:diluyente", it) } ?: tr("1:1 pintura:diluyente")) + tr(" con {}", g.thinner)
 }
 
 /** Aviso sobre el compresor, si hace falta. */
 fun compressorNote(kit: GearKit): String? = when {
     kit.compressor == null -> null
-    !kit.compressor.tank -> "Tu compresor no tiene tanque: el aire sale a pulsos. Déjalo encendido un momento antes de pintar y trabaja a la presión más baja que funcione."
+    !kit.compressor.tank -> tr("Tu compresor no tiene tanque: el aire sale a pulsos. Déjalo encendido un momento antes de pintar y trabaja a la presión más baja que funcione.")
     else -> null
 }
 
@@ -46,13 +46,13 @@ fun compressorNote(kit: GearKit): String? = when {
 fun airbrushStep(kit: GearKit, base: Paint?, shadow: String, light: String): String? {
     val ab = kit.general ?: return null
     val fine = kit.fine?.takeIf { it.id != ab.id && it.nozzle < ab.nozzle }
-    val baseText = base?.let { "${it.name} diluida ${airbrushRatio(it)}" } ?: "la base diluida 1:1"
+    val baseText = base?.let { tr("{} diluida {}", it.name, airbrushRatio(it)) } ?: tr("la base diluida 1:1")
     return buildString {
-        append("Con aerógrafo (tu ${gearLabel(ab)}): $baseText, a ${pressure(18, 25)} y a 10–15 cm, en pasadas finas y cruzadas hasta cubrir parejo. ")
-        append("Sombra: $shadow aerografiada desde abajo y desde el lado contrario a la luz. ")
-        append("Luz: $light desde arriba (zenital), dejando que se funda con la base")
-        append(if (fine != null) ", mejor con tu ${gearLabel(fine)} a ${pressure(12, 18)}. " else " a ${pressure(12, 18)} y más cerca. ")
-        append("Bordes definidos, detalles, textura y pincel seco se terminan a pincel.")
+        append(tr("Con aerógrafo (tu {}): {}, a {} y a 10–15 cm, en pasadas finas y cruzadas hasta cubrir parejo. ", gearLabel(ab), baseText, pressure(18, 25)))
+        append(tr("Sombra: {} aerografiada desde abajo y desde el lado contrario a la luz. ", shadow))
+        append(tr("Luz: {} desde arriba (zenital), dejando que se funda con la base", light))
+        append(if (fine != null) tr(", mejor con tu {} a {}. ", gearLabel(fine), pressure(12, 18)) else tr(" a {} y más cerca. ", pressure(12, 18)))
+        append(tr("Bordes definidos, detalles, textura y pincel seco se terminan a pincel."))
         compressorNote(kit)?.let { append(" $it") }
     }
 }
@@ -62,19 +62,19 @@ fun gearAdvice(kit: GearKit): List<String> {
     val out = ArrayList<String>()
     val sizes = kit.airbrushes.map { it.nozzle }.filter { it > 0 }
     if (!kit.hasAirbrush) {
-        out.add("Sin aerógrafo: pintas todo a pincel, y está bien. Un aerógrafo de 0.3 mm de doble acción y gravedad es el más versátil: imprimación, bases y degradados suaves (piel, capas, superficies grandes).")
+        out.add(tr("Sin aerógrafo: pintas todo a pincel, y está bien. Un aerógrafo de 0.3 mm de doble acción y gravedad es el más versátil: imprimación, bases y degradados suaves (piel, capas, superficies grandes)."))
     } else {
-        if (sizes.none { it in 0.25..0.4 }) out.add("Te conviene uno de 0.3–0.35 mm: es el más versátil para bases y capas medias en figuras.")
-        if (sizes.none { it <= 0.25 }) out.add("Uno de 0.2 mm (opcional) da degradados más finos y puntuales, útil en piel, ojos de luz (OSL) y veladuras; necesita pintura más diluida y menos presión.")
-        if (sizes.none { it >= 0.45 }) out.add("Para imprimación y barniz, una boquilla de 0.4–0.5 mm se tapa menos con pinturas espesas (opcional: con 0.3 mm también se puede, diluyendo más).")
-        if (out.isEmpty()) out.add("Tienes cubiertas las boquillas fina, general y gruesa.")
+        if (sizes.none { it in 0.25..0.4 }) out.add(tr("Te conviene uno de 0.3–0.35 mm: es el más versátil para bases y capas medias en figuras."))
+        if (sizes.none { it <= 0.25 }) out.add(tr("Uno de 0.2 mm (opcional) da degradados más finos y puntuales, útil en piel, ojos de luz (OSL) y veladuras; necesita pintura más diluida y menos presión."))
+        if (sizes.none { it >= 0.45 }) out.add(tr("Para imprimación y barniz, una boquilla de 0.4–0.5 mm se tapa menos con pinturas espesas (opcional: con 0.3 mm también se puede, diluyendo más)."))
+        if (out.isEmpty()) out.add(tr("Tienes cubiertas las boquillas fina, general y gruesa."))
     }
     when {
         kit.compressor == null && kit.hasAirbrush ->
-            out.add("Registra también tu compresor: si no tiene tanque te aviso cómo compensarlo.")
+            out.add(tr("Registra también tu compresor: si no tiene tanque te aviso cómo compensarlo."))
         kit.compressor != null && !kit.compressor.tank ->
-            out.add("Un compresor con tanque (1–3 L) y regulador con manómetro da aire constante, sin pulsos, y es más silencioso: es la mejora que más se nota al pintar figuras.")
+            out.add(tr("Un compresor con tanque (1–3 L) y regulador con manómetro da aire constante, sin pulsos, y es más silencioso: es la mejora que más se nota al pintar figuras."))
     }
-    out.add("Presiones de referencia: imprimación ${pressure(25, 30)} · bases ${pressure(18, 25)} · degradados y veladuras ${pressure(12, 18)} · detalles finos ${pressure(10, 15)}.")
+    out.add(tr("Presiones de referencia: imprimación {} · bases {} · degradados y veladuras {} · detalles finos {}.", pressure(25, 30), pressure(18, 25), pressure(12, 18), pressure(10, 15)))
     return out
 }

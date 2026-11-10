@@ -1,5 +1,7 @@
 package com.ricardochr.estantepinturas.ui
 
+import com.ricardochr.estantepinturas.tr
+
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.clickable
@@ -24,7 +26,6 @@ import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -159,7 +160,7 @@ fun InventoryScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    SearchField(query, { query = it }, "Buscar en tus pinturas", Modifier.weight(1f))
+                    SearchField(query, { query = it }, tr("Buscar en tus pinturas"), Modifier.weight(1f))
                     // Encontrar dónde está una pintura (gaveta o estante)
                     androidx.compose.foundation.layout.Box(
                         Modifier
@@ -171,7 +172,7 @@ fun InventoryScreen(
                     ) {
                         androidx.compose.material3.Icon(
                             Icons.Rounded.TravelExplore,
-                            contentDescription = "Encontrar una pintura",
+                            contentDescription = tr("Encontrar una pintura"),
                             tint = androidx.compose.ui.graphics.Color.White,
                         )
                     }
@@ -191,7 +192,7 @@ fun InventoryScreen(
                                 androidx.compose.material3.DropdownMenu(expanded = sortMenu, onDismissRequest = { sortMenu = false }) {
                                     InvSort.values().forEach { m ->
                                         androidx.compose.material3.DropdownMenuItem(
-                                            text = { Text((if (m == sortMode) "✓ " else "") + "Ordenar por " + m.label.lowercase()) },
+                                            text = { Text((if (m == sortMode) "✓ " else "") + tr("Ordenar por ") + m.label.lowercase()) },
                                             onClick = { sortMode = m; sortMenu = false },
                                         )
                                     }
@@ -202,7 +203,7 @@ fun InventoryScreen(
                             androidx.compose.material3.FilterChip(
                                 selected = onlyMultiple,
                                 onClick = { onlyMultiple = !onlyMultiple },
-                                label = { Text("Repetidas ($multipleCount)") },
+                                label = { Text(tr("Repetidas ({})", multipleCount)) },
                             )
                         }
                         if (brands.size > 1) {
@@ -210,7 +211,7 @@ fun InventoryScreen(
                                 androidx.compose.material3.FilterChip(
                                     selected = effectiveBrand == null,
                                     onClick = { brand = null },
-                                    label = { Text("Todas") },
+                                    label = { Text(tr("Todas")) },
                                 )
                             }
                             items(brands, key = { "b-" + it.first }) { (b, n) ->
@@ -226,24 +227,24 @@ fun InventoryScreen(
             }
         }
         when {
-            vm.loading || shown == null -> item { EmptyState("Cargando…", "Abriendo el catálogo de pinturas.") }
+            vm.loading || shown == null -> item { EmptyState(tr("Cargando…"), tr("Abriendo el catálogo de pinturas.")) }
             ownedPaints.isEmpty() -> item {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
                     EmptyState(
-                        "Tu estante está vacío",
-                        "Escanea la etiqueta o el código de barras de un bote, o búscalo en el catálogo de ${vm.catalog.size} pinturas y tócalo para agregarlo.",
+                        tr("Tu estante está vacío"),
+                        tr("Escanea la etiqueta o el código de barras de un bote, o búscalo en el catálogo de {} pinturas y tócalo para agregarlo.", vm.catalog.size),
                     )
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        TextButton(onClick = onGoScan) { Text("Escanear") }
-                        TextButton(onClick = onGoCatalog) { Text("Abrir catálogo") }
+                        TextButton(onClick = onGoScan) { Text(tr("Escanear")) }
+                        TextButton(onClick = onGoCatalog) { Text(tr("Abrir catálogo")) }
                     }
                 }
             }
-            onlyMultiple && shown.isEmpty() -> item { EmptyState("Ninguna repetida", "No tienes más de un bote de ninguna pintura con estos filtros.") }
+            onlyMultiple && shown.isEmpty() -> item { EmptyState(tr("Ninguna repetida"), tr("No tienes más de un bote de ninguna pintura con estos filtros.")) }
             shown.isEmpty() -> item {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                    EmptyState("No la tienes", "Ninguna pintura de tu inventario coincide con “$query”.")
-                    TextButton(onClick = onGoCatalog) { Text("Buscar en el catálogo") }
+                    EmptyState(tr("No la tienes"), tr("Ninguna pintura de tu inventario coincide con “{}”.", query))
+                    TextButton(onClick = onGoCatalog) { Text(tr("Buscar en el catálogo")) }
                 }
             }
             else -> items(shown, key = { it.first.id }, contentType = { 0 }) { (p, e) ->
@@ -284,9 +285,9 @@ fun CatalogList(
 
     Column(Modifier.fillMaxSize()) {
         Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            SearchField(query, { query = it }, "Buscar en ${all.size} pinturas…")
+            SearchField(query, { query = it }, tr("Buscar en {} pinturas…", all.size))
             Text(
-                if (shown == null) "Buscando…" else "${shown.size} resultados",
+                if (shown == null) tr("Buscando…") else tr("{} resultados", shown.size),
                 style = MaterialTheme.typography.labelMedium,
                 fontFamily = FontFamily.Monospace,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -295,7 +296,7 @@ fun CatalogList(
         BrandChips(brands, brand, mine.keys) { brand = it }
         Spacer(Modifier.height(4.dp))
         if (shown == null) {
-            EmptyState("Cargando…", "Preparando el catálogo.")
+            EmptyState(tr("Cargando…"), tr("Preparando el catálogo."))
             return@Column
         }
         LazyColumn(Modifier.fillMaxSize(), state = listState, contentPadding = PaddingValues(bottom = 24.dp)) {
@@ -306,7 +307,7 @@ fun CatalogList(
                         if (qty > 0) OwnedBadge(qty)
                         if (onPlus != null) {
                             FilledTonalIconButton(onClick = { onPlus(p) }) {
-                                Icon(Icons.Default.Add, contentDescription = "Agregar ${p.name}")
+                                Icon(Icons.Default.Add, contentDescription = tr("Agregar {}", p.name))
                             }
                         }
                     }
@@ -321,7 +322,7 @@ fun CatalogList(
 fun OwnedBadge(qty: Int) {
     Surface(color = MaterialTheme.colorScheme.primaryContainer, shape = RoundedCornerShape(999.dp)) {
         Text(
-            "Tengo $qty",
+            tr("Tengo {}", qty),
             style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onPrimaryContainer,

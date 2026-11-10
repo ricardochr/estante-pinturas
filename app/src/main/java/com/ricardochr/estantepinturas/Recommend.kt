@@ -94,19 +94,19 @@ fun recommendPaints(owned: List<Paint>, catalog: List<Paint>, max: Int = 24): Li
     data class Basic(val target: Lab, val covered: (Lab) -> Boolean, val reason: String)
     val basics = listOf(
         Basic(Lab(97.0, 0.0, 1.0), { it.l > 92 && chromaOf(it) < 7 },
-            "Blanco puro: para los puntos de luz más altos y para aclarar cualquier color."),
+            tr("Blanco puro: para los puntos de luz más altos y para aclarar cualquier color.")),
         Basic(Lab(12.0, 0.0, 0.0), { it.l < 18 && chromaOf(it) < 9 },
-            "Negro: para las sombras más profundas, delineado y contraste."),
+            tr("Negro: para las sombras más profundas, delineado y contraste.")),
         Basic(Lab(52.0, 0.0, -1.0), { it.l in 38.0..64.0 && chromaOf(it) < 8 },
-            "Gris neutro: para escalas de gris y para bajar la saturación de un color sin cambiar su tono."),
+            tr("Gris neutro: para escalas de gris y para bajar la saturación de un color sin cambiar su tono.")),
         Basic(Lab(90.0, 1.0, 11.0), { it.l > 82 && it.b in 5.0..22.0 && chromaOf(it) < 24 },
-            "Blanco hueso: luces cálidas, más naturales que el blanco puro en piel, tela y pergamino."),
+            tr("Blanco hueso: luces cálidas, más naturales que el blanco puro en piel, tela y pergamino.")),
         Basic(Lab(26.0, 9.0, 15.0), { it.l in 14.0..36.0 && chromaOf(it) in 6.0..32.0 && hueOf(it) in 30.0..95.0 },
-            "Marrón oscuro: sombras cálidas y bases de cuero, madera y pelo."),
+            tr("Marrón oscuro: sombras cálidas y bases de cuero, madera y pelo.")),
         Basic(Lab(68.0, 14.0, 22.0), { it.l in 56.0..80.0 && it.a in 7.0..24.0 && it.b in 12.0..34.0 },
-            "Tono de piel medio: la base para casi cualquier piel; se oscurece y aclara desde aquí."),
+            tr("Tono de piel medio: la base para casi cualquier piel; se oscurece y aclara desde aquí.")),
         Basic(Lab(22.0, 12.0, -24.0), { it.l < 36 && it.b < -10 },
-            "Azul-violeta oscuro: sombras frías. Mezclado con la base oscurece sin ensuciar como el negro."),
+            tr("Azul-violeta oscuro: sombras frías. Mezclado con la base oscurece sin ensuciar como el negro.")),
     )
     for (b in basics) {
         if (opaqueMine.none { b.covered(it.lab) }) add(b.target, opaquePool, 12.0, RecKind.BASICS, b.reason)
@@ -145,26 +145,26 @@ fun recommendPaints(owned: List<Paint>, catalog: List<Paint>, max: Int = 24): Li
             val g = list.maxByOrNull { chromaOf(it.base.lab) } ?: return@forEach
             val name = g.base.name
             if (key.second) {
-                add(g.target, opaquePool, 10.0, RecKind.SHADOW, "Sombra para $name: mismo tono, más oscuro y un poco más frío.")
+                add(g.target, opaquePool, 10.0, RecKind.SHADOW, tr("Sombra para {}: mismo tono, más oscuro y un poco más frío.", name))
             } else {
-                add(g.target, opaquePool, 10.0, RecKind.LIGHT, "Luz para $name: mismo tono, más claro y un poco más cálido.")
+                add(g.target, opaquePool, 10.0, RecKind.LIGHT, tr("Luz para {}: mismo tono, más claro y un poco más cálido.", name))
             }
         }
 
     // ---- 3. Lavados
     if (washMine.none { it.lab.l < 45 && chromaOf(it.lab) > 8 && hueOf(it.lab) in 35.0..100.0 }) {
-        add(Lab(30.0, 8.0, 20.0), washPool, 14.0, RecKind.WASH, "Lavado marrón (sepia): sombras rápidas en piel, cuero, hueso y metal dorado.")
+        add(Lab(30.0, 8.0, 20.0), washPool, 14.0, RecKind.WASH, tr("Lavado marrón (sepia): sombras rápidas en piel, cuero, hueso y metal dorado."))
     }
     if (washMine.none { it.lab.l < 30 && chromaOf(it.lab) < 10 }) {
-        add(Lab(16.0, 0.0, 0.0), washPool, 14.0, RecKind.WASH, "Lavado negro: marca los recovecos en metal plateado, armaduras y negros.")
+        add(Lab(16.0, 0.0, 0.0), washPool, 14.0, RecKind.WASH, tr("Lavado negro: marca los recovecos en metal plateado, armaduras y negros."))
     }
 
     // ---- 4. Metálicos
     if (metalMine.none { chromaOf(it.lab) < 9 }) {
-        add(Lab(72.0, 0.0, 0.0), metalPool, 15.0, RecKind.METAL, "Plata: armas, armaduras y brillos metálicos.")
+        add(Lab(72.0, 0.0, 0.0), metalPool, 15.0, RecKind.METAL, tr("Plata: armas, armaduras y brillos metálicos."))
     }
     if (metalMine.none { it.lab.b > 20 }) {
-        add(Lab(66.0, 6.0, 42.0), metalPool, 15.0, RecKind.METAL, "Oro: adornos, joyería y detalles nobles.")
+        add(Lab(66.0, 6.0, 42.0), metalPool, 15.0, RecKind.METAL, tr("Oro: adornos, joyería y detalles nobles."))
     }
 
     val order = RecKind.values()

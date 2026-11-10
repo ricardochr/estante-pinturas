@@ -1,5 +1,7 @@
 package com.ricardochr.estantepinturas.ui
 
+import com.ricardochr.estantepinturas.tr
+
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -15,7 +17,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -42,7 +43,7 @@ fun GuideScreen() {
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 24.dp)) {
         item {
             Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                SearchField(query, { query = it }, "Buscar técnica: veladura, ojos, aerógrafo…")
+                SearchField(query, { query = it }, tr("Buscar técnica: veladura, ojos, aerógrafo…"))
             }
         }
         if (words.isEmpty()) {
@@ -106,11 +107,11 @@ private fun ArticleCard(a: GuideArticle, expanded: Boolean, onToggle: () -> Unit
                     }
                 }
                 if (a.tools.isNotBlank()) {
-                    Text("Necesitas: ${a.tools}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(tr("Necesitas: {}", a.tools), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 if (a.tip.isNotBlank()) {
                     Surface(color = MaterialTheme.colorScheme.tertiaryContainer, contentColor = MaterialTheme.colorScheme.onTertiaryContainer, shape = MaterialTheme.shapes.small) {
-                        Text("Truco: ${a.tip}", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(10.dp))
+                        Text(tr("Truco: {}", a.tip), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(10.dp))
                     }
                 }
             }
@@ -132,11 +133,11 @@ private fun DilutionTableCard() {
     ) {
         Column(Modifier.padding(14.dp).animateContentSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Tabla de diluciones", style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+                Text(tr("Tabla de diluciones"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
                 Text(if (expanded) "▲" else "▼", style = MaterialTheme.typography.labelLarge)
             }
             Text(
-                "Pintura : diluyente, por marca. ★ = indicación del fabricante; el resto es práctica habitual. Cada pintura de tu inventario tiene su propia guía.",
+                tr("Pintura : diluyente, por marca. ★ = indicación del fabricante; el resto es práctica habitual. Cada pintura de tu inventario tiene su propia guía."),
                 style = MaterialTheme.typography.bodySmall,
             )
             if (expanded) {
@@ -151,7 +152,7 @@ private fun DilutionTableCard() {
                     }
                 }
                 Text(
-                    "Ajusta a ojo: para aerógrafo, consistencia de leche descremada; para veladura, casi como tinta. Un bote viejo o espeso necesita más diluyente.",
+                    tr("Ajusta a ojo: para aerógrafo, consistencia de leche descremada; para veladura, casi como tinta. Un bote viejo o espeso necesita más diluyente."),
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(top = 4.dp),
                 )

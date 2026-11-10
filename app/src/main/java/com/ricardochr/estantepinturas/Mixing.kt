@@ -16,7 +16,7 @@ data class MixPart(val paint: Paint, val drops: Int)
 
 data class MixRecipe(val parts: List<MixPart>, val resultArgb: Int, val distance: Double) {
     val description: String
-        get() = parts.joinToString(" + ") { "${it.drops} ${if (it.drops == 1) "gota" else "gotas"} de ${it.paint.name}" }
+        get() = parts.joinToString(" + ") { tr("{} {} de {}", it.drops, if (it.drops == 1) "gota" else "gotas", it.paint.name) }
 
     /** Aviso de compatibilidad (marcas distintas, bases distintas…) o null. */
     val warning: String? by lazy { mixWarning(parts.map { it.paint }) }

@@ -2,6 +2,8 @@
 
 package com.ricardochr.estantepinturas.ui
 
+import com.ricardochr.estantepinturas.tr
+
 import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
@@ -21,7 +23,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -64,8 +65,8 @@ fun ShoppingScreen(vm: MainViewModel, onClose: () -> Unit, onOpenPaint: (Paint) 
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             Column(Modifier.fillMaxSize().systemBarsPadding()) {
                 TopAppBar(
-                    title = { Text("Lista de compras") },
-                    navigationIcon = { IconButton(onClick = onClose) { Icon(Icons.Default.Close, contentDescription = "Cerrar") } },
+                    title = { Text(tr("Lista de compras")) },
+                    navigationIcon = { IconButton(onClick = onClose) { Icon(Icons.Default.Close, contentDescription = tr("Cerrar")) } },
                     actions = {
                         if (low.isNotEmpty() || toBuy.isNotEmpty()) {
                             IconButton(onClick = {
@@ -73,43 +74,43 @@ fun ShoppingScreen(vm: MainViewModel, onClose: () -> Unit, onOpenPaint: (Paint) 
                                     type = "text/plain"
                                     putExtra(Intent.EXTRA_TEXT, vm.shoppingText())
                                 }
-                                context.startActivity(Intent.createChooser(send, "Compartir lista"))
-                            }) { Icon(Icons.Default.Share, contentDescription = "Compartir") }
+                                context.startActivity(Intent.createChooser(send, tr("Compartir lista")))
+                            }) { Icon(Icons.Default.Share, contentDescription = tr("Compartir")) }
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
                 )
                 TextButton(onClick = { picking = true }, modifier = Modifier.padding(horizontal = 8.dp)) {
-                    Text("+ Agregar una pintura del catálogo")
+                    Text(tr("+ Agregar una pintura del catálogo"))
                 }
                 run {
                     LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(bottom = 24.dp)) {
                         if (low.isEmpty() && toBuy.isEmpty()) {
                             item {
                                 EmptyState(
-                                    "Tu lista está vacía",
-                                    "En la ficha de una pintura activa “Se está acabando”, o agrega las recomendaciones de abajo.",
+                                    tr("Tu lista está vacía"),
+                                    tr("En la ficha de una pintura activa “Se está acabando”, o agrega las recomendaciones de abajo."),
                                 )
                             }
                         }
                         if (low.isNotEmpty()) {
-                            item { SectionTitle("Se están acabando (${low.size})") }
+                            item { SectionTitle(tr("Se están acabando ({})", low.size)) }
                             items(low, key = { "low-" + it.id }) { p ->
-                                PaintRow(p, extra = "tienes ${vm.qtyOf(p.id)}", onClick = { onOpenPaint(p) }) {
+                                PaintRow(p, extra = tr("tienes {}", vm.qtyOf(p.id)), onClick = { onOpenPaint(p) }) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
-                                        TextButton(onClick = { vm.bought(p.id); say("${p.name}: +1 bote") }) { Text("Comprada") }
-                                        IconButton(onClick = { vm.setLow(p.id, false) }) { Icon(Icons.Default.Close, contentDescription = "Quitar de la lista") }
+                                        TextButton(onClick = { vm.bought(p.id); say(tr("{}: +1 bote", p.name)) }) { Text(tr("Comprada")) }
+                                        IconButton(onClick = { vm.setLow(p.id, false) }) { Icon(Icons.Default.Close, contentDescription = tr("Quitar de la lista")) }
                                     }
                                 }
                             }
                         }
                         if (toBuy.isNotEmpty()) {
-                            item { SectionTitle("Por comprar (${toBuy.size})") }
+                            item { SectionTitle(tr("Por comprar ({})", toBuy.size)) }
                             items(toBuy, key = { "buy-" + it.first.id }) { (p, s) ->
                                 PaintRow(p, extra = s.reason.ifBlank { null }, onClick = { onOpenPaint(p) }) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
-                                        TextButton(onClick = { vm.bought(p.id); say("Agregada al inventario: ${p.name}") }) { Text("Comprada") }
-                                        IconButton(onClick = { vm.removeFromShopping(p.id) }) { Icon(Icons.Default.Close, contentDescription = "Quitar de la lista") }
+                                        TextButton(onClick = { vm.bought(p.id); say(tr("Agregada al inventario: {}", p.name)) }) { Text(tr("Comprada")) }
+                                        IconButton(onClick = { vm.removeFromShopping(p.id) }) { Icon(Icons.Default.Close, contentDescription = tr("Quitar de la lista")) }
                                     }
                                 }
                             }
@@ -117,7 +118,7 @@ fun ShoppingScreen(vm: MainViewModel, onClose: () -> Unit, onOpenPaint: (Paint) 
                         recommendationItems(vm, recs, onOpenPaint, say)
                         item {
                             Text(
-                                "“Comprada” suma un bote a tu inventario y la quita de la lista.",
+                                tr("“Comprada” suma un bote a tu inventario y la quita de la lista."),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(16.dp),
@@ -128,10 +129,10 @@ fun ShoppingScreen(vm: MainViewModel, onClose: () -> Unit, onOpenPaint: (Paint) 
             }
         }
         if (picking) {
-            PaintPickerDialog(vm, "Agregar a la lista", onDismiss = { picking = false }, fromCatalog = true) { p ->
+            PaintPickerDialog(vm, tr("Agregar a la lista"), onDismiss = { picking = false }, fromCatalog = true) { p ->
                 picking = false
                 vm.addToShopping(p.id, "")
-                say("En tu lista: ${p.name}")
+                say(tr("En tu lista: {}", p.name))
             }
         }
     }
@@ -146,14 +147,13 @@ private fun LazyListScope.recommendationItems(
 ) {
     item {
         Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 18.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("Te recomiendo", style = MaterialTheme.typography.titleLarge)
+            Text(tr("Te recomiendo"), style = MaterialTheme.typography.titleLarge)
             Text(
                 when {
-                    vm.owned.values.none { it.qty > 0 } -> "Agrega tus pinturas al inventario y te digo cuáles te faltan."
-                    recs == null -> "Revisando tu inventario…"
-                    recs.isEmpty() -> "Tu inventario está muy completo: tienes básicos, sombras y luces para tus colores."
-                    else -> "Revisé tus colores: para cada uno busqué una pintura más oscura para sombra y una más clara para luz del mismo tono. " +
-                        "También los básicos, lavados y metálicos que conviene tener. Prefiero las marcas que más usas."
+                    vm.owned.values.none { it.qty > 0 } -> tr("Agrega tus pinturas al inventario y te digo cuáles te faltan.")
+                    recs == null -> tr("Revisando tu inventario…")
+                    recs.isEmpty() -> tr("Tu inventario está muy completo: tienes básicos, sombras y luces para tus colores.")
+                    else -> tr("Revisé tus colores: para cada uno busqué una pintura más oscura para sombra y una más clara para luz del mismo tono. También los básicos, lavados y metálicos que conviene tener. Prefiero las marcas que más usas.")
                 },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -165,9 +165,9 @@ private fun LazyListScope.recommendationItems(
     if (pending.size > 1) {
         item {
             TextButton(onClick = {
-                pending.forEach { vm.addToShopping(it.paint.id, "Recomendada · " + it.kind.label.lowercase()) }
-                say("${pending.size} recomendaciones agregadas a tu lista")
-            }, modifier = Modifier.padding(horizontal = 8.dp)) { Text("Agregar las ${pending.size} a la lista") }
+                pending.forEach { vm.addToShopping(it.paint.id, tr("Recomendada · ") + it.kind.label.lowercase()) }
+                say(tr("{} recomendaciones agregadas a tu lista", pending.size))
+            }, modifier = Modifier.padding(horizontal = 8.dp)) { Text(tr("Agregar las {} a la lista", pending.size)) }
         }
     }
     recs.groupBy { it.kind }.forEach { (kind, list) ->
@@ -194,9 +194,9 @@ private fun LazyListScope.recommendationItems(
                         )
                     }
                     if (inList) {
-                        Text("✓ En lista", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                        Text(tr("✓ En lista"), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
                     } else {
-                        TextButton(onClick = { vm.addToShopping(r.paint.id, "Recomendada · " + r.kind.label.lowercase()) }) { Text("+ Lista") }
+                        TextButton(onClick = { vm.addToShopping(r.paint.id, tr("Recomendada · ") + r.kind.label.lowercase()) }) { Text(tr("+ Lista")) }
                     }
                 }
                 Text(r.reason, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)

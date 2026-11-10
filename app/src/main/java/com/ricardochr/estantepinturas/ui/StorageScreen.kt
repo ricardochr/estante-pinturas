@@ -2,6 +2,8 @@
 
 package com.ricardochr.estantepinturas.ui
 
+import com.ricardochr.estantepinturas.tr
+
 import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.activity.compose.BackHandler
@@ -58,7 +60,6 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -166,9 +167,9 @@ fun StorageScreen(
     LaunchedEffect(currentHit) { currentHit?.let { spotId = it.spot.id } }
 
     fun added(s: StorageSpot?) {
-        if (s == null) say("No pude guardar la foto.") else {
+        if (s == null) say(tr("No pude guardar la foto.")) else {
             spotId = s.id
-            say("Foto guardada: ${s.name}")
+            say(tr("Foto guardada: {}", s.name))
         }
     }
 
@@ -196,26 +197,26 @@ fun StorageScreen(
                 TopAppBar(
                     title = {
                         Column {
-                            Text("ENCONTRAR PINTURA", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.tertiary)
-                            Text(spot?.name ?: "Mis gavetas", style = MaterialTheme.typography.headlineSmall)
+                            Text(tr("ENCONTRAR PINTURA"), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.tertiary)
+                            Text(spot?.name ?: tr("Mis gavetas"), style = MaterialTheme.typography.headlineSmall)
                         }
                     },
-                    navigationIcon = { IconButton(onClick = onClose) { Icon(Icons.Default.ArrowBack, contentDescription = "Volver") } },
+                    navigationIcon = { IconButton(onClick = onClose) { Icon(Icons.Default.ArrowBack, contentDescription = tr("Volver")) } },
                     actions = {
                         if (spot != null) {
-                            IconButton(onClick = { menuOpen = true }) { Icon(Icons.Default.MoreVert, contentDescription = "Opciones") }
+                            IconButton(onClick = { menuOpen = true }) { Icon(Icons.Default.MoreVert, contentDescription = tr("Opciones")) }
                             DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
-                                DropdownMenuItem(text = { Text("Leer todas las etiquetas de esta foto") }, onClick = {
+                                DropdownMenuItem(text = { Text(tr("Leer todas las etiquetas de esta foto")) }, onClick = {
                                     menuOpen = false
                                     detecting = true
                                     scope.launch {
                                         val res = try { vm.detectInSpot(spot) } catch (e: Exception) { emptyList() }
                                         detecting = false
-                                        if (res.isEmpty()) say("No pude leer etiquetas en esta foto.") else detected = res
+                                        if (res.isEmpty()) say(tr("No pude leer etiquetas en esta foto.")) else detected = res
                                     }
                                 })
-                                DropdownMenuItem(text = { Text("Cambiar nombre") }, onClick = { menuOpen = false; newName = spot.name; renaming = true })
-                                DropdownMenuItem(text = { Text("Eliminar esta foto") }, onClick = { menuOpen = false; confirmDelete = true })
+                                DropdownMenuItem(text = { Text(tr("Cambiar nombre")) }, onClick = { menuOpen = false; newName = spot.name; renaming = true })
+                                DropdownMenuItem(text = { Text(tr("Eliminar esta foto")) }, onClick = { menuOpen = false; confirmDelete = true })
                             }
                         }
                     },
@@ -226,7 +227,7 @@ fun StorageScreen(
                 Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     val t = target
                     if (t == null) {
-                        SearchField(query, { query = it }, "¿Qué pintura buscas?")
+                        SearchField(query, { query = it }, tr("¿Qué pintura buscas?"))
                         val words = queryWords(query)
                         if (words.isNotEmpty()) {
                             val options = remember(query, vm.owned) {
@@ -236,7 +237,7 @@ fun StorageScreen(
                             Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = MaterialTheme.shapes.medium) {
                                 Column(Modifier.heightIn(max = 280.dp)) {
                                     if (options.isEmpty()) {
-                                        Text("No está en tu inventario.", Modifier.padding(14.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        Text(tr("No está en tu inventario."), Modifier.padding(14.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
                                     options.forEachIndexed { i, p ->
                                         if (i > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
@@ -253,7 +254,7 @@ fun StorageScreen(
                                                 Text(p.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
                                                 Text(listOf(p.brand, p.code).filter { it.isNotBlank() }.joinToString(" · "), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                             }
-                                            Text("Buscar", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                                            Text(tr("Buscar"), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
                                         }
                                     }
                                 }
@@ -272,12 +273,12 @@ fun StorageScreen(
                             onConfirm = {
                                 currentHit?.let { h ->
                                     vm.setLocation(t.id, h.spot.id, h.x, h.y)
-                                    say("Guardado: ${t.name} está en ${h.spot.name}")
+                                    say(tr("Guardado: {} está en {}", t.name, h.spot.name))
                                     hits = listOf(h.copy(kind = LocateKind.SAVED, confidence = 1f))
                                     hitIdx = 0
                                 }
                             },
-                            onMarkManually = { placing = t; say("Toca en la foto dónde está ${t.name}") },
+                            onMarkManually = { placing = t; say(tr("Toca en la foto dónde está {}", t.name)) },
                             onLive = { onLiveFind(t) },
                             onClear = { target = null; hits = null },
                         )
@@ -286,8 +287,8 @@ fun StorageScreen(
                     if (p != null) {
                         Surface(color = MaterialTheme.colorScheme.tertiaryContainer, contentColor = MaterialTheme.colorScheme.onTertiaryContainer, shape = MaterialTheme.shapes.small) {
                             Row(Modifier.padding(start = 12.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Text("Toca en la foto dónde está ${p.name}", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
-                                TextButton(onClick = { placing = null }) { Text("Cancelar") }
+                                Text(tr("Toca en la foto dónde está {}", p.name), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+                                TextButton(onClick = { placing = null }) { Text(tr("Cancelar")) }
                             }
                         }
                     }
@@ -298,9 +299,9 @@ fun StorageScreen(
                             Row(Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Swatch(sel.hex, size = 30.dp, metallic = sel.type == "Metálica")
                                 Text(sel.name, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-                                TextButton(onClick = { onOpenPaint(sel) }) { Text("Ficha") }
-                                TextButton(onClick = { placing = sel; selectedPin = null }) { Text("Mover") }
-                                TextButton(onClick = { vm.clearLocation(sel.id); selectedPin = null }) { Text("Quitar") }
+                                TextButton(onClick = { onOpenPaint(sel) }) { Text(tr("Ficha")) }
+                                TextButton(onClick = { placing = sel; selectedPin = null }) { Text(tr("Mover")) }
+                                TextButton(onClick = { vm.clearLocation(sel.id); selectedPin = null }) { Text(tr("Quitar")) }
                             }
                         }
                     }
@@ -319,19 +320,19 @@ fun StorageScreen(
                             label = { Text(if (target != null && n > 0) "${s.name} · $n" else s.name) },
                         )
                     }
-                    item { AssistChip(onClick = { takePhoto() }, label = { Text("+ Tomar foto") }) }
+                    item { AssistChip(onClick = { takePhoto() }, label = { Text(tr("+ Tomar foto")) }) }
                     item {
                         AssistChip(
                             onClick = { gallery.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
-                            label = { Text("+ Desde galería") },
+                            label = { Text(tr("+ Desde galería")) },
                         )
                     }
                 }
 
                 if (spot == null) {
                     EmptyState(
-                        "Fotografía tu gaveta",
-                        "Toma una foto desde arriba, con buena luz, de donde guardas tus pinturas. Después busca una pintura y la app te señala dónde puede estar, por su etiqueta y por su color.",
+                        tr("Fotografía tu gaveta"),
+                        tr("Toma una foto desde arriba, con buena luz, de donde guardas tus pinturas. Después busca una pintura y la app te señala dónde puede estar, por su etiqueta y por su color."),
                     )
                     return@Column
                 }
@@ -362,7 +363,7 @@ fun StorageScreen(
                             val p = placing
                             if (p != null) {
                                 vm.setLocation(p.id, spot.id, pos.x, pos.y)
-                                say("Ubicada: ${p.name}")
+                                say(tr("Ubicada: {}", p.name))
                                 placing = null
                                 if (target?.id == p.id) {
                                     hits = listOf(LocateHit(spot, pos.x, pos.y, LocateKind.SAVED, 1f)); hitIdx = 0
@@ -379,7 +380,7 @@ fun StorageScreen(
                         Surface(color = Color.Black.copy(alpha = 0.7f), contentColor = Color.White, shape = MaterialTheme.shapes.small) {
                             Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                 CircularProgressIndicator(Modifier.size(22.dp), color = Color.White, strokeWidth = 2.dp)
-                                Text("Leyendo etiquetas…")
+                                Text(tr("Leyendo etiquetas…"))
                             }
                         }
                     }
@@ -390,11 +391,11 @@ fun StorageScreen(
         pickAt?.let { pos ->
             PaintPickerDialog(
                 vm = vm,
-                title = "¿Qué pintura está aquí?",
+                title = tr("¿Qué pintura está aquí?"),
                 onDismiss = { pickAt = null },
                 onPick = { p ->
                     spot?.let { vm.setLocation(p.id, it.id, pos.x, pos.y) }
-                    say("Ubicada: ${p.name}")
+                    say(tr("Ubicada: {}", p.name))
                     pickAt = null
                 },
             )
@@ -408,7 +409,7 @@ fun StorageScreen(
                 onSave = { chosen ->
                     spot?.let { vm.applyDetections(it.id, chosen) }
                     val nuevas = chosen.count { !it.owned }
-                    say("Ubicadas ${chosen.size}" + if (nuevas > 0) " ($nuevas agregadas a tu inventario)" else "")
+                    say(tr("Ubicadas {}", chosen.size) + if (nuevas > 0) tr(" ({} agregadas a tu inventario)", nuevas) else "")
                     detected = null
                 },
             )
@@ -417,25 +418,25 @@ fun StorageScreen(
         if (renaming && spot != null) {
             AlertDialog(
                 onDismissRequest = { renaming = false },
-                title = { Text("Nombre del lugar") },
-                text = { OutlinedTextField(newName, { newName = it }, singleLine = true, placeholder = { Text("Gaveta de arriba") }) },
-                confirmButton = { TextButton(onClick = { vm.renameSpot(spot.id, newName); renaming = false }) { Text("Guardar") } },
-                dismissButton = { TextButton(onClick = { renaming = false }) { Text("Cancelar") } },
+                title = { Text(tr("Nombre del lugar")) },
+                text = { OutlinedTextField(newName, { newName = it }, singleLine = true, placeholder = { Text(tr("Gaveta de arriba")) }) },
+                confirmButton = { TextButton(onClick = { vm.renameSpot(spot.id, newName); renaming = false }) { Text(tr("Guardar")) } },
+                dismissButton = { TextButton(onClick = { renaming = false }) { Text(tr("Cancelar")) } },
             )
         }
         if (confirmDelete && spot != null) {
             AlertDialog(
                 onDismissRequest = { confirmDelete = false },
-                title = { Text("¿Eliminar “${spot.name}”?") },
-                text = { Text("Se borra la foto y las ubicaciones guardadas en ella. Tus pinturas siguen en el inventario.") },
+                title = { Text(tr("¿Eliminar “{}”?", spot.name)) },
+                text = { Text(tr("Se borra la foto y las ubicaciones guardadas en ella. Tus pinturas siguen en el inventario.")) },
                 confirmButton = {
                     TextButton(onClick = {
                         vm.deleteSpot(spot.id)
                         spotId = vm.spots.firstOrNull { it.id != spot.id }?.id
                         confirmDelete = false
-                    }) { Text("Eliminar") }
+                    }) { Text(tr("Eliminar")) }
                 },
-                dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text("Cancelar") } },
+                dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text(tr("Cancelar")) } },
             )
         }
     }
@@ -464,35 +465,35 @@ private fun TargetCard(
                     Text(paint.name, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text(listOf(paint.brand, paint.code).filter { it.isNotBlank() }.joinToString(" · "), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                IconButton(onClick = onClear) { Icon(Icons.Default.Close, contentDescription = "Buscar otra") }
+                IconButton(onClick = onClear) { Icon(Icons.Default.Close, contentDescription = tr("Buscar otra")) }
             }
             val h = hits?.getOrNull(hitIdx)
             when {
-                !hasSpots -> Text("Primero toma una foto de tu gaveta (botón “+ Tomar foto”), o busca en vivo con la cámara.", style = MaterialTheme.typography.bodySmall)
+                !hasSpots -> Text(tr("Primero toma una foto de tu gaveta (botón “+ Tomar foto”), o busca en vivo con la cámara."), style = MaterialTheme.typography.bodySmall)
                 searching || hits == null -> Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
                     Text(
-                        if (readingFirstTime) "Buscando… la primera vez leo todas las etiquetas de la foto (unos segundos)." else "Buscando…",
+                        if (readingFirstTime) tr("Buscando… la primera vez leo todas las etiquetas de la foto (unos segundos).") else tr("Buscando…"),
                         style = MaterialTheme.typography.bodySmall,
                     )
                 }
                 h == null -> Text(
                     if (paint.hasColor && kotlin.math.sqrt(paint.lab.a * paint.lab.a + paint.lab.b * paint.lab.b) < 12)
-                        "No la encontré. Es un color neutro (blanco, negro, gris): por color no se distingue, y su etiqueta no se ve en la foto."
-                    else "No la encontré en tus fotos. Prueba con la cámara o márcala a mano.",
+                        tr("No la encontré. Es un color neutro (blanco, negro, gris): por color no se distingue, y su etiqueta no se ve en la foto.")
+                    else tr("No la encontré en tus fotos. Prueba con la cámara o márcala a mano."),
                     style = MaterialTheme.typography.bodySmall,
                 )
                 else -> {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
                             Text(
-                                "Opción ${hitIdx + 1} de ${hits.size} · ${h.spot.name}",
+                                tr("Opción {} de {} · {}", hitIdx + 1, hits.size, h.spot.name),
                                 style = MaterialTheme.typography.labelLarge,
                                 color = MaterialTheme.colorScheme.primary,
                             )
                             Text(
                                 h.kind.label + when (h.kind) {
-                                    LocateKind.COLOR -> " · ${(h.confidence * 100).roundToInt()}% probable"
+                                    LocateKind.COLOR -> tr(" · {}% probable", (h.confidence * 100).roundToInt())
                                     else -> ""
                                 },
                                 style = MaterialTheme.typography.bodySmall,
@@ -506,11 +507,11 @@ private fun TargetCard(
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (h != null && h.kind != LocateKind.SAVED) {
-                    Button(onClick = onConfirm) { Text("Es aquí ✓") }
+                    Button(onClick = onConfirm) { Text(tr("Es aquí ✓")) }
                 }
-                FilledTonalButton(onClick = onLive) { Text("Buscar con cámara") }
+                FilledTonalButton(onClick = onLive) { Text(tr("Buscar con cámara")) }
                 if (h == null && hasSpots && !searching) {
-                    OutlinedButton(onClick = onMarkManually) { Text("Marcar") }
+                    OutlinedButton(onClick = onMarkManually) { Text(tr("Marcar")) }
                 }
             }
         }
@@ -589,7 +590,7 @@ private fun PhotoWithPins(
                     }
                 },
         ) {
-            Image(img, contentDescription = "Foto de ${spot.name}", contentScale = ContentScale.FillBounds, modifier = Modifier.fillMaxSize())
+            Image(img, contentDescription = tr("Foto de {}", spot.name), contentScale = ContentScale.FillBounds, modifier = Modifier.fillMaxSize())
             pins.forEach { l ->
                 val paint = vm.byId[l.paintId] ?: return@forEach
                 val isSel = l.paintId == selected
@@ -661,16 +662,16 @@ fun PaintPickerDialog(vm: MainViewModel, title: String, onDismiss: () -> Unit, f
             Column(Modifier.fillMaxSize().systemBarsPadding()) {
                 TopAppBar(
                     title = { Text(title) },
-                    navigationIcon = { IconButton(onClick = onDismiss) { Icon(Icons.Default.ArrowBack, contentDescription = "Volver") } },
+                    navigationIcon = { IconButton(onClick = onDismiss) { Icon(Icons.Default.ArrowBack, contentDescription = tr("Volver")) } },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
                 )
                 Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                    SearchField(q, { q = it }, if (fromCatalog) "Buscar en el catálogo: nombre, código, marca…" else "Buscar en tu inventario…")
+                    SearchField(q, { q = it }, if (fromCatalog) tr("Buscar en el catálogo: nombre, código, marca…") else tr("Buscar en tu inventario…"))
                 }
                 LazyColumn(contentPadding = PaddingValues(bottom = 24.dp)) {
                     items(shown, key = { it.id }) { p ->
                         val where = vm.spotOf(p.id)?.name
-                        PaintRow(p, extra = where?.let { "ya en $it" }, onClick = { onPick(p) }) {}
+                        PaintRow(p, extra = where?.let { tr("ya en {}", it) }, onClick = { onPick(p) }) {}
                     }
                 }
             }
@@ -689,9 +690,9 @@ private fun DetectionsSheet(
     val checked = remember(list) { mutableStateListOf<Boolean>().apply { addAll(list.map { true }) } }
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = state) {
         Column(Modifier.padding(horizontal = 20.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Encontré ${list.size} pinturas", style = MaterialTheme.typography.headlineSmall)
+            Text(tr("Encontré {} pinturas", list.size), style = MaterialTheme.typography.headlineSmall)
             Text(
-                "Revisa y desmarca las que no correspondan. Las que no estaban en tu inventario se agregarán con 1 bote.",
+                tr("Revisa y desmarca las que no correspondan. Las que no estaban en tu inventario se agregarán con 1 bote."),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -707,8 +708,8 @@ private fun DetectionsSheet(
                             Text(
                                 listOf(d.paint.brand, d.paint.code).filter { it.isNotBlank() }.joinToString(" · ") +
                                     when {
-                                        !d.owned -> " · nueva en tu inventario"
-                                        prev != null -> " · antes en $prev"
+                                        !d.owned -> tr(" · nueva en tu inventario")
+                                        prev != null -> tr(" · antes en {}", prev)
                                         else -> ""
                                     },
                                 style = MaterialTheme.typography.bodySmall,
@@ -721,9 +722,9 @@ private fun DetectionsSheet(
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 val n = checked.count { it }
                 Button(onClick = { onSave(list.filterIndexed { i, _ -> checked[i] }) }, enabled = n > 0, modifier = Modifier.weight(1f)) {
-                    Text("Guardar $n ubicaciones")
+                    Text(tr("Guardar {} ubicaciones", n))
                 }
-                OutlinedButton(onClick = onDismiss) { Text("Cancelar") }
+                OutlinedButton(onClick = onDismiss) { Text(tr("Cancelar")) }
             }
         }
     }

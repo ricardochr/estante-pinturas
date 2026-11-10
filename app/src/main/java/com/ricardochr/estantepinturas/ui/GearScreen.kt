@@ -2,6 +2,8 @@
 
 package com.ricardochr.estantepinturas.ui
 
+import com.ricardochr.estantepinturas.tr
+
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,7 +28,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -54,8 +55,8 @@ fun GearScreen(vm: MainViewModel, onClose: () -> Unit, say: (String) -> Unit) {
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             Column(Modifier.fillMaxSize().systemBarsPadding()) {
                 TopAppBar(
-                    title = { Text("Mi equipo") },
-                    navigationIcon = { IconButton(onClick = onClose) { Icon(Icons.Default.Close, contentDescription = "Cerrar") } },
+                    title = { Text(tr("Mi equipo")) },
+                    navigationIcon = { IconButton(onClick = onClose) { Icon(Icons.Default.Close, contentDescription = tr("Cerrar")) } },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
                 )
                 Column(
@@ -66,32 +67,32 @@ fun GearScreen(vm: MainViewModel, onClose: () -> Unit, say: (String) -> Unit) {
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     Text(
-                        "Con tus aerógrafos registrados, la Paleta te dice en qué zonas conviene usarlos, con qué boquilla, presión y dilución para cada pintura.",
+                        tr("Con tus aerógrafos registrados, la Paleta te dice en qué zonas conviene usarlos, con qué boquilla, presión y dilución para cada pintura."),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    SectionTitle("Aerógrafos", Modifier.padding(0.dp))
+                    SectionTitle(tr("Aerógrafos"), Modifier.padding(0.dp))
                     if (kit.airbrushes.isEmpty()) {
-                        Text("No has registrado aerógrafos.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(tr("No has registrado aerógrafos."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     kit.airbrushes.forEach { g ->
-                        GearRow(g.name.ifBlank { "Aerógrafo" }, "Boquilla " + nozzleText(g.nozzle)) { vm.removeGear(g.id); say("Quitado: ${g.name}") }
+                        GearRow(g.name.ifBlank { "Aerógrafo" }, tr("Boquilla ") + nozzleText(g.nozzle)) { vm.removeGear(g.id); say(tr("Quitado: {}", g.name)) }
                     }
-                    OutlinedButton(onClick = { adding = "airbrush" }, modifier = Modifier.fillMaxWidth()) { Text("+ Agregar aerógrafo") }
+                    OutlinedButton(onClick = { adding = "airbrush" }, modifier = Modifier.fillMaxWidth()) { Text(tr("+ Agregar aerógrafo")) }
 
-                    SectionTitle("Compresor", Modifier.padding(0.dp))
+                    SectionTitle(tr("Compresor"), Modifier.padding(0.dp))
                     val compressors = vm.gear.filter { it.kind == "compressor" }
                     if (compressors.isEmpty()) {
-                        Text("No has registrado compresor.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(tr("No has registrado compresor."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     compressors.forEach { g ->
-                        GearRow(g.name.ifBlank { "Compresor" }, if (g.tank) "Con tanque" else "Sin tanque") { vm.removeGear(g.id); say("Quitado: ${g.name}") }
+                        GearRow(g.name.ifBlank { tr("Compresor") }, if (g.tank) tr("Con tanque") else tr("Sin tanque")) { vm.removeGear(g.id); say(tr("Quitado: {}", g.name)) }
                     }
                     if (compressors.isEmpty()) {
-                        OutlinedButton(onClick = { adding = "compressor" }, modifier = Modifier.fillMaxWidth()) { Text("+ Agregar compresor") }
+                        OutlinedButton(onClick = { adding = "compressor" }, modifier = Modifier.fillMaxWidth()) { Text(tr("+ Agregar compresor")) }
                     }
 
-                    SectionTitle("¿Te conviene algo más?", Modifier.padding(0.dp))
+                    SectionTitle(tr("¿Te conviene algo más?"), Modifier.padding(0.dp))
                     Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = MaterialTheme.shapes.medium, modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             gearAdvice(kit).forEach { t ->
@@ -104,10 +105,9 @@ fun GearScreen(vm: MainViewModel, onClose: () -> Unit, say: (String) -> Unit) {
                     }
                     Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = MaterialTheme.shapes.medium, modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)) {
                         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Text("Aerógrafo o pincel", style = MaterialTheme.typography.titleSmall)
+                            Text(tr("Aerógrafo o pincel"), style = MaterialTheme.typography.titleSmall)
                             Text(
-                                "Aerógrafo: imprimación, zenital, bases de zonas grandes, degradados suaves (piel, capas, superficies lisas), brillos de luz (OSL) y barniz. " +
-                                    "Pincel: detalles, ojos, bordes definidos, texturas, pincel seco, lavados en recovecos y luces de arista.",
+                                tr("Aerógrafo: imprimación, zenital, bases de zonas grandes, degradados suaves (piel, capas, superficies lisas), brillos de luz (OSL) y barniz. Pincel: detalles, ojos, bordes definidos, texturas, pincel seco, lavados en recovecos y luces de arista."),
                                 style = MaterialTheme.typography.bodySmall,
                             )
                         }
@@ -123,18 +123,18 @@ fun GearScreen(vm: MainViewModel, onClose: () -> Unit, say: (String) -> Unit) {
         var tank by remember(kind) { mutableStateOf(true) }
         AlertDialog(
             onDismissRequest = { adding = null },
-            title = { Text(if (kind == "airbrush") "Nuevo aerógrafo" else "Compresor") },
+            title = { Text(if (kind == "airbrush") tr("Nuevo aerógrafo") else tr("Compresor")) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     OutlinedTextField(
                         value = name,
                         onValueChange = { name = it },
-                        label = { Text("Nombre o modelo") },
-                        placeholder = { Text(if (kind == "airbrush") "Gaahleri Mobius…" else "UTYUTY Thunder…") },
+                        label = { Text(tr("Nombre o modelo")) },
+                        placeholder = { Text(if (kind == "airbrush") tr("Gaahleri Mobius…") else tr("UTYUTY Thunder…")) },
                         singleLine = true,
                     )
                     if (kind == "airbrush") {
-                        Text("Boquilla", style = MaterialTheme.typography.labelLarge)
+                        Text(tr("Boquilla"), style = MaterialTheme.typography.labelLarge)
                         NOZZLES.chunked(4).forEach { row ->
                             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                 row.forEach { n -> FilterChip(selected = nozzle == n, onClick = { nozzle = n }, label = { Text(nozzleText(n)) }) }
@@ -142,7 +142,7 @@ fun GearScreen(vm: MainViewModel, onClose: () -> Unit, say: (String) -> Unit) {
                         }
                     } else {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("Tiene tanque de aire", Modifier.weight(1f))
+                            Text(tr("Tiene tanque de aire"), Modifier.weight(1f))
                             Switch(checked = tank, onCheckedChange = { tank = it })
                         }
                     }
@@ -152,10 +152,10 @@ fun GearScreen(vm: MainViewModel, onClose: () -> Unit, say: (String) -> Unit) {
                 Button(onClick = {
                     vm.addGear(kind, name, if (kind == "airbrush") nozzle else 0.0, kind == "compressor" && tank)
                     adding = null
-                    say("Guardado en tu equipo")
-                }) { Text("Guardar") }
+                    say(tr("Guardado en tu equipo"))
+                }) { Text(tr("Guardar")) }
             },
-            dismissButton = { TextButton(onClick = { adding = null }) { Text("Cancelar") } },
+            dismissButton = { TextButton(onClick = { adding = null }) { Text(tr("Cancelar")) } },
         )
     }
 }
@@ -168,7 +168,7 @@ private fun GearRow(title: String, subtitle: String, onRemove: () -> Unit) {
                 Text(title, style = MaterialTheme.typography.titleSmall)
                 Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            IconButton(onClick = onRemove) { Icon(Icons.Default.Close, contentDescription = "Quitar") }
+            IconButton(onClick = onRemove) { Icon(Icons.Default.Close, contentDescription = tr("Quitar")) }
         }
     }
 }

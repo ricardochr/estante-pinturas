@@ -1,5 +1,7 @@
 package com.ricardochr.estantepinturas.ui
 
+import com.ricardochr.estantepinturas.tr
+
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -18,7 +20,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -66,8 +67,8 @@ fun PaletteHub(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, onProjectCreated
     var mode by rememberSaveable { mutableStateOf(0) }
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.padding(horizontal = 16.dp, vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(selected = mode == 0, onClick = { mode = 0 }, label = { Text("Desde una imagen") })
-            FilterChip(selected = mode == 1, onClick = { mode = 1 }, label = { Text("Círculo cromático") })
+            FilterChip(selected = mode == 0, onClick = { mode = 0 }, label = { Text(tr("Desde una imagen")) })
+            FilterChip(selected = mode == 1, onClick = { mode = 1 }, label = { Text(tr("Círculo cromático")) })
         }
         Box(Modifier.weight(1f)) {
             if (mode == 0) PaletteScreen(vm, onOpenPaint, onProjectCreated) else ColorWheelScreen(vm, onOpenPaint)
@@ -182,10 +183,10 @@ fun ColorWheelScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, focus: Pai
         item {
             Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (placed.isEmpty()) {
-                    Text("Agrega pinturas a tu inventario para verlas en el círculo.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(tr("Agrega pinturas a tu inventario para verlas en el círculo."), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 } else if (selected == null) {
                     Text(
-                        "Cada punto es una de tus ${placed.size} pinturas: el ángulo es su tono y la distancia al centro, qué tan saturada es (al centro, grises y neutros). Toca una para ver con qué combina.",
+                        tr("Cada punto es una de tus {} pinturas: el ángulo es su tono y la distancia al centro, qué tan saturada es (al centro, grises y neutros). Toca una para ver con qué combina.", placed.size),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -193,7 +194,7 @@ fun ColorWheelScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, focus: Pai
                         Surface(color = MaterialTheme.colorScheme.tertiaryContainer, contentColor = MaterialTheme.colorScheme.onTertiaryContainer, shape = MaterialTheme.shapes.small) {
                             Column(Modifier.fillMaxWidth().padding(10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Text(
-                                    "Te faltan colores en: " + empty.joinToString(", ") { it.name.lowercase() } + ". Opciones para cubrirlos:",
+                                    tr("Te faltan colores en: ") + empty.joinToString(", ") { it.name.lowercase() } + tr(". Opciones para cubrirlos:"),
                                     style = MaterialTheme.typography.bodySmall,
                                 )
                                 empty.forEach { sec ->
@@ -213,7 +214,7 @@ fun ColorWheelScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, focus: Pai
                         Column(Modifier.weight(1f)) {
                             Text(sp.name, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             Text(
-                                (if (sw.neutral) "Neutro" else sectorOf(sw.ryb).name) + " · " + listOf(sp.brand, sp.code).filter { it.isNotBlank() }.joinToString(" · "),
+                                (if (sw.neutral) tr("Neutro") else sectorOf(sw.ryb).name) + " · " + listOf(sp.brand, sp.code).filter { it.isNotBlank() }.joinToString(" · "),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -226,7 +227,7 @@ fun ColorWheelScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, focus: Pai
                     }
                     Text(harmony.tip, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     if (sw.neutral) {
-                        Text("Es un neutro (gris, blanco o negro): combina con todo, no tiene complementario.", style = MaterialTheme.typography.bodySmall)
+                        Text(tr("Es un neutro (gris, blanco o negro): combina con todo, no tiene complementario."), style = MaterialTheme.typography.bodySmall)
                     } else {
                         harmony.offsets.forEach { off ->
                             val a = (sw.ryb + off + 360f) % 360f
@@ -239,7 +240,7 @@ fun ColorWheelScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, focus: Pai
                                         Text(sec.name, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
                                     }
                                     if (list.isEmpty()) {
-                                        Text("No tienes pinturas de este tono. Podrías conseguir:", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        Text(tr("No tienes pinturas de este tono. Podrías conseguir:"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                         SuggestionRows(vm, a, onOpenPaint)
                                     }
                                     list.forEach { p ->
@@ -270,7 +271,7 @@ fun ColorWheelScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, focus: Pai
 private fun SuggestionRows(vm: MainViewModel, ryb: Float, onOpenPaint: (Paint) -> Unit) {
     val list = remember(ryb, vm.owned, vm.catalog) { vm.suggestForHue(ryb) }
     if (list.isEmpty()) {
-        Text("No encontré opciones en el catálogo.", style = MaterialTheme.typography.bodySmall)
+        Text(tr("No encontré opciones en el catálogo."), style = MaterialTheme.typography.bodySmall)
         return
     }
     list.forEach { p ->
@@ -286,9 +287,9 @@ private fun SuggestionRows(vm: MainViewModel, ryb: Float, onOpenPaint: (Paint) -
                 Text(listOf(p.brand, p.code).filter { it.isNotBlank() }.joinToString(" · "), style = MaterialTheme.typography.labelSmall)
             }
             if (inList) {
-                Text("✓ En lista", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                Text(tr("✓ En lista"), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
             } else {
-                androidx.compose.material3.TextButton(onClick = { vm.addToShopping(p.id, "Tono que te falta en el círculo") }) { Text("+ Lista") }
+                androidx.compose.material3.TextButton(onClick = { vm.addToShopping(p.id, tr("Tono que te falta en el círculo")) }) { Text(tr("+ Lista")) }
             }
         }
     }

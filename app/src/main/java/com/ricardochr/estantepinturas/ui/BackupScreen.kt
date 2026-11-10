@@ -2,6 +2,8 @@
 
 package com.ricardochr.estantepinturas.ui
 
+import com.ricardochr.estantepinturas.tr
+
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -23,7 +25,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -53,8 +54,8 @@ fun BackupScreen(vm: MainViewModel, onClose: () -> Unit, say: (String) -> Unit) 
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             Column(Modifier.fillMaxSize().systemBarsPadding()) {
                 TopAppBar(
-                    title = { Text("Respaldo") },
-                    navigationIcon = { IconButton(onClick = onClose) { Icon(Icons.Default.Close, contentDescription = "Cerrar") } },
+                    title = { Text(tr("Respaldo")) },
+                    navigationIcon = { IconButton(onClick = onClose) { Icon(Icons.Default.Close, contentDescription = tr("Cerrar")) } },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
                 )
                 Column(
@@ -65,35 +66,34 @@ fun BackupScreen(vm: MainViewModel, onClose: () -> Unit, say: (String) -> Unit) 
                     verticalArrangement = Arrangement.spacedBy(14.dp),
                 ) {
                     Text(
-                        "Guarda en un solo archivo tu inventario, pinturas propias, colores corregidos, códigos de barras, lista de compras y proyectos " +
-                            "(con su imagen de referencia y fotos de avance). Las fotos de gavetas no se incluyen.",
+                        tr("Guarda en un solo archivo tu inventario, pinturas propias, colores corregidos, códigos de barras, lista de compras y proyectos (con su imagen de referencia y fotos de avance). Las fotos de gavetas no se incluyen."),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
 
                     Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = MaterialTheme.shapes.medium, modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("Respaldo automático", style = MaterialTheme.typography.titleMedium)
+                            Text(tr("Respaldo automático"), style = MaterialTheme.typography.titleMedium)
                             if (vm.autoBackupUri == null) {
                                 Text(
-                                    "Elige dónde guardar el archivo. Si eliges Google Drive en el selector, tu respaldo queda en la nube y se actualiza solo cada vez que cambias algo.",
+                                    tr("Elige dónde guardar el archivo. Si eliges Google Drive en el selector, tu respaldo queda en la nube y se actualiza solo cada vez que cambias algo."),
                                     style = MaterialTheme.typography.bodySmall,
                                 )
                                 Button(onClick = { autoLauncher.launch("gotario-respaldo.zip") }, modifier = Modifier.fillMaxWidth()) {
-                                    Text("Activar respaldo automático")
+                                    Text(tr("Activar respaldo automático"))
                                 }
                             } else {
                                 Text(
-                                    "Activado. Último respaldo: " +
-                                        if (vm.lastBackupAt > 0) SimpleDateFormat("d MMM yyyy, HH:mm", Locale("es")).format(Date(vm.lastBackupAt)) else "pendiente",
+                                    tr("Activado. Último respaldo: ") +
+                                        if (vm.lastBackupAt > 0) SimpleDateFormat("d MMM yyyy, HH:mm", Locale(com.ricardochr.estantepinturas.Prefs.lang)).format(Date(vm.lastBackupAt)) else "pendiente",
                                     style = MaterialTheme.typography.bodySmall,
                                 )
                                 vm.backupError?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error) }
                                 OutlinedButton(onClick = { autoLauncher.launch("gotario-respaldo.zip") }, modifier = Modifier.fillMaxWidth()) {
-                                    Text("Cambiar archivo")
+                                    Text(tr("Cambiar archivo"))
                                 }
-                                TextButton(onClick = { vm.disableAutoBackup(); say("Respaldo automático desactivado") }) {
-                                    Text("Desactivar")
+                                TextButton(onClick = { vm.disableAutoBackup(); say(tr("Respaldo automático desactivado")) }) {
+                                    Text(tr("Desactivar"))
                                 }
                             }
                         }
@@ -101,16 +101,16 @@ fun BackupScreen(vm: MainViewModel, onClose: () -> Unit, say: (String) -> Unit) 
 
                     Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = MaterialTheme.shapes.medium, modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("A mano", style = MaterialTheme.typography.titleMedium)
+                            Text(tr("A mano"), style = MaterialTheme.typography.titleMedium)
                             OutlinedButton(onClick = { nowLauncher.launch("gotario-respaldo-$stamp.zip") }, modifier = Modifier.fillMaxWidth()) {
-                                Text("Guardar un respaldo ahora")
+                                Text(tr("Guardar un respaldo ahora"))
                             }
                             OutlinedButton(
                                 onClick = { restoreLauncher.launch(arrayOf("application/zip", "application/x-zip-compressed", "application/octet-stream")) },
                                 modifier = Modifier.fillMaxWidth(),
-                            ) { Text("Restaurar desde un respaldo") }
+                            ) { Text(tr("Restaurar desde un respaldo")) }
                             Text(
-                                "Restaurar no borra nada: une el respaldo con lo que ya tienes. Si una pintura está en ambos, se queda el dato más reciente.",
+                                tr("Restaurar no borra nada: une el respaldo con lo que ya tienes. Si una pintura está en ambos, se queda el dato más reciente."),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -118,7 +118,7 @@ fun BackupScreen(vm: MainViewModel, onClose: () -> Unit, say: (String) -> Unit) 
                     }
 
                     Text(
-                        "Además, Android respalda los datos de Gotario en tu cuenta de Google (si tienes activada la copia de seguridad del teléfono) y los recupera al reinstalar.",
+                        tr("Además, Android respalda los datos de Gotario en tu cuenta de Google (si tienes activada la copia de seguridad del teléfono) y los recupera al reinstalar."),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(bottom = 24.dp),

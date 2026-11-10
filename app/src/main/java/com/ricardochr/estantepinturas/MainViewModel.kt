@@ -479,18 +479,18 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                     null
                 }
                 if (bmp == null) {
-                    error = "No pude abrir esa imagen. Prueba con otra (JPG o PNG)."
+                    error = tr("No pude abrir esa imagen. Prueba con otra (JPG o PNG).")
                     null
                 } else {
                     try {
                         buildPaletteView(uri, detail, bmp, analyzeImage(bmp, detail), inv, cat)
                     } catch (e: Throwable) {
-                        error = "Abrí la imagen pero falló el análisis (${e.javaClass.simpleName}: ${e.message}). Envíame este mensaje."
+                        error = tr("Abrí la imagen pero falló el análisis ({}: {}). Envíame este mensaje.", e.javaClass.simpleName, e.message)
                         null
                     }
                 }
             }
-            if (result == null) paletteError = error ?: "No pude analizar la imagen."
+            if (result == null) paletteError = error ?: tr("No pude analizar la imagen.")
             else palette = result
             paletteBusy = false
         }
@@ -636,7 +636,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             if (c.startsWith("C:")) {
                 if (key.length < 4 || key.length > 10) continue
                 if (key.all { it.isDigit() } && key.length < 5) continue
-                codeIndex[key]?.forEach { if (!hits.containsKey(it.id)) hits[it.id] = ScanHit(it, "código ${it.code}") }
+                codeIndex[key]?.forEach { if (!hits.containsKey(it.id)) hits[it.id] = ScanHit(it, tr("código {}", it.code)) }
             } else {
                 if (key.length < 5) continue
                 nameIndex[key]?.forEach { if (!hits.containsKey(it.id)) hits[it.id] = ScanHit(it, "nombre") }
@@ -666,7 +666,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                     val dir = File(getApplication<Application>().filesDir, "spots").apply { mkdirs() }
                     val file = "$id.jpg"
                     File(dir, file).outputStream().use { bmp.compress(Bitmap.CompressFormat.JPEG, 88, it) }
-                    StorageSpot(id, name.ifBlank { "Gaveta ${spots.size + 1}" }, file)
+                    StorageSpot(id, name.ifBlank { tr("Gaveta {}", spots.size + 1) }, file)
                 } catch (e: Exception) {
                     null
                 }
@@ -820,7 +820,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             val rows = withContext(Dispatchers.IO) { readCsv(uri) }
             if (rows == null || rows.size < 2) {
-                onDone("No se pudo leer el archivo o está vacío")
+                onDone(tr("No se pudo leer el archivo o está vacío"))
                 return@launch
             }
             val header = rows[0].map { nameKey(it) }
@@ -835,7 +835,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             val iB = col("b", "blue", "azul")
             val iType = col("tipo", "type")
             if (iName < 0) {
-                onDone("El archivo necesita al menos una columna Nombre (o Name)")
+                onDone(tr("El archivo necesita al menos una columna Nombre (o Name)"))
                 return@launch
             }
 
@@ -857,7 +857,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 fun v(i: Int) = if (i >= 0 && i < r.size) r[i].trim() else ""
                 val name = v(iName)
                 if (name.isEmpty()) { invalid++; continue }
-                val brand = v(iBrand).ifBlank { "Sin marca" }
+                val brand = v(iBrand).ifBlank { tr("Sin marca") }
                 val line = v(iLine)
                 val code = v(iCode).takeUnless { it.equals("null", true) || it == "-" } ?: ""
                 val hex = parseColorCell(v(iHex))
@@ -884,11 +884,11 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             extra = list
             rebuildIndexes()
             withContext(Dispatchers.IO) { store.saveExtraCatalog(list) }
-            val parts = mutableListOf("$added nuevas")
-            if (updated > 0) parts.add("$updated actualizadas")
-            if (skipped > 0) parts.add("$skipped ya estaban")
-            if (invalid > 0) parts.add("$invalid filas sin nombre")
-            onDone("Catálogo: " + parts.joinToString(", "))
+            val parts = mutableListOf(tr("{} nuevas", added))
+            if (updated > 0) parts.add(tr("{} actualizadas", updated))
+            if (skipped > 0) parts.add(tr("{} ya estaban", skipped))
+            if (invalid > 0) parts.add(tr("{} filas sin nombre", invalid))
+            onDone(tr("Catálogo: ") + parts.joinToString(", "))
         }
     }
 
@@ -901,7 +901,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         rebuildIndexes()
         persist()
         viewModelScope.launch(Dispatchers.IO) { store.saveExtraCatalog(emptyList()) }
-        onDone("Quitadas $removed pinturas importadas" + if (ownedExtra.isNotEmpty()) " (${ownedExtra.size} de tu inventario se conservaron)" else "")
+        onDone(tr("Quitadas {} pinturas importadas", removed) + if (ownedExtra.isNotEmpty()) tr(" ({} de tu inventario se conservaron)", ownedExtra.size) else "")
     }
 
     fun exportCatalogCsv(uri: Uri, onDone: (String) -> Unit) {
@@ -912,9 +912,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                     getApplication<Application>().contentResolver.openOutputStream(uri, "wt")?.use {
                         it.write(Csv.write(rows, Csv.CATALOG_HEADER).toByteArray(Charsets.UTF_8))
                     }
-                    "Catálogo exportado: ${rows.size} pinturas"
+                    tr("Catálogo exportado: {} pinturas", rows.size)
                 } catch (e: Exception) {
-                    "No se pudo guardar el archivo: ${e.message}"
+                    tr("No se pudo guardar el archivo: {}", e.message)
                 }
             }
             onDone(msg)
@@ -934,9 +934,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                     getApplication<Application>().contentResolver.openOutputStream(uri, "wt")?.use {
                         it.write(Csv.write(rows).toByteArray(Charsets.UTF_8))
                     }
-                    "Exportadas ${rows.size} pinturas"
+                    tr("Exportadas {} pinturas", rows.size)
                 } catch (e: Exception) {
-                    "No se pudo guardar el archivo: ${e.message}"
+                    tr("No se pudo guardar el archivo: {}", e.message)
                 }
             }
             onDone(msg)
@@ -947,7 +947,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             val rows = withContext(Dispatchers.IO) { readCsv(uri) }
             if (rows == null || rows.size < 2) {
-                onDone("No se pudo leer el archivo o está vacío")
+                onDone(tr("No se pudo leer el archivo o está vacío"))
                 return@launch
             }
             val header = rows[0].map { nameKey(it) }
@@ -961,7 +961,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             val iQty = col("botes", "cantidad", "qty")
             val iNotes = col("notas", "notes")
             if (iName < 0 && iCode < 0) {
-                onDone("El archivo no tiene columnas Nombre o Código")
+                onDone(tr("El archivo no tiene columnas Nombre o Código"))
                 return@launch
             }
             var matched = 0
@@ -986,7 +986,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                     created++
                 }
             }
-            onDone("Importadas ${matched + created}: $matched del catálogo, $created nuevas")
+            onDone(tr("Importadas {}: {} del catálogo, {} nuevas", matched + created, matched, created))
         }
     }
 
@@ -1007,7 +1007,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
      * semana a partir de las tiendas) y los aplica sin reinstalar la app. Mantiene tu inventario,
      * colores corregidos y pinturas propias; las que llegaron nuevas al catálogo se unen solas.
      */
-    fun refreshCatalog(onDone: (String) -> Unit) {
+    fun refreshCatalog(quiet: Boolean = false, onDone: (String) -> Unit) {
         if (catalogUpdating) return
         catalogUpdating = true
         viewModelScope.launch {
@@ -1016,7 +1016,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             val err = withContext(Dispatchers.IO) { store.downloadCatalog() }
             if (err != null) {
                 catalogUpdating = false
-                onDone("No se pudo actualizar: $err")
+                if (!quiet) onDone(tr("No se pudo actualizar: {}", err))
                 return@launch
             }
             val (cat, newSets) = withContext(Dispatchers.IO) { store.loadCatalog() to store.loadSets() }
@@ -1032,9 +1032,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             catalogUpdating = false
             val newPaints = fixed.count { it.id !in oldIds }
             val addedSets = newSets.count { it.key !in oldSets }
+            if (quiet && newPaints == 0 && addedSets == 0) return@launch
             onDone(
-                if (newPaints == 0 && addedSets == 0) "Ya tenías el catálogo más reciente (${fixed.size} pinturas, ${newSets.size} sets)"
-                else "Catálogo actualizado: $newPaints pinturas nuevas y $addedSets sets nuevos"
+                if (newPaints == 0 && addedSets == 0) tr("Ya tenías el catálogo más reciente ({} pinturas, {} sets)", fixed.size, newSets.size)
+                else tr("Catálogo actualizado: {} pinturas nuevas y {} sets nuevos", newPaints, addedSets)
             )
         }
     }
@@ -1051,7 +1052,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }
 
     fun createSet(name: String, brand: String): PaintSet {
-        val s = PaintSet(brand.trim(), name.trim().ifBlank { "Mi set" }, "", emptyList(), custom = true, id = UUID.randomUUID().toString())
+        val s = PaintSet(brand.trim(), name.trim().ifBlank { tr("Mi set") }, "", emptyList(), custom = true, id = UUID.randomUUID().toString())
         customSets = listOf(s) + customSets
         persist()
         return s
@@ -1105,7 +1106,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val missing = paintsOf(set).filter { qtyOf(it.id) == 0 && !inShopping(it.id) }
         if (missing.isEmpty()) return 0
         val now = System.currentTimeMillis()
-        shopping = shopping + missing.map { ShopItem(it.id, "Del set ${set.name}", now) }
+        shopping = shopping + missing.map { ShopItem(it.id, tr("Del set {}", set.name), now) }
         persist()
         return missing.size
     }
@@ -1195,7 +1196,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             }
             lines.add("")
         }
-        return "Lista de compras · Gotario\n\n" + lines.joinToString("\n").trim()
+        return tr("Lista de compras · Gotario\n\n") + lines.joinToString("\n").trim()
     }
 
     /**
@@ -1451,7 +1452,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     private fun writeBackup(uri: Uri): String? = try {
         val out = getApplication<Application>().contentResolver.openOutputStream(uri, "wt")
             ?: getApplication<Application>().contentResolver.openOutputStream(uri, "w")
-        if (out == null) "No se pudo abrir el archivo"
+        if (out == null) tr("No se pudo abrir el archivo")
         else {
             out.use { Backup.write(it, currentState(), projects, projectsRoot()) }
             null
@@ -1472,7 +1473,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 prefs.edit().putLong("backup_at", lastBackupAt).apply()
                 backupError = null
             } else {
-                backupError = "El respaldo automático falló: $err. Vuelve a elegir el archivo."
+                backupError = tr("El respaldo automático falló: {}. Vuelve a elegir el archivo.", err)
             }
         }
     }
@@ -1492,9 +1493,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 lastBackupAt = System.currentTimeMillis()
                 prefs.edit().putString("backup_uri", uri.toString()).putLong("backup_at", lastBackupAt).apply()
                 backupError = null
-                onDone("Respaldo automático activado")
+                onDone(tr("Respaldo automático activado"))
             } else {
-                onDone("No se pudo escribir el respaldo: $err")
+                onDone(tr("No se pudo escribir el respaldo: {}", err))
             }
         }
     }
@@ -1513,7 +1514,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     fun backupNow(uri: Uri, onDone: (String) -> Unit) {
         viewModelScope.launch {
             val err = withContext(Dispatchers.IO) { writeBackup(uri) }
-            onDone(if (err == null) "Respaldo guardado: ${owned.size} pinturas, ${projects.size} proyectos" else "No se pudo guardar: $err")
+            onDone(if (err == null) tr("Respaldo guardado: {} pinturas, {} proyectos", owned.size, projects.size) else tr("No se pudo guardar: {}", err))
         }
     }
 
@@ -1531,7 +1532,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 }
             }
             if (content == null) {
-                onDone("Ese archivo no es un respaldo de Gotario")
+                onDone(tr("Ese archivo no es un respaldo de Gotario"))
                 return@launch
             }
             val b = content.state
@@ -1563,7 +1564,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             migrateOrphans()
             persist()
             saveProjects()
-            onDone("Restaurado: $added pinturas nuevas, ${newCustom.size} propias, ${newProjects.size} proyectos")
+            onDone(tr("Restaurado: {} pinturas nuevas, {} propias, {} proyectos", added, newCustom.size, newProjects.size))
         }
     }
 }

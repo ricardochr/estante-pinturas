@@ -1,5 +1,7 @@
 package com.ricardochr.estantepinturas.ui
 
+import com.ricardochr.estantepinturas.tr
+
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -19,7 +21,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -68,10 +69,10 @@ fun MixSection(
         when {
             mixes == null -> Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
-                Text("Buscando mezclas…", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(tr("Buscando mezclas…"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             mixes.isEmpty() -> Text(
-                "No encontré una mezcla que mejore lo que ya tienes. Necesitas al menos dos pinturas opacas en tu inventario.",
+                tr("No encontré una mezcla que mejore lo que ya tienes. Necesitas al menos dos pinturas opacas en tu inventario."),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -128,7 +129,7 @@ fun MixSection(
         }
         if (!mixes.isNullOrEmpty()) {
             Text(
-                "Proporciones en gotas. Es una estimación: mezcla poco, prueba en la paleta y ajusta.",
+                tr("Proporciones en gotas. Es una estimación: mezcla poco, prueba en la paleta y ajusta."),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -157,13 +158,13 @@ fun DilutionSection(paint: Paint) {
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text("Dilución y compatibilidad", style = MaterialTheme.typography.titleSmall)
+                    Text(tr("Dilución y compatibilidad"), style = MaterialTheme.typography.titleSmall)
                     Text(guide.summary, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Text(if (expanded) "▲" else "▼", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             if (expanded) {
-                Text("Diluyente: ${guide.thinner}", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
+                Text(tr("Diluyente: {}", guide.thinner), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
                 guide.uses.forEach { u ->
                     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -181,12 +182,12 @@ fun DilutionSection(paint: Paint) {
                 val chem = chemistryOf(paint)
                 Surface(color = MaterialTheme.colorScheme.secondaryContainer, contentColor = MaterialTheme.colorScheme.onSecondaryContainer, shape = MaterialTheme.shapes.small) {
                     Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Text("Base: ${chem.label}", style = MaterialTheme.typography.labelLarge)
+                        Text(tr("Base: {}", chem.label), style = MaterialTheme.typography.labelLarge)
                         Text(chem.mixesWith, style = MaterialTheme.typography.bodySmall)
                     }
                 }
                 Text(
-                    "Proporción pintura : diluyente, en gotas. ${guide.source.label}. Ajusta a ojo: el bote viejo o espeso necesita más.",
+                    tr("Proporción pintura : diluyente, en gotas. {}. Ajusta a ojo: el bote viejo o espeso necesita más.", guide.source.label),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -209,17 +210,17 @@ fun ColorFixDialog(initial: String, onDismiss: () -> Unit, onSave: (String) -> U
     fun hexOf(c: Int) = String.format("#%06X", c and 0xFFFFFF)
     androidx.compose.material3.AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Corregir color") },
+        title = { Text(tr("Corregir color")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         ColorSquare(parseHex(initial).toInt(), 44.dp)
-                        Text("Antes", style = MaterialTheme.typography.labelSmall)
+                        Text(tr("Antes"), style = MaterialTheme.typography.labelSmall)
                     }
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         ColorSquare(current(), 44.dp)
-                        Text("Ahora", style = MaterialTheme.typography.labelSmall)
+                        Text(tr("Ahora"), style = MaterialTheme.typography.labelSmall)
                     }
                     androidx.compose.material3.OutlinedTextField(
                         value = text,
@@ -237,21 +238,21 @@ fun ColorFixDialog(initial: String, onDismiss: () -> Unit, onSave: (String) -> U
                         modifier = Modifier.weight(1f),
                     )
                 }
-                Text("Tono", style = MaterialTheme.typography.labelMedium)
+                Text(tr("Tono"), style = MaterialTheme.typography.labelMedium)
                 androidx.compose.material3.Slider(value = h, onValueChange = { h = it; text = hexOf(current()) }, valueRange = 0f..360f)
-                Text("Saturación", style = MaterialTheme.typography.labelMedium)
+                Text(tr("Saturación"), style = MaterialTheme.typography.labelMedium)
                 androidx.compose.material3.Slider(value = sat, onValueChange = { sat = it; text = hexOf(current()) }, valueRange = 0f..1f)
-                Text("Brillo", style = MaterialTheme.typography.labelMedium)
+                Text(tr("Brillo"), style = MaterialTheme.typography.labelMedium)
                 androidx.compose.material3.Slider(value = v, onValueChange = { v = it; text = hexOf(current()) }, valueRange = 0f..1f)
                 Text(
-                    "Compáralo con el bote real con buena luz. El cambio se guarda en tu teléfono y se mantiene aunque se actualice el catálogo.",
+                    tr("Compáralo con el bote real con buena luz. El cambio se guarda en tu teléfono y se mantiene aunque se actualice el catálogo."),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         },
-        confirmButton = { androidx.compose.material3.TextButton(onClick = { onSave(hexOf(current())) }) { Text("Guardar") } },
-        dismissButton = { androidx.compose.material3.TextButton(onClick = onDismiss) { Text("Cancelar") } },
+        confirmButton = { androidx.compose.material3.TextButton(onClick = { onSave(hexOf(current())) }) { Text(tr("Guardar")) } },
+        dismissButton = { androidx.compose.material3.TextButton(onClick = onDismiss) { Text(tr("Cancelar")) } },
     )
 }
 
@@ -276,7 +277,7 @@ fun TheorySection(
         Column(Modifier.padding(12.dp).animateContentSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(Modifier.fillMaxWidth().clickable { expanded = !expanded }, verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text("Teoría del color", style = MaterialTheme.typography.titleSmall)
+                    Text(tr("Teoría del color"), style = MaterialTheme.typography.titleSmall)
                     Text(
                         "${prof.hue.replaceFirstChar { it.uppercase() }} · ${prof.temperature} · ${prof.value} · ${prof.saturation}",
                         style = MaterialTheme.typography.bodySmall,
@@ -286,8 +287,8 @@ fun TheorySection(
                 Text(if (expanded) "▲" else "▼", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             if (expanded) {
-                androidx.compose.material3.OutlinedButton(onClick = onOpenWheel) { Text("Ver en el círculo cromático") }
-                Text("Si la usas de base", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                androidx.compose.material3.OutlinedButton(onClick = onOpenWheel) { Text(tr("Ver en el círculo cromático")) }
+                Text(tr("Si la usas de base"), style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
                 val advice = remember(paint.id, paint.hex, inventory) { com.ricardochr.estantepinturas.baseAdvice(paint, inventory) }
                 advice.forEach { a ->
                     Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -296,7 +297,7 @@ fun TheorySection(
                         else Box(Modifier.size(26.dp))
                         Column(Modifier.weight(1f).then(if (p != null) Modifier.clickable { onOpen(p) } else Modifier)) {
                             Text(
-                                a.role + ": " + (p?.let { "${it.name} (${it.brand})" } ?: "no tienes una adecuada"),
+                                a.role + ": " + (p?.let { "${it.name} (${it.brand})" } ?: tr("no tienes una adecuada")),
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.SemiBold,
                             )
@@ -305,18 +306,18 @@ fun TheorySection(
                     }
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                Text("¿Qué pasa si pongo otra encima?", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                Text(tr("¿Qué pasa si pongo otra encima?"), style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
                 val t = top
                 if (t == null) {
-                    androidx.compose.material3.TextButton(onClick = { picking = true }) { Text("Elegir la pintura de encima") }
+                    androidx.compose.material3.TextButton(onClick = { picking = true }) { Text(tr("Elegir la pintura de encima")) }
                 } else {
                     val res = remember(paint.id, paint.hex, t.id, t.hex) { com.ricardochr.estantepinturas.layerOver(paint, t) }
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
                         listOf(
                             parseHex(paint.hex).toInt() to "Base",
-                            res.glazeArgb to "Veladura",
-                            res.layerArgb to "Capa fina",
-                            parseHex(t.hex).toInt() to "Encima",
+                            res.glazeArgb to tr("Veladura"),
+                            res.layerArgb to tr("Capa fina"),
+                            parseHex(t.hex).toInt() to tr("Encima"),
                         ).forEach { (c, label) ->
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 ColorSquare(c, 40.dp)
@@ -324,11 +325,11 @@ fun TheorySection(
                             }
                         }
                     }
-                    Text("Encima: ${t.name} (${t.brand})", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
+                    Text(tr("Encima: {} ({})", t.name, t.brand), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
                     res.explanation.forEach { e ->
                         Text("• $e", style = MaterialTheme.typography.bodySmall)
                     }
-                    androidx.compose.material3.TextButton(onClick = { picking = true }) { Text("Probar con otra") }
+                    androidx.compose.material3.TextButton(onClick = { picking = true }) { Text(tr("Probar con otra")) }
                 }
             }
         }
@@ -353,10 +354,10 @@ fun InventoryPickDialog(inventory: List<Paint>, onDismiss: () -> Unit, onPick: (
     }
     androidx.compose.material3.AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Elige de tu inventario") },
+        title = { Text(tr("Elige de tu inventario")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                SearchField(q, { q = it }, "Buscar…")
+                SearchField(q, { q = it }, tr("Buscar…"))
                 androidx.compose.foundation.lazy.LazyColumn(Modifier.heightIn(max = 360.dp)) {
                     items(shown.size) { i ->
                         val p = shown[i]
@@ -376,6 +377,6 @@ fun InventoryPickDialog(inventory: List<Paint>, onDismiss: () -> Unit, onPick: (
             }
         },
         confirmButton = {},
-        dismissButton = { androidx.compose.material3.TextButton(onClick = onDismiss) { Text("Cerrar") } },
+        dismissButton = { androidx.compose.material3.TextButton(onClick = onDismiss) { Text(tr("Cerrar")) } },
     )
 }

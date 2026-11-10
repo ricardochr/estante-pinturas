@@ -39,7 +39,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import com.ricardochr.estantepinturas.ui.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -180,7 +180,7 @@ private fun App(vm: MainViewModel = viewModel()) {
     fun say(msg: String) {
         scope.launch {
             snackbar.currentSnackbarData?.dismiss()
-            snackbar.showSnackbar(msg)
+            snackbar.showSnackbar(trData(msg))
         }
     }
 
@@ -200,7 +200,7 @@ private fun App(vm: MainViewModel = viewModel()) {
     val csvTypes = arrayOf("text/*", "application/csv", "application/vnd.ms-excel", "application/octet-stream")
 
     androidx.compose.runtime.LaunchedEffect(vm.adoptedCount) {
-        if (vm.adoptedCount > 0) say("${vm.adoptedCount} pinturas que agregaste a mano ya están en el catálogo y se unieron a él")
+        if (vm.adoptedCount > 0) say(tr("{} pinturas que agregaste a mano ya están en el catálogo y se unieron a él", vm.adoptedCount))
     }
 
     val hubAction: (HubAction) -> Unit = { action ->
@@ -216,7 +216,7 @@ private fun App(vm: MainViewModel = viewModel()) {
                         HubAction.Find -> storage = StorageRequest()
                         HubAction.AddCustom -> { createForBarcode = null; creating = true }
                         HubAction.UpdateCatalog -> if (!vm.catalogUpdating) {
-                            say("Buscando novedades…")
+                            say(tr("Buscando novedades…"))
                             vm.refreshCatalog { say(it) }
                         }
                         HubAction.Backup -> showBackup = true
@@ -238,7 +238,16 @@ private fun App(vm: MainViewModel = viewModel()) {
         if (!vm.loading && Prefs.autoUpdate && !vm.catalogUpdating &&
             System.currentTimeMillis() - vm.catalogDownloadedAt > 7L * 24 * 3600 * 1000
         ) {
-            vm.refreshCatalog { msg -> if (!msg.contains("No pude", ignoreCase = true)) say(msg) }
+            // En la actualización automática solo se avisa si llegó algo nuevo
+            vm.refreshCatalog(quiet = true) { msg -> say(msg) }
+        }
+    }
+
+    // Nombres de pinturas, líneas y marcas: nunca se traducen
+    androidx.compose.runtime.LaunchedEffect(vm.catalog, vm.extra, vm.custom) {
+        val all = vm.allPaints
+        I18n.protectedNames = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+            HashSet<String>(all.size * 2).apply { all.forEach { add(it.name); add(it.line); add(it.brand) } }
         }
     }
 
@@ -257,7 +266,7 @@ private fun App(vm: MainViewModel = viewModel()) {
                         // En Inventario el encabezado es el selector entre tus pinturas y el catálogo
                         Box(Modifier.weight(1f)) {
                             SegmentedPill(
-                                listOf("Mis pinturas", "Catálogo"), invMode, accent,
+                                listOf(tr("Mis pinturas"), tr("Catálogo")), invMode, accent,
                             ) { invMode = it }
                         }
                     } else {
@@ -266,10 +275,10 @@ private fun App(vm: MainViewModel = viewModel()) {
                             Text(tab.label, style = MaterialTheme.typography.headlineSmall, maxLines = 1)
                         }
                     }
-                    HeaderButton(Icons.Rounded.Settings, "Configuración", Pigment.Slate) { showSettings = true }
-                    HeaderButton(Icons.Rounded.Layers, "Superponer referencia", Pigment.Magenta) { showCompare = true }
+                    HeaderButton(Icons.Rounded.Settings, tr("Configuración"), Pigment.Slate) { showSettings = true }
+                    HeaderButton(Icons.Rounded.Layers, tr("Superponer referencia"), Pigment.Magenta) { showCompare = true }
                     Box {
-                        HeaderButton(Icons.Rounded.ShoppingCart, "Lista de compras", Pigment.Tangerine) { showShopping = true }
+                        HeaderButton(Icons.Rounded.ShoppingCart, tr("Lista de compras"), Pigment.Tangerine) { showShopping = true }
                         val toBuy = vm.shoppingCount
                         if (toBuy > 0) {
                             Badge(Modifier.align(Alignment.TopEnd), containerColor = Pigment.Crimson[0], contentColor = Color.White) { Text(toBuy.toString()) }
@@ -302,11 +311,11 @@ private fun App(vm: MainViewModel = viewModel()) {
                                 onPlus = { p ->
                                     val q = vm.qtyOf(p.id)
                                     vm.add(p.id, 1)
-                                    say(if (q == 0) "Agregada: ${p.name}" else "${p.name}: ahora ${q + 1} botes")
+                                    say(if (q == 0) tr("Agregada: {}", p.name) else tr("{}: ahora {} botes", p.name, q + 1))
                                 },
                                 footer = {
                                     TextButton(onClick = { createForBarcode = null; creating = true }, modifier = Modifier.padding(8.dp)) {
-                                        Text("¿No está en el catálogo? Agrégala a mano")
+                                        Text(tr("¿No está en el catálogo? Agrégala a mano"))
                                     }
                                 },
                             )
@@ -323,7 +332,7 @@ private fun App(vm: MainViewModel = viewModel()) {
                     onAdded = { say(it) },
                 )
                 Tab.Paleta -> PaletteHub(vm, onOpenPaint = { editing = it }, onProjectCreated = {
-                    say("Proyecto creado: ${it.name}")
+                    say(tr("Proyecto creado: {}", it.name))
                     openProject = it.id
                 })
                 Tab.Taller -> HubScreen(vm) { hubAction(it) }
@@ -339,12 +348,12 @@ private fun App(vm: MainViewModel = viewModel()) {
             onSave = { qty, notes ->
                 vm.update(p.id, qty, notes)
                 editing = null
-                say("Guardada: ${p.name}")
+                say(tr("Guardada: {}", p.name))
             },
             onDelete = {
                 vm.remove(p.id)
                 editing = null
-                say("Quitada del inventario: ${p.name}")
+                say(tr("Quitada del inventario: {}", p.name))
             },
             similar = remember(p.id, vm.owned) { vm.similarOwned(p) },
             onOpenSimilar = { editing = it },
@@ -354,23 +363,23 @@ private fun App(vm: MainViewModel = viewModel()) {
             onFixColor = { hx ->
                 vm.fixColor(p.id, hx)
                 editing = vm.byId[p.id]
-                say("Color guardado")
+                say(tr("Color guardado"))
             },
             onShowLocation = { editing = null; storage = StorageRequest(findPaintId = p.id) },
             onPlaceLocation = { editing = null; storage = StorageRequest(placingPaintId = p.id) },
             inShopping = vm.shopping.any { it.paintId == p.id },
             onToggleShopping = {
-                if (vm.inShopping(p.id)) { vm.removeFromShopping(p.id); say("Quitada de la lista de compras") }
-                else { vm.addToShopping(p.id, ""); say("Agregada a la lista de compras") }
+                if (vm.inShopping(p.id)) { vm.removeFromShopping(p.id); say(tr("Quitada de la lista de compras")) }
+                else { vm.addToShopping(p.id, ""); say(tr("Agregada a la lista de compras")) }
             },
             onSetLow = { low ->
                 vm.setLow(p.id, low)
-                say(if (low) "En tu lista de compras" else "Quitada de la lista de compras")
+                say(if (low) tr("En tu lista de compras") else tr("Quitada de la lista de compras"))
             },
             projects = vm.projects,
             onAddToProject = { pid ->
                 vm.addPaintToProject(pid, p.id)
-                say("Agregada a ${vm.projects.firstOrNull { it.id == pid }?.name ?: "el proyecto"}")
+                say(tr("Agregada a {}", vm.projects.firstOrNull { it.id == pid }?.name ?: tr("el proyecto")))
             },
             equivalents = produceState<List<MainViewModel.Equivalent>?>(null, p.id, vm.owned) { value = vm.equivalentsOf(p) }.value,
             onSaveThin = { vm.setThinNote(p.id, it); say(tr("Dilución guardada")) },
@@ -386,14 +395,14 @@ private fun App(vm: MainViewModel = viewModel()) {
             Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                 Column(Modifier.systemBarsPadding()) {
                     TopAppBar(
-                        title = { Text("¿Qué pintura es?") },
+                        title = { Text(tr("¿Qué pintura es?")) },
                         navigationIcon = {
-                            IconButton(onClick = { linking = null }) { Icon(Icons.Default.Close, contentDescription = "Cerrar") }
+                            IconButton(onClick = { linking = null }) { Icon(Icons.Default.Close, contentDescription = tr("Cerrar")) }
                         },
                         colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
                     )
                     Text(
-                        "Elige la pintura del código $code. La próxima vez se reconocerá sola.",
+                        tr("Elige la pintura del código {}. La próxima vez se reconocerá sola.", code),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 16.dp),
@@ -404,12 +413,12 @@ private fun App(vm: MainViewModel = viewModel()) {
                             vm.linkBarcode(code, p.id)
                             vm.add(p.id, 1)
                             linking = null
-                            say("Asociada y agregada: ${p.name}")
+                            say(tr("Asociada y agregada: {}", p.name))
                         },
                         onPlus = null,
                         footer = {
                             TextButton(onClick = { createForBarcode = code; linking = null; creating = true }, modifier = Modifier.padding(8.dp)) {
-                                Text("No está: crear pintura nueva")
+                                Text(tr("No está: crear pintura nueva"))
                             }
                         },
                     )
@@ -430,7 +439,7 @@ private fun App(vm: MainViewModel = viewModel()) {
                 createForBarcode?.let { vm.linkBarcode(it, id) }
                 creating = false
                 createForBarcode = null
-                say("Agregada: $name")
+                say(tr("Agregada: {}", name))
             },
         )
     }
@@ -508,8 +517,8 @@ private fun App(vm: MainViewModel = viewModel()) {
             Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                 Column(Modifier.fillMaxSize().systemBarsPadding()) {
                     TopAppBar(
-                        title = { Text("Guía de técnicas") },
-                        navigationIcon = { IconButton(onClick = { showGuide = false }) { Icon(Icons.Default.Close, contentDescription = "Cerrar") } },
+                        title = { Text(tr("Guía de técnicas")) },
+                        navigationIcon = { IconButton(onClick = { showGuide = false }) { Icon(Icons.Default.Close, contentDescription = tr("Cerrar")) } },
                         colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
                     )
                     Box(Modifier.weight(1f)) { GuideScreen() }
@@ -525,8 +534,8 @@ private fun App(vm: MainViewModel = viewModel()) {
             Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                 Column(Modifier.fillMaxSize().systemBarsPadding()) {
                     TopAppBar(
-                        title = { Text("Círculo cromático") },
-                        navigationIcon = { IconButton(onClick = { wheelFor = null; showWheel = false }) { Icon(Icons.Default.Close, contentDescription = "Cerrar") } },
+                        title = { Text(tr("Círculo cromático")) },
+                        navigationIcon = { IconButton(onClick = { wheelFor = null; showWheel = false }) { Icon(Icons.Default.Close, contentDescription = tr("Cerrar")) } },
                         colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
                     )
                     Box(Modifier.weight(1f)) {
@@ -544,19 +553,19 @@ private fun App(vm: MainViewModel = viewModel()) {
     if (showAbout) {
         AlertDialog(
             onDismissRequest = { showAbout = false },
-            confirmButton = { TextButton(onClick = { showAbout = false }) { Text("Cerrar") } },
-            title = { Text("Gotario") },
+            confirmButton = { TextButton(onClick = { showAbout = false }) { Text(tr("Cerrar")) } },
+            title = { Text(tr("Gotario")) },
             text = {
                 Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        "Versión ${BuildConfig.VERSION_NAME}\n\n" +
-                            "Catálogo: ${vm.catalog.size} pinturas y ${vm.sets.size} sets, armado con las tiendas oficiales, tiendas minoristas y los proyectos abiertos paintdex y miniature-paints (licencia MIT). " +
-                            (if (vm.catalogDownloadedAt > 0) "Descargado el " + SimpleDateFormat("d MMM yyyy", Locale("es")).format(Date(vm.catalogDownloadedAt)) + ". " else "Es el que vino con la app; usa Actualizar catálogo para bajar el más reciente. ") +
-                            "Importadas por ti: ${vm.extra.size}. Los colores son aproximados.\n\n" +
-                            "El reconocimiento de etiquetas y códigos de barras usa ML Kit de Google y funciona sin internet. " +
-                            "Tu inventario y proyectos se guardan en este teléfono; activa Respaldo (pestaña Taller) para tener una copia en Google Drive u otro lugar."
+                        tr("Versión {}\n\n", BuildConfig.VERSION_NAME) +
+                            tr("Catálogo: {} pinturas y {} sets, armado con las tiendas oficiales, tiendas minoristas y los proyectos abiertos paintdex y miniature-paints (licencia MIT). ", vm.catalog.size, vm.sets.size) +
+                            (if (vm.catalogDownloadedAt > 0) tr("Descargado el ") + SimpleDateFormat("d MMM yyyy", Locale(com.ricardochr.estantepinturas.Prefs.lang)).format(Date(vm.catalogDownloadedAt)) + ". " else tr("Es el que vino con la app; usa Actualizar catálogo para bajar el más reciente. ")) +
+                            tr("Importadas por ti: {}. Los colores son aproximados.\n\n", vm.extra.size) +
+                            tr("El reconocimiento de etiquetas y códigos de barras usa ML Kit de Google y funciona sin internet. ") +
+                            tr("Tu inventario y proyectos se guardan en este teléfono; activa Respaldo (pestaña Taller) para tener una copia en Google Drive u otro lugar.")
                     )
-                    Text("Pinturas por marca", style = MaterialTheme.typography.titleSmall)
+                    Text(tr("Pinturas por marca"), style = MaterialTheme.typography.titleSmall)
                     vm.brandCounts.forEach { (b, n) ->
                         Row(Modifier.fillMaxWidth()) {
                             Text(b, Modifier.weight(1f))
@@ -571,12 +580,12 @@ private fun App(vm: MainViewModel = viewModel()) {
     if (confirmClearCatalog) {
         AlertDialog(
             onDismissRequest = { confirmClearCatalog = false },
-            title = { Text("¿Quitar las pinturas importadas?") },
-            text = { Text("Se quitan del catálogo las ${vm.extra.size} pinturas que importaste. Las que tengas en tu inventario se conservan.") },
+            title = { Text(tr("¿Quitar las pinturas importadas?")) },
+            text = { Text(tr("Se quitan del catálogo las {} pinturas que importaste. Las que tengas en tu inventario se conservan.", vm.extra.size)) },
             confirmButton = {
-                TextButton(onClick = { confirmClearCatalog = false; vm.clearExtraCatalog { say(it) } }) { Text("Quitar") }
+                TextButton(onClick = { confirmClearCatalog = false; vm.clearExtraCatalog { say(it) } }) { Text(tr("Quitar")) }
             },
-            dismissButton = { TextButton(onClick = { confirmClearCatalog = false }) { Text("Cancelar") } },
+            dismissButton = { TextButton(onClick = { confirmClearCatalog = false }) { Text(tr("Cancelar")) } },
         )
     }
 }

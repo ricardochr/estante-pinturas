@@ -61,7 +61,7 @@ data class PaletteMatch(
 
 /** Mezcla de la pintura base con otra para sacar la sombra o la luz: partes de cada una y color que resulta. */
 data class ToneMix(val base: Paint, val other: Paint, val baseParts: Int, val otherParts: Int, val argb: Int) {
-    val text: String get() = "$baseParts ${if (baseParts == 1) "parte" else "partes"} de ${base.name} + $otherParts de ${other.name}"
+    val text: String get() = tr("{} {} de {} + {} de {}", baseParts, if (baseParts == 1) "parte" else "partes", base.name, otherParts, other.name)
 }
 
 // ---------------------------------------------------------------- color

@@ -1,5 +1,7 @@
 package com.ricardochr.estantepinturas.ui
 
+import com.ricardochr.estantepinturas.tr
+
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -28,7 +30,6 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.foundation.rememberScrollState
@@ -112,18 +113,16 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, onProjectCrea
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
-            Text("Paleta desde una imagen", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onSurface, textAlign = TextAlign.Center)
+            Text(tr("Paleta desde una imagen"), style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onSurface, textAlign = TextAlign.Center)
             Text(
-                "Elige una imagen de referencia (un personaje, una figura pintada, un concept art). " +
-                    "Funciona mejor si tiene fondo liso. La app separa el fondo, encuentra los colores principales " +
-                    "y te dice qué pinturas de tu inventario usar, con una para sombra y otra para luz.",
+                tr("Elige una imagen de referencia (un personaje, una figura pintada, un concept art). Funciona mejor si tiene fondo liso. La app separa el fondo, encuentra los colores principales y te dice qué pinturas de tu inventario usar, con una para sombra y otra para luz."),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(vertical = 12.dp),
             )
             if (inventorySize == 0) {
                 Text(
-                    "Tu inventario está vacío: primero agrega tus pinturas para recibir sugerencias.",
+                    tr("Tu inventario está vacío: primero agrega tus pinturas para recibir sugerencias."),
                     color = MaterialTheme.colorScheme.error,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(bottom = 12.dp),
@@ -131,7 +130,7 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, onProjectCrea
             }
             DetailChips(detail) { detail = it }
             Button(onClick = { pick() }, enabled = !vm.paletteBusy, modifier = Modifier.padding(top = 12.dp)) {
-                Text("Elegir imagen")
+                Text(tr("Elegir imagen"))
             }
             if (vm.paletteBusy) CircularProgressIndicator(Modifier.padding(16.dp))
             vm.paletteError?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 8.dp)) }
@@ -188,9 +187,9 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, onProjectCrea
                     Image(
                         bitmap = highlightImg ?: if (showPreview) (if (showBase && basePreviewImg != null) basePreviewImg else previewImg) else sourceImg,
                         contentDescription = when {
-                            sel != null -> "Dónde va el color seleccionado"
-                            showPreview -> "Figura con tus pinturas"
-                            else -> "Imagen original"
+                            sel != null -> tr("Dónde va el color seleccionado")
+                            showPreview -> tr("Figura con tus pinturas")
+                            else -> tr("Imagen original")
                         },
                         contentScale = ContentScale.Fit,
                         filterQuality = FilterQuality.Low,
@@ -231,7 +230,7 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, onProjectCrea
                     if (vm.paletteBusy) CircularProgressIndicator()
                     if (zoom == 1f && picked == null) {
                         Text(
-                            "Toca un punto para ver su color · pellizca para acercar",
+                            tr("Toca un punto para ver su color · pellizca para acercar"),
                             style = MaterialTheme.typography.labelSmall,
                             color = Color.White,
                             modifier = Modifier
@@ -248,10 +247,10 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, onProjectCrea
                     PickCard(
                         pk = pk,
                         corrected = view.brightened,
-                        zoneText = fam?.let { "Zona ${zoneIdx + 1} · ${it.name} (${(it.roles[pk.label] ?: "Base").lowercase()})" },
-                        onShowZone = fam?.let { f -> { selected = Highlight(f.members.toSet(), "Zona ${zoneIdx + 1} · ${f.name}: resaltada en la imagen") } },
+                        zoneText = fam?.let { tr("Zona {} · {} ({})", zoneIdx + 1, it.name, (it.roles[pk.label] ?: "Base").lowercase()) },
+                        onShowZone = fam?.let { f -> { selected = Highlight(f.members.toSet(), tr("Zona {} · {}: resaltada en la imagen", zoneIdx + 1, f.name)) } },
                         onOpen = onOpenPaint,
-                        onAddShopping = { b -> vm.addToShopping(b.id, "Color de un punto de la foto") },
+                        onAddShopping = { b -> vm.addToShopping(b.id, tr("Color de un punto de la foto")) },
                         inShopping = { b -> vm.shopping.any { it.paintId == b.id } },
                         onClose = { picked = null },
                     )
@@ -266,17 +265,17 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, onProjectCrea
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
-                        TextButton(onClick = { selected = null }) { Text("Ver todo") }
+                        TextButton(onClick = { selected = null }) { Text(tr("Ver todo")) }
                     }
                 } else {
                     Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        FilterChip(selected = !showPreview, onClick = { showPreview = false }, label = { Text("Original") })
+                        FilterChip(selected = !showPreview, onClick = { showPreview = false }, label = { Text(tr("Original")) })
                         if (basePreviewImg == null) {
-                            FilterChip(selected = showPreview, onClick = { showPreview = true }, label = { Text("Con tus pinturas") })
+                            FilterChip(selected = showPreview, onClick = { showPreview = true }, label = { Text(tr("Con tus pinturas")) })
                         } else {
                             // Con variantes de color: se compara el plan original contra la variante
-                            FilterChip(selected = showPreview && showBase, onClick = { showPreview = true; showBase = true }, label = { Text("Plan original") })
-                            FilterChip(selected = showPreview && !showBase, onClick = { showPreview = true; showBase = false }, label = { Text("Tu variante") })
+                            FilterChip(selected = showPreview && showBase, onClick = { showPreview = true; showBase = true }, label = { Text(tr("Plan original")) })
+                            FilterChip(selected = showPreview && !showBase, onClick = { showPreview = true; showBase = false }, label = { Text(tr("Tu variante")) })
                         }
                     }
                 }
@@ -286,7 +285,7 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, onProjectCrea
             Column(Modifier.padding(horizontal = 16.dp, vertical = 4.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (!view.palette.backgroundFound) {
                     Text(
-                        "No encontré un fondo liso, así que analicé la imagen completa. Los colores del fondo pueden aparecer en la lista.",
+                        tr("No encontré un fondo liso, así que analicé la imagen completa. Los colores del fondo pueden aparecer en la lista."),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.error,
                     )
@@ -303,21 +302,21 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, onProjectCrea
                     ) {
                         Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                             Text(
-                                if (view.brightened) "La foto es oscura: aclaré sus colores para elegir pinturas como se verían con buena luz (en la foto las sombras y el barniz oscurecen todo)."
-                                else "Estás usando los colores tal cual salen de la foto, que es oscura: las pinturas sugeridas serán más oscuras.",
+                                if (view.brightened) tr("La foto es oscura: aclaré sus colores para elegir pinturas como se verían con buena luz (en la foto las sombras y el barniz oscurecen todo).")
+                                else tr("Estás usando los colores tal cual salen de la foto, que es oscura: las pinturas sugeridas serán más oscuras."),
                                 style = MaterialTheme.typography.bodySmall,
                             )
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                FilterChip(selected = vm.paletteBrighten, onClick = { vm.changePaletteBrighten(true) }, label = { Text("Corregir luz") })
-                                FilterChip(selected = !vm.paletteBrighten, onClick = { vm.changePaletteBrighten(false) }, label = { Text("Colores de la foto") })
+                                FilterChip(selected = vm.paletteBrighten, onClick = { vm.changePaletteBrighten(true) }, label = { Text(tr("Corregir luz")) })
+                                FilterChip(selected = !vm.paletteBrighten, onClick = { vm.changePaletteBrighten(false) }, label = { Text(tr("Colores de la foto")) })
                             }
                         }
                     }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    OutlinedButton(onClick = { pick() }, enabled = !vm.paletteBusy) { Text("Otra imagen") }
+                    OutlinedButton(onClick = { pick() }, enabled = !vm.paletteBusy) { Text(tr("Otra imagen")) }
                     Text(
-                        "${view.matches.size} colores · tu inventario: $inventorySize",
+                        tr("{} colores · tu inventario: {}", view.matches.size, inventorySize),
                         style = MaterialTheme.typography.labelMedium,
                         fontFamily = FontFamily.Monospace,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -332,16 +331,16 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, onProjectCrea
                     ) {
                         Row(Modifier.padding(start = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                "Estás probando una variante de color: las pinturas y los pasos ya son los de la variante.",
+                                tr("Estás probando una variante de color: las pinturas y los pasos ya son los de la variante."),
                                 style = MaterialTheme.typography.bodySmall,
                                 modifier = Modifier.weight(1f),
                             )
-                            TextButton(onClick = { vm.clearRecolors() }) { Text("Quitar") }
+                            TextButton(onClick = { vm.clearRecolors() }) { Text(tr("Quitar")) }
                         }
                     }
                 }
                 Button(onClick = { askProjectName = true }, enabled = !vm.paletteBusy, modifier = Modifier.fillMaxWidth()) {
-                    Text("Guardar como proyecto")
+                    Text(tr("Guardar como proyecto"))
                 }
                 if (askProjectName) {
                     ProjectNameDialog(
@@ -353,7 +352,7 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, onProjectCrea
                     )
                 }
                 Text(
-                    "Cada tarjeta es una zona de la figura (piel, chaqueta, pelo…) con su base, sombra y luz. Toca la zona o uno de sus colores para verlo en la imagen.",
+                    tr("Cada tarjeta es una zona de la figura (piel, chaqueta, pelo…) con su base, sombra y luz. Toca la zona o uno de sus colores para verlo en la imagen."),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -378,7 +377,7 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, onProjectCrea
                 onSelect = { h -> selected = if (sel == h) null else h },
                 onOpen = onOpenPaint,
                 mixFor = { lab -> vm.mixesFor(lab) },
-                onAddShopping = { b -> vm.addToShopping(b.id, "Para la paleta de una imagen") },
+                onAddShopping = { b -> vm.addToShopping(b.id, tr("Para la paleta de una imagen")) },
                 isInShopping = { b -> vm.shopping.any { it.paintId == b.id } },
                 kit = vm.gearKit,
                 recolored = f.members.any { it in view.recolored },
@@ -389,7 +388,7 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, onProjectCrea
         }
         item {
             pickFor?.let { f ->
-                PaintPickerDialog(vm, "Pintar esta zona con…", onDismiss = { pickFor = null }, fromCatalog = true) { p ->
+                PaintPickerDialog(vm, tr("Pintar esta zona con…"), onDismiss = { pickFor = null }, fromCatalog = true) { p ->
                     pickFor = null
                     if (p.hasColor) {
                         vm.recolorZone(f.members, f.base, p.lab)
@@ -400,7 +399,7 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, onProjectCrea
         }
         item {
             Text(
-                "Los colores de la foto dependen de la luz con que se tomó. Úsalo como punto de partida y prueba en la paleta antes de pintar.",
+                tr("Los colores de la foto dependen de la luz con que se tomó. Úsalo como punto de partida y prueba en la paleta antes de pintar."),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
@@ -442,8 +441,8 @@ private fun PlanCard(plan: List<String>, expanded: Boolean, onToggle: () -> Unit
     ) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Plan de pintado", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                Text(if (expanded) "Ocultar" else "Ver", style = MaterialTheme.typography.labelLarge)
+                Text(tr("Plan de pintado"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                Text(if (expanded) tr("Ocultar") else tr("Ver"), style = MaterialTheme.typography.labelLarge)
             }
             if (expanded) {
                 plan.forEachIndexed { i, step ->
@@ -493,12 +492,12 @@ private fun ZoneCard(
     val mixes by produceState<List<MixRecipe>?>(null, showMix, mb) {
         value = if (showMix) mixFor(mb.cluster.lab) else null
     }
-    val zoneHighlight = Highlight(f.members.toSet(), "Zona $number · ${f.name}: resaltada en la imagen")
+    val zoneHighlight = Highlight(f.members.toSet(), tr("Zona {} · {}: resaltada en la imagen", number, f.name))
     val zoneSelected = selected?.ids == zoneHighlight.ids
     val members = f.members.sortedBy { ROLE_ORDER.indexOf(f.roles[it] ?: "Base").let { r -> if (r < 0) 0 else r } }
     val steps = remember(f, matches, kit) { familySteps(f, matches, zones, kit) }
     val title = when {
-        f.members.size == 1 && baseAdvice?.role == "Detalle" -> "Detalle · ${f.name}"
+        f.members.size == 1 && baseAdvice?.role == "Detalle" -> tr("Detalle · {}", f.name)
         else -> f.name.replaceFirstChar { it.uppercase() }
     }
 
@@ -521,14 +520,14 @@ private fun ZoneCard(
             ) {
                 Column(Modifier.weight(1f)) {
                     Text(
-                        "Zona $number · $title",
+                        tr("Zona {} · {}", number, title),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary,
                     )
                     Text(
-                        "${(fraction * 100).roundToInt().coerceAtLeast(1)}% de la figura · " +
-                            if (f.members.size == 1) "un solo tono" else "${f.members.size} tonos: base, sombras y luces",
+                        tr("{}% de la figura · ", (fraction * 100).roundToInt().coerceAtLeast(1)) +
+                            if (f.members.size == 1) "un solo tono" else tr("{} tonos: base, sombras y luces", f.members.size),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -544,7 +543,7 @@ private fun ZoneCard(
             members.forEach { i ->
                 val m = matches.getOrNull(i) ?: return@forEach
                 val role = if (f.members.size == 1) "Base" else (f.roles[i] ?: "Base")
-                val h = Highlight(setOf(i), "Zona $number · $role: " + (m.best?.paint?.name ?: "sin pintura") + " — resaltado")
+                val h = Highlight(setOf(i), tr("Zona {} · {}: ", number, role) + (m.best?.paint?.name ?: "sin pintura") + tr(" — resaltado"))
                 val rowSelected = selected?.ids == h.ids
                 Surface(
                     color = if (rowSelected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
@@ -605,7 +604,7 @@ private fun ZoneCard(
                             val wash = mb.washShadow
                             if (role.startsWith("Sombra") && wash != null && wash.id != m.best?.paint?.id) {
                                 Text(
-                                    "o lavado: ${wash.name} (${wash.type.lowercase()}) sobre la base",
+                                    tr("o lavado: {} ({}) sobre la base", wash.name, wash.type.lowercase()),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.clickable { onOpen(wash) },
@@ -614,7 +613,7 @@ private fun ZoneCard(
                             val q = m.quick
                             if (role == "Base" && q != null) {
                                 Text(
-                                    "Atajo: ${q.name} (contraste) de una capa",
+                                    tr("Atajo: {} (contraste) de una capa", q.name),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.clickable { onOpen(q) },
@@ -625,7 +624,7 @@ private fun ZoneCard(
                                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                     Swatch(buy.hex, size = 16.dp, metallic = false)
                                     Text(
-                                        "Mejor: ${buy.name} · ${buy.brand}",
+                                        tr("Mejor: {} · {}", buy.name, buy.brand),
                                         style = MaterialTheme.typography.labelSmall,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis,
@@ -739,7 +738,7 @@ private fun ZoneCard(
                         }
                     } else {
                         Text(
-                            "Toca para ver ${steps.size} pasos: qué pintura va en cada parte, cuánto diluir y dónde aplicarla.",
+                            tr("Toca para ver {} pasos: qué pintura va en cada parte, cuánto diluir y dónde aplicarla.", steps.size),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary,
                         )
@@ -809,11 +808,11 @@ private fun ToneChip(
             Column(Modifier.weight(1f)) {
                 Text(
                     label + when {
-                        p != null && p.type != "Opaca" && p.type != "Aerógrafo" -> " · " + p.type.lowercase() + " sobre la base seca"
+                        p != null && p.type != "Opaca" && p.type != "Aerógrafo" -> " · " + p.type.lowercase() + tr(" sobre la base seca")
                         p != null -> ""
-                        mix != null -> " · mezcla"
-                        buy != null -> " · para comprar"
-                        else -> " · sin pintura"
+                        mix != null -> tr(" · mezcla")
+                        buy != null -> tr(" · para comprar")
+                        else -> tr(" · sin pintura")
                     },
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -823,8 +822,8 @@ private fun ToneChip(
                         p != null -> p.name
                         mix != null -> mix.text
                         buy != null -> buy.name + " · " + buy.brand + if (buy.code.isNotBlank()) " " + buy.code else ""
-                        darker -> "Oscurece la base con un lavado oscuro o una gota de su complementario"
-                        else -> "Aclara la base agregando blanco o blanco hueso poco a poco"
+                        darker -> tr("Oscurece la base con un lavado oscuro o una gota de su complementario")
+                        else -> tr("Aclara la base agregando blanco o blanco hueso poco a poco")
                     },
                     style = MaterialTheme.typography.bodySmall,
                     maxLines = 3,
@@ -833,7 +832,7 @@ private fun ToneChip(
             }
             if (p == null && mix == null && buy != null) {
                 if (isInShopping(buy)) Text("✓", style = MaterialTheme.typography.labelLarge)
-                else TextButton(onClick = { onAddShopping(buy) }) { Text("+ Lista") }
+                else TextButton(onClick = { onAddShopping(buy) }) { Text(tr("+ Lista")) }
             }
         }
     }
@@ -850,13 +849,13 @@ fun ProjectNameDialog(onDismiss: () -> Unit, onSave: (String) -> Unit, initial: 
             androidx.compose.material3.OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = { Text("Nombre") },
-                placeholder = { Text("Motoko, Space Marine, busto…") },
+                label = { Text(tr("Nombre")) },
+                placeholder = { Text(tr("Motoko, Space Marine, busto…")) },
                 singleLine = true,
             )
         },
-        confirmButton = { TextButton(onClick = { onSave(name) }, enabled = name.isNotBlank()) { Text("Guardar") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } },
+        confirmButton = { TextButton(onClick = { onSave(name) }, enabled = name.isNotBlank()) { Text(tr("Guardar")) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Cancelar")) } },
     )
 }
 
@@ -886,20 +885,20 @@ private fun PickCard(
                 if (corrected) ColorChip(shown, 30.dp)
                 Column(Modifier.weight(1f)) {
                     Text(
-                        "Punto elegido: ${name}" + String.format(" · #%06X", shown and 0xFFFFFF),
+                        tr("Punto elegido: {}", name) + String.format(" · #%06X", shown and 0xFFFFFF),
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold,
                     )
                     Text(
-                        listOfNotNull(if (corrected) "foto → con luz corregida" else null, zoneText).joinToString(" · ").ifBlank { "Fondo o zona sin analizar" },
+                        listOfNotNull(if (corrected) tr("foto → con luz corregida") else null, zoneText).joinToString(" · ").ifBlank { tr("Fondo o zona sin analizar") },
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
-                if (onShowZone != null) TextButton(onClick = onShowZone) { Text("Zona") }
-                androidx.compose.material3.IconButton(onClick = onClose) { androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Default.Close, contentDescription = "Cerrar") }
+                if (onShowZone != null) TextButton(onClick = onShowZone) { Text(tr("Zona")) }
+                androidx.compose.material3.IconButton(onClick = onClose) { androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Default.Close, contentDescription = tr("Cerrar")) }
             }
             val best = pk.matches.firstOrNull()
             if (best != null) {
@@ -922,19 +921,19 @@ private fun PickCard(
                 }
                 if (pk.matches.size > 1) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("También:", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(tr("También:"), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         pk.matches.drop(1).take(3).forEach { m -> MiniPaint(m.paint, onOpen, Modifier.weight(1f)) }
                     }
                 }
             } else {
-                Text("No tienes pinturas parecidas.", style = MaterialTheme.typography.bodySmall)
+                Text(tr("No tienes pinturas parecidas."), style = MaterialTheme.typography.bodySmall)
             }
             val buy = pk.toBuy
             if (buy != null && pk.toBuyDistance < (best?.distance ?: 99.0) - 3) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     Swatch(buy.hex, size = 18.dp, metallic = false)
                     Text(
-                        "Más parecida para comprar: ${buy.name} · ${buy.brand}",
+                        tr("Más parecida para comprar: {} · {}", buy.name, buy.brand),
                         style = MaterialTheme.typography.labelSmall,
                         modifier = Modifier.weight(1f).clickable { onOpen(buy) },
                         maxLines = 1,
@@ -942,7 +941,7 @@ private fun PickCard(
                     )
                     if (inShopping(buy)) Text("✓", style = MaterialTheme.typography.labelMedium)
                     else Text(
-                        "+ Lista",
+                        tr("+ Lista"),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold,
@@ -963,14 +962,14 @@ private fun colorVariants(base: Lab): List<Pair<String, Lab>> {
     val cc = c.coerceAtLeast(28.0)
     fun turn(deg: Double) = lch(base.l, cc, h + Math.toRadians(deg))
     return listOf(
-        "Análogo +" to turn(35.0),
-        "Análogo −" to turn(-35.0),
-        "Tríada +" to turn(120.0),
-        "Tríada −" to turn(-120.0),
-        "Complementario" to turn(180.0),
-        "Más claro" to lch(base.l + 14, c, h),
-        "Más oscuro" to lch(base.l - 14, c, h),
-        "Más vivo" to lch(base.l, (c * 1.45).coerceAtLeast(c + 12), h),
-        "Más apagado" to lch(base.l, c * 0.5, h),
+        tr("Análogo +") to turn(35.0),
+        tr("Análogo −") to turn(-35.0),
+        tr("Tríada +") to turn(120.0),
+        tr("Tríada −") to turn(-120.0),
+        tr("Complementario") to turn(180.0),
+        tr("Más claro") to lch(base.l + 14, c, h),
+        tr("Más oscuro") to lch(base.l - 14, c, h),
+        tr("Más vivo") to lch(base.l, (c * 1.45).coerceAtLeast(c + 12), h),
+        tr("Más apagado") to lch(base.l, c * 0.5, h),
     )
 }

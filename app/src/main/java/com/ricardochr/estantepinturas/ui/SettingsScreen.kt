@@ -2,6 +2,8 @@
 
 package com.ricardochr.estantepinturas.ui
 
+import com.ricardochr.estantepinturas.tr
+
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -34,7 +36,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -61,76 +62,76 @@ fun SettingsScreen(vm: MainViewModel, onClose: () -> Unit, onAction: (HubAction)
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             Column(Modifier.fillMaxSize().systemBarsPadding()) {
                 TopAppBar(
-                    title = { Text("Configuración") },
-                    navigationIcon = { IconButton(onClick = onClose) { Icon(Icons.Default.Close, contentDescription = "Cerrar") } },
+                    title = { Text(tr("Configuración")) },
+                    navigationIcon = { IconButton(onClick = onClose) { Icon(Icons.Default.Close, contentDescription = tr("Cerrar")) } },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
                 )
                 Column(
                     Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(start = 16.dp, end = 16.dp, bottom = 32.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    SettingsCard("Idioma", Pigment.Cobalt) {
+                    SettingsCard(tr("Idioma"), Pigment.Cobalt) {
                         Choice(
-                            "Idioma de la app",
-                            listOf("es" to "Español", "en" to "English"),
+                            tr("Idioma de la app"),
+                            listOf("es" to tr("Español"), "en" to tr("English")),
                             Prefs.lang,
                         ) { Prefs.changeLang(it); onLanguageChanged() }
-                        Hint("Los nombres de las pinturas, líneas y marcas no se traducen: se muestran como los llama cada marca.")
+                        Hint(tr("Los nombres de las pinturas, líneas y marcas no se traducen: se muestran como los llama cada marca."))
                     }
-                    SettingsCard("Apariencia", Pigment.Violet) {
+                    SettingsCard(tr("Apariencia"), Pigment.Violet) {
                         Choice(
-                            "Tema",
-                            listOf("light" to "Claro", "dark" to "Oscuro", "system" to "Según el teléfono"),
+                            tr("Tema"),
+                            listOf("light" to tr("Claro"), "dark" to tr("Oscuro"), "system" to tr("Según el teléfono")),
                             Prefs.theme,
                         ) { Prefs.changeTheme(it) }
                         Choice(
-                            "Listas de pinturas",
-                            listOf("compact" to "Compactas", "comfortable" to "Cómodas"),
+                            tr("Listas de pinturas"),
+                            listOf("compact" to tr("Compactas"), "comfortable" to tr("Cómodas")),
                             if (Prefs.compactRows) "compact" else "comfortable",
                         ) { Prefs.changeCompactRows(it == "compact") }
                     }
-                    SettingsCard("Inventario", Pigment.Emerald) {
+                    SettingsCard(tr("Inventario"), Pigment.Emerald) {
                         Choice(
-                            "Orden al abrir",
+                            tr("Orden al abrir"),
                             InvSort.values().map { it.name to it.label },
                             Prefs.defaultSort,
                         ) { Prefs.changeDefaultSort(it) }
                     }
                     SettingsCard("Aerógrafo", Pigment.Slate) {
                         Choice(
-                            "Unidad de presión",
+                            tr("Unidad de presión"),
                             listOf("psi" to "psi", "bar" to "bar"),
                             Prefs.pressureUnit,
                         ) { Prefs.changePressureUnit(it); onLanguageChanged() }
                     }
-                    SettingsCard("Catálogo", Pigment.Tangerine) {
+                    SettingsCard(tr("Catálogo"), Pigment.Tangerine) {
                         ActionRow(
                             Icons.Rounded.Sync, Pigment.Cobalt,
-                            if (vm.catalogUpdating) "Actualizando…" else "Actualizar catálogo y sets",
-                            "${vm.catalog.size} pinturas · " +
-                                if (vm.catalogDownloadedAt > 0) "descargado el " + SimpleDateFormat("d MMM yyyy", Locale(Prefs.lang)).format(Date(vm.catalogDownloadedAt))
-                                else "el que vino con la app",
+                            if (vm.catalogUpdating) tr("Actualizando…") else tr("Actualizar catálogo y sets"),
+                            tr("{} pinturas · ", vm.catalog.size) +
+                                if (vm.catalogDownloadedAt > 0) tr("descargado el ") + SimpleDateFormat("d MMM yyyy", Locale(Prefs.lang)).format(Date(vm.catalogDownloadedAt))
+                                else tr("el que vino con la app"),
                         ) { onAction(HubAction.UpdateCatalog) }
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 4.dp)) {
                             Column(Modifier.weight(1f)) {
-                                Text("Actualizar sola cada semana", style = MaterialTheme.typography.titleSmall)
-                                Text("Al abrir la app, si hay internet", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(tr("Actualizar sola cada semana"), style = MaterialTheme.typography.titleSmall)
+                                Text(tr("Al abrir la app, si hay internet"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                             Switch(checked = Prefs.autoUpdate, onCheckedChange = { Prefs.changeAutoUpdate(it) })
                         }
-                        ActionRow(Icons.Rounded.LibraryAdd, Pigment.Violet, "Agregar pinturas al catálogo", "Desde un archivo CSV") { onAction(HubAction.ImportCatalog) }
-                        ActionRow(Icons.Rounded.FileUpload, Pigment.Violet, "Exportar catálogo completo", "Archivo CSV") { onAction(HubAction.ExportCatalog) }
+                        ActionRow(Icons.Rounded.LibraryAdd, Pigment.Violet, tr("Agregar pinturas al catálogo"), tr("Desde un archivo CSV")) { onAction(HubAction.ImportCatalog) }
+                        ActionRow(Icons.Rounded.FileUpload, Pigment.Violet, tr("Exportar catálogo completo"), tr("Archivo CSV")) { onAction(HubAction.ExportCatalog) }
                         if (vm.extra.isNotEmpty()) {
-                            ActionRow(Icons.Rounded.DeleteSweep, Pigment.Crimson, "Quitar pinturas importadas", "${vm.extra.size} pinturas que importaste") { onAction(HubAction.ClearImported) }
+                            ActionRow(Icons.Rounded.DeleteSweep, Pigment.Crimson, tr("Quitar pinturas importadas"), tr("{} pinturas que importaste", vm.extra.size)) { onAction(HubAction.ClearImported) }
                         }
                     }
-                    SettingsCard("Tus datos", Pigment.Magenta) {
-                        ActionRow(Icons.Rounded.Backup, Pigment.Emerald, "Respaldo", "Copia de tu inventario y proyectos") { onAction(HubAction.Backup) }
-                        ActionRow(Icons.Rounded.FileUpload, Pigment.Teal, "Exportar inventario", "Archivo CSV") { onAction(HubAction.ExportInventory) }
-                        ActionRow(Icons.Rounded.FileDownload, Pigment.Teal, "Importar inventario", "Desde un archivo CSV") { onAction(HubAction.ImportInventory) }
+                    SettingsCard(tr("Tus datos"), Pigment.Magenta) {
+                        ActionRow(Icons.Rounded.Backup, Pigment.Emerald, tr("Respaldo"), tr("Copia de tu inventario y proyectos")) { onAction(HubAction.Backup) }
+                        ActionRow(Icons.Rounded.FileUpload, Pigment.Teal, tr("Exportar inventario"), tr("Archivo CSV")) { onAction(HubAction.ExportInventory) }
+                        ActionRow(Icons.Rounded.FileDownload, Pigment.Teal, tr("Importar inventario"), tr("Desde un archivo CSV")) { onAction(HubAction.ImportInventory) }
                     }
-                    SettingsCard("Gotario", Pigment.Night) {
-                        ActionRow(Icons.Rounded.Info, Pigment.Slate, "Acerca de", "Versión y fuentes del catálogo") { onAction(HubAction.About) }
+                    SettingsCard(tr("Gotario"), Pigment.Night) {
+                        ActionRow(Icons.Rounded.Info, Pigment.Slate, tr("Acerca de"), tr("Versión y fuentes del catálogo")) { onAction(HubAction.About) }
                     }
                 }
             }
