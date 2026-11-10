@@ -223,13 +223,13 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     fun add(paintId: String, delta: Int = 1) {
         val cur = owned[paintId]
         val qty = ((cur?.qty ?: 0) + delta).coerceAtLeast(0)
-        owned = owned + (paintId to OwnedEntry(paintId, qty, cur?.notes ?: "", System.currentTimeMillis(), low = (cur?.low ?: false) && qty > 0))
+        owned = owned + (paintId to OwnedEntry(paintId, qty, cur?.notes ?: "", System.currentTimeMillis(), low = (cur?.low ?: false) && qty > 0, thin = cur?.thin ?: ""))
         persist()
     }
 
     fun update(paintId: String, qty: Int, notes: String) {
         val low = (owned[paintId]?.low ?: false) && qty > 0
-        owned = owned + (paintId to OwnedEntry(paintId, qty.coerceAtLeast(0), notes.trim(), System.currentTimeMillis(), low))
+        owned = owned + (paintId to OwnedEntry(paintId, qty.coerceAtLeast(0), notes.trim(), System.currentTimeMillis(), low, thin = owned[paintId]?.thin ?: ""))
         persist()
     }
 
@@ -293,6 +293,38 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
      * Primero las de la misma familia (opaca, metálica, transparente); si no hay suficientes,
      * completa con otras familias. Barnices y médiums no cuentan.
      */
+    /** Equivalente de una pintura en otra marca: la pintura, qué tan parecida es y si ya la tienes. */
+    class Equivalent(val paint: Paint, val distance: Double, val owned: Boolean)
+
+    /**
+     * La pintura más parecida de cada una de las otras marcas del catálogo (mismo tipo de pintura).
+     * Si tienes una casi igual de esa marca, se prefiere la tuya.
+     */
+    suspend fun equivalentsOf(target: Paint, limit: Int = 8): List<Equivalent> {
+        if (!target.hasColor) return emptyList()
+        val all = allPaints
+        val ownedIds = owned.values.filter { it.qty > 0 }.map { it.paintId }.toHashSet()
+        return withContext(Dispatchers.Default) {
+            val lab = target.lab
+            val group = typeGroup(target.type)
+            val myBrand = brandKey(target.brand)
+            val best = HashMap<String, Equivalent>()
+            for (p in all) {
+                if (!p.hasColor || p.quality == "n" || typeGroup(p.type) != group) continue
+                val bk = brandKey(p.brand)
+                if (bk == myBrand) continue
+                val d = deltaE2000(lab, p.lab)
+                if (d > 12) continue
+                val has = p.id in ownedIds
+                val cur = best[bk]
+                // Una tuya gana si está a menos de 2 de diferencia de la mejor
+                val score = d - if (has) 2.0 else 0.0
+                if (cur == null || score < cur.distance - if (cur.owned) 2.0 else 0.0) best[bk] = Equivalent(p, d, has)
+            }
+            best.values.sortedBy { it.distance }.take(limit)
+        }
+    }
+
     fun similarOwned(target: Paint, limit: Int = 5, maxDistance: Double = 25.0): List<SimilarPaint> {
         if (target.hex.equals(UNKNOWN_HEX, true)) return emptyList()
         val lab = target.lab
@@ -349,7 +381,46 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val darkPhoto: Boolean = false,
         /** Se aclararon los colores de la foto para elegir pinturas. */
         val brightened: Boolean = false,
+        /** Colores de la imagen que cambiaste para probar una variante (índices de [palette].clusters). */
+        val recolored: Set<Int> = emptySet(),
+        /** La figura con tus pinturas sin las variantes, para comparar; null si no hay variantes. */
+        val basePreview: Bitmap? = null,
     )
+
+    /** Variantes de color: color nuevo para algunos colores de la imagen (por índice). */
+    var paletteOverrides by mutableStateOf<Map<Int, Lab>>(emptyMap())
+        private set
+
+    /**
+     * Prueba otro color en una zona: [base] pasa a ser [target] y los demás tonos de la zona
+     * (sombras y luces) conservan su diferencia de claridad respecto a la base.
+     */
+    fun recolorZone(members: List<Int>, base: Int, target: Lab) {
+        val clusters = palette?.palette?.clusters ?: return
+        val b = clusters.getOrNull(base) ?: return
+        val bc = kotlin.math.sqrt(b.a * b.a + b.b * b.b).coerceAtLeast(4.0)
+        val next = HashMap(paletteOverrides)
+        for (m in members) {
+            val c = clusters.getOrNull(m) ?: continue
+            // Sombras y luces: misma diferencia de claridad y la misma proporción de saturación que tenían
+            val ratio = (kotlin.math.sqrt(c.a * c.a + c.b * c.b) / bc).coerceIn(0.45, 1.4)
+            next[m] = Lab((target.l + (c.l - b.l)).coerceIn(3.0, 97.0), target.a * ratio, target.b * ratio)
+        }
+        paletteOverrides = next
+        refreshPaletteMatches()
+    }
+
+    fun resetZoneColor(members: List<Int>) {
+        if (members.none { it in paletteOverrides }) return
+        paletteOverrides = paletteOverrides - members.toSet()
+        refreshPaletteMatches()
+    }
+
+    fun clearRecolors() {
+        if (paletteOverrides.isEmpty()) return
+        paletteOverrides = emptyMap()
+        refreshPaletteMatches()
+    }
 
     var palette by mutableStateOf<PaletteView?>(null)
         private set
@@ -366,11 +437,27 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun buildPaletteView(uri: Uri, detail: Int, bmp: Bitmap, original: ImagePalette, inv: List<Paint>, cat: List<Paint>): PaletteView {
         val fixed = brightenedPalette(original)
-        val ip = if (paletteBrighten && fixed != null) fixed else original
-        val raw = matchPalette(ip, inv, cat)
-        val advice = buildAdvice(ip, raw, inv, gearKit)
-        val matches = refineZones(raw, advice.families, inv, cat)
-        return PaletteView(uri, detail, bmp, ip, matches, renderPreview(ip, matches, bmp), advice, original, fixed != null, ip !== original)
+        val base = if (paletteBrighten && fixed != null) fixed else original
+        val over = paletteOverrides.filterKeys { it in base.clusters.indices }
+        fun build(ip: ImagePalette): Triple<List<PaletteMatch>, PaletteAdvice, Bitmap> {
+            val raw = matchPalette(ip, inv, cat)
+            val advice = buildAdvice(ip, raw, inv, gearKit)
+            val matches = refineZones(raw, advice.families, inv, cat)
+            return Triple(matches, advice, renderPreview(ip, matches, bmp))
+        }
+        if (over.isEmpty()) {
+            val (matches, advice, preview) = build(base)
+            return PaletteView(uri, detail, bmp, base, matches, preview, advice, original, fixed != null, base !== original)
+        }
+        // Con variantes: mismos píxeles, pero los colores cambiados se sustituyen antes de elegir pinturas
+        val varied = ImagePalette(
+            base.width, base.height, base.labels,
+            base.clusters.mapIndexed { i, c -> over[i]?.let { ColorCluster(it.l, it.a, it.b, c.fraction) } ?: c },
+            base.backgroundFound, base.zones,
+        )
+        val basePreview = build(base).third
+        val (matches, advice, preview) = build(varied)
+        return PaletteView(uri, detail, bmp, varied, matches, preview, advice, original, fixed != null, base !== original, over.keys, basePreview)
     }
 
     /** Analiza la imagen y sugiere pinturas del inventario. [detail]: cuántos colores buscar. */
@@ -378,6 +465,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         if (paletteBusy) return
         paletteBusy = true
         paletteError = null
+        // Los colores se numeran de nuevo en cada análisis: las variantes anteriores ya no aplican
+        paletteOverrides = emptyMap()
         val inv = inventoryPaints()
         val cat = extra + catalog
         val reuse = palette?.takeIf { it.uri == uri }?.source
@@ -462,7 +551,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val ly = (y * ip.height).toInt().coerceIn(0, ip.height - 1)
         val label = ip.labels[ly * ip.width + lx]
         // Misma corrección de luz que se aplicó a la paleta (si la foto era oscura)
-        if (view.brightened && label >= 0) {
+        if (view.brightened && label >= 0 && label !in view.recolored) {
             val o = view.original.clusters.getOrNull(label)
             val a = ip.clusters.getOrNull(label)
             if (o != null && a != null && o.l > 1) {
@@ -1028,7 +1117,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         var o = owned
         for (p in ps) {
             val cur = o[p.id]
-            o = o + (p.id to OwnedEntry(p.id, (cur?.qty ?: 0) + 1, cur?.notes ?: "", now, low = false))
+            o = o + (p.id to OwnedEntry(p.id, (cur?.qty ?: 0) + 1, cur?.notes ?: "", now, low = false, thin = cur?.thin ?: ""))
         }
         owned = o
         val ids = ps.map { it.id }.toHashSet()
@@ -1084,7 +1173,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     /** La compraste: suma un bote al inventario y la quita de la lista. */
     fun bought(paintId: String) {
         val cur = owned[paintId]
-        owned = owned + (paintId to OwnedEntry(paintId, (cur?.qty ?: 0) + 1, cur?.notes ?: "", System.currentTimeMillis(), low = false))
+        owned = owned + (paintId to OwnedEntry(paintId, (cur?.qty ?: 0) + 1, cur?.notes ?: "", System.currentTimeMillis(), low = false, thin = cur?.thin ?: ""))
         shopping = shopping.filterNot { it.paintId == paintId }
         persist()
     }
@@ -1218,7 +1307,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    /** Crea un proyecto con la imagen y las pinturas sugeridas en Paleta. */
+    /** Crea un proyecto con la imagen, las pinturas sugeridas en Paleta y su plan de pintura paso a paso. */
     fun projectFromPalette(name: String, onDone: (Project) -> Unit) {
         val pv = palette ?: return
         val paints = pv.matches.mapIndexedNotNull { i, m ->
@@ -1227,7 +1316,72 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             ProjectPaint(p.id, listOfNotNull(z?.role, z?.group).joinToString(" · "))
         }
         val notes = pv.advice.plan.joinToString("\n") { "• $it" }
-        createProject(name, pv.uri, paints, notes, onDone)
+        val plan = planFromPalette(pv)
+        createProject(name, pv.uri, paints, notes) { p ->
+            setProjectPlan(p.id, plan)
+            onDone(p)
+        }
+    }
+
+    /** Los pasos de cada zona de la Paleta (con las variantes de color que estés probando), como lista para marcar. */
+    private fun planFromPalette(pv: PaletteView): List<PlanStep> {
+        val families = pv.advice.families.ifEmpty {
+            pv.matches.indices.map { PaletteFamily("color", listOf(it), it, mapOf(it to "Base")) }
+        }
+        val out = ArrayList<PlanStep>()
+        families.forEachIndexed { zi, f ->
+            val zone = tr("Zona {}", zi + 1) + " · " + f.name.replaceFirstChar { it.uppercase() }
+            familySteps(f, pv.matches, pv.advice.zones, gearKit).forEach { out.add(PlanStep(UUID.randomUUID().toString(), zone, it)) }
+        }
+        return out
+    }
+
+    fun setProjectPlan(id: String, plan: List<PlanStep>) = updateProject(id) { it.copy(plan = plan) }
+
+    /** Reemplaza el plan del proyecto por el de la Paleta abierta. Devuelve false si no hay paleta. */
+    fun planFromCurrentPalette(id: String): Boolean {
+        val pv = palette ?: return false
+        setProjectPlan(id, planFromPalette(pv))
+        return true
+    }
+
+    fun togglePlanStep(id: String, stepId: String) =
+        updateProject(id) { p -> p.copy(plan = p.plan.map { if (it.id == stepId) it.copy(done = !it.done) else it }) }
+
+    fun addPlanStep(id: String, zone: String, text: String) =
+        updateProject(id) { p -> p.copy(plan = p.plan + PlanStep(UUID.randomUUID().toString(), zone.trim(), text.trim())) }
+
+    fun removePlanStep(id: String, stepId: String) =
+        updateProject(id) { p -> p.copy(plan = p.plan.filterNot { it.id == stepId }) }
+
+    fun addRecipe(id: String, name: String, parts: List<MixIngredient>, hex: String, note: String) =
+        updateProject(id) { p -> p.copy(recipes = p.recipes + SavedMix(UUID.randomUUID().toString(), name.trim(), parts, hex, note.trim())) }
+
+    fun removeRecipe(id: String, recipeId: String) =
+        updateProject(id) { p -> p.copy(recipes = p.recipes.filterNot { it.id == recipeId }) }
+
+    /** Guarda tu nota de dilución de una pintura. */
+    fun setThinNote(paintId: String, note: String) {
+        val cur = owned[paintId] ?: return
+        owned = owned + (paintId to cur.copy(thin = note.trim(), updatedAt = System.currentTimeMillis()))
+        persist()
+    }
+
+    /** Guarda una imagen (por ejemplo la comparación con la referencia) como foto de avance. */
+    fun addProgressBitmap(id: String, bmp: Bitmap, caption: String, onDone: (Boolean) -> Unit = {}) {
+        viewModelScope.launch {
+            val name = withContext(Dispatchers.IO) {
+                try {
+                    val n = "avance-" + System.currentTimeMillis() + ".jpg"
+                    File(projectStore.dir(id), n).outputStream().use { bmp.compress(Bitmap.CompressFormat.JPEG, 90, it) }
+                    n
+                } catch (e: Throwable) {
+                    null
+                }
+            }
+            if (name != null) updateProject(id) { p -> p.copy(photos = p.photos + ProgressPhoto(name, System.currentTimeMillis(), caption)) }
+            onDone(name != null)
+        }
     }
 
     private fun updateProject(id: String, f: (Project) -> Project) {

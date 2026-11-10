@@ -42,6 +42,8 @@ data class OwnedEntry(
     val updatedAt: Long,
     /** Marcada como "se está acabando": aparece en la lista de compras. */
     val low: Boolean = false,
+    /** Tu nota de dilución para esta pintura ("1:2 con flow improver en mi aerógrafo de 0.3"). */
+    val thin: String = "",
 )
 
 /**
@@ -94,7 +96,20 @@ data class Project(
     val reference: String?,      // archivo de la imagen de referencia
     val paints: List<ProjectPaint>,
     val photos: List<ProgressPhoto>,
+    /** Plan de pintura: pasos por zona que vas marcando conforme avanzas. */
+    val plan: List<PlanStep> = emptyList(),
+    /** Recetas de mezcla guardadas para repetirlas después. */
+    val recipes: List<SavedMix> = emptyList(),
 )
+
+/** Un paso del plan de pintura de un proyecto. [zone] agrupa los pasos ("Zona 1 · Piel"). */
+data class PlanStep(val id: String, val zone: String, val text: String, val done: Boolean = false)
+
+/** Parte de una receta: una pintura y cuántas partes (gotas) lleva. */
+data class MixIngredient(val paintId: String, val parts: Int)
+
+/** Receta de mezcla guardada: ingredientes, color que resulta y para qué la usas. */
+data class SavedMix(val id: String, val name: String, val parts: List<MixIngredient>, val hex: String, val note: String)
 
 /** Minúsculas, sin acentos, espacios simples. */
 fun norm(s: String): String {

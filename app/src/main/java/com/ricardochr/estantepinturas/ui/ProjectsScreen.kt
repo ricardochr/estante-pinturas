@@ -49,6 +49,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -225,6 +228,8 @@ fun ProjectDetail(vm: MainViewModel, projectId: String, onClose: () -> Unit, onO
 
     val ref = rememberFileBitmap(p.reference?.let { vm.projectFile(p.id, it) }, 1200)
     var comparing by remember { mutableStateOf(false) }
+    var addingStep by remember { mutableStateOf(false) }
+    var addingRecipe by remember { mutableStateOf(false) }
     val paints = p.paints.mapNotNull { pp -> vm.byId[pp.paintId]?.let { it to pp } }
     val missing = paints.filter { vm.qtyOf(it.first.id) == 0 }
 
@@ -242,6 +247,10 @@ fun ProjectDetail(vm: MainViewModel, projectId: String, onClose: () -> Unit, onO
                             DropdownMenuItem(text = { Text("Cambiar imagen de referencia") }, onClick = {
                                 menu = false
                                 refPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                            })
+                            DropdownMenuItem(text = { Text("Compartir proyecto") }, onClick = {
+                                menu = false
+                                if (!shareProject(context, vm, p)) say("No pude preparar la imagen para compartir")
                             })
                             DropdownMenuItem(text = { Text("Eliminar proyecto") }, onClick = { menu = false; confirmDelete = true })
                         }
@@ -330,8 +339,94 @@ fun ProjectDetail(vm: MainViewModel, projectId: String, onClose: () -> Unit, onO
                         }
                     }
 
+                    // ---- Plan de pintura
+                    val doneSteps = p.plan.count { it.done }
+                    item { SectionTitle(if (p.plan.isEmpty()) "Plan de pintura" else "Plan de pintura ($doneSteps de ${p.plan.size})") }
+                    if (p.plan.isEmpty()) {
+                        item {
+                            Text(
+                                "Lleva la cuenta de lo que ya pintaste: toma los pasos de la Paleta (base, sombra, luz y veladura de cada zona) o escribe los tuyos.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                            )
+                        }
+                    } else {
+                        item {
+                            androidx.compose.material3.LinearProgressIndicator(
+                                progress = { doneSteps.toFloat() / p.plan.size },
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+                            )
+                        }
+                        p.plan.groupBy { it.zone }.forEach { (zone, steps) ->
+                            item(key = "zone-$zone") {
+                                Text(
+                                    zone.ifBlank { "General" } + "  ·  ${steps.count { it.done }}/${steps.size}",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 2.dp),
+                                )
+                            }
+                            items(steps, key = { "step-" + it.id }) { st ->
+                                Row(
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .clickable { vm.togglePlanStep(p.id, st.id) }
+                                        .padding(start = 6.dp, end = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    androidx.compose.material3.Checkbox(checked = st.done, onCheckedChange = { vm.togglePlanStep(p.id, st.id) })
+                                    Text(
+                                        st.text,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = if (st.done) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                                        textDecoration = if (st.done) androidx.compose.ui.text.style.TextDecoration.LineThrough else null,
+                                        modifier = Modifier.weight(1f).padding(vertical = 6.dp),
+                                    )
+                                    IconButton(onClick = { vm.removePlanStep(p.id, st.id) }) {
+                                        Icon(Icons.Default.Close, contentDescription = "Quitar paso", modifier = Modifier.size(18.dp))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    item {
+                        Row(Modifier.padding(horizontal = 16.dp, vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedButton(onClick = { addingStep = true }) { Text("+ Paso") }
+                            if (vm.palette != null) {
+                                OutlinedButton(onClick = {
+                                    if (vm.planFromCurrentPalette(p.id)) say("Plan tomado de la Paleta")
+                                }) { Text(if (p.plan.isEmpty()) "Tomar de la Paleta" else "Reemplazar con la Paleta") }
+                            }
+                        }
+                    }
+
+                    // ---- Recetas de mezcla
+                    item { SectionTitle("Recetas de mezcla (${p.recipes.size})") }
+                    items(p.recipes, key = { "recipe-" + it.id }) { r ->
+                        Row(
+                            Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 5.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        ) {
+                            Swatch(r.hex, size = 40.dp)
+                            Column(Modifier.weight(1f)) {
+                                Text(r.name.ifBlank { "Mezcla" }, style = MaterialTheme.typography.titleSmall)
+                                Text(
+                                    r.parts.joinToString(" + ") { ing -> "${ing.parts} × ${vm.byId[ing.paintId]?.name ?: "?"}" },
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                                if (r.note.isNotBlank()) Text(r.note, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            IconButton(onClick = { vm.removeRecipe(p.id, r.id) }) { Icon(Icons.Default.Close, contentDescription = "Borrar receta") }
+                        }
+                    }
+                    item {
+                        OutlinedButton(onClick = { addingRecipe = true }, modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) { Text("+ Nueva receta") }
+                    }
+
                     // ---- Notas
-                    item { SectionTitle("Notas y mezclas") }
+                    item { SectionTitle("Notas") }
                     item {
                         Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                             OutlinedTextField(
@@ -422,9 +517,51 @@ fun ProjectDetail(vm: MainViewModel, projectId: String, onClose: () -> Unit, onO
         )
     }
 
+    if (addingStep) {
+        val zones = p.plan.map { it.zone }.filter { it.isNotBlank() }.distinct()
+        var zone by remember { mutableStateOf(zones.lastOrNull() ?: "") }
+        var text by remember { mutableStateOf("") }
+        AlertDialog(
+            onDismissRequest = { addingStep = false },
+            title = { Text("Nuevo paso") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(value = zone, onValueChange = { zone = it }, label = { Text("Zona (piel, capa, base…)") }, singleLine = true)
+                    if (zones.size > 1) {
+                        Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            zones.forEach { z -> FilterChip(selected = zone == z, onClick = { zone = z }, label = { Text(z) }) }
+                        }
+                    }
+                    OutlinedTextField(value = text, onValueChange = { text = it }, label = { Text("Qué hay que hacer") }, minLines = 2)
+                }
+            },
+            confirmButton = {
+                TextButton(enabled = text.isNotBlank(), onClick = { vm.addPlanStep(p.id, zone, text); addingStep = false }) { Text("Agregar") }
+            },
+            dismissButton = { TextButton(onClick = { addingStep = false }) { Text("Cancelar") } },
+        )
+    }
+
+    if (addingRecipe) {
+        RecipeDialog(vm, onDismiss = { addingRecipe = false }) { name, parts, hex, note ->
+            vm.addRecipe(p.id, name, parts, hex, note)
+            addingRecipe = false
+            say("Receta guardada")
+        }
+    }
+
     if (comparing) {
         val file = p.reference?.let { vm.projectFile(p.id, it) }
-        CompareScreen(initialUri = file?.let { android.net.Uri.fromFile(it) }, onClose = { comparing = false })
+        CompareScreen(
+            initialUri = file?.let { android.net.Uri.fromFile(it) },
+            onClose = { comparing = false },
+            saveTargets = listOf(p.id to p.name),
+            onSave = { pid, bmp ->
+                vm.addProgressBitmap(pid, bmp, com.ricardochr.estantepinturas.tr("Comparación con la referencia")) { ok ->
+                    say(if (ok) "Comparación guardada en las fotos de avance" else "No pude guardar la comparación")
+                }
+            },
+        )
     }
 }
 
@@ -495,6 +632,74 @@ private fun PhotoViewer(
                 },
                 dismissButton = { TextButton(onClick = { confirm = false }) { Text("Cancelar") } },
             )
+        }
+    }
+}
+
+/** Nueva receta de mezcla: eliges pinturas y partes de cada una, y ves el color que resulta. */
+@Composable
+private fun RecipeDialog(
+    vm: MainViewModel,
+    onDismiss: () -> Unit,
+    onSave: (name: String, parts: List<com.ricardochr.estantepinturas.MixIngredient>, hex: String, note: String) -> Unit,
+) {
+    var name by remember { mutableStateOf("") }
+    var note by remember { mutableStateOf("") }
+    var parts by remember { mutableStateOf<List<Pair<Paint, Int>>>(emptyList()) }
+    var picking by remember { mutableStateOf<Boolean?>(null) }
+    val colored = parts.filter { it.first.hasColor }
+    val resultArgb = remember(parts) {
+        if (colored.isEmpty()) null else com.ricardochr.estantepinturas.mixMany(colored.map { it.first }, colored.map { it.second })
+    }
+    val resultHex = resultArgb?.let { String.format("#%06X", it and 0xFFFFFF) } ?: "#888888"
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Nueva receta de mezcla") },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Nombre (sombra de la piel…)") }, singleLine = true)
+                parts.forEachIndexed { i, (paint, n) ->
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Swatch(paint.hex, size = 28.dp, metallic = paint.type == "Metálica")
+                        Text(paint.name, style = MaterialTheme.typography.bodySmall, maxLines = 2, modifier = Modifier.weight(1f))
+                        QtyStepper(
+                            n,
+                            onMinus = { parts = if (n <= 1) parts.filterIndexed { k, _ -> k != i } else parts.mapIndexed { k, x -> if (k == i) x.first to n - 1 else x } },
+                            onPlus = { parts = parts.mapIndexed { k, x -> if (k == i) x.first to (n + 1).coerceAtMost(12) else x } },
+                        )
+                    }
+                }
+                if (parts.size < 4) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(onClick = { picking = false }) { Text("+ De mi inventario") }
+                        TextButton(onClick = { picking = true }) { Text("Del catálogo") }
+                    }
+                }
+                if (resultArgb != null && parts.size >= 2) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Swatch(resultHex, size = 48.dp)
+                        Text(
+                            "Color aproximado de la mezcla. Los números son partes (gotas) de cada pintura.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+                OutlinedTextField(value = note, onValueChange = { note = it }, label = { Text("Nota (dónde la usaste, dilución…)") }, minLines = 2)
+            }
+        },
+        confirmButton = {
+            TextButton(
+                enabled = parts.size >= 2,
+                onClick = { onSave(name, parts.map { com.ricardochr.estantepinturas.MixIngredient(it.first.id, it.second) }, resultHex, note) },
+            ) { Text("Guardar") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } },
+    )
+    picking?.let { catalog ->
+        PaintPickerDialog(vm, "Pintura para la mezcla", onDismiss = { picking = null }, fromCatalog = catalog) { paint ->
+            picking = null
+            if (parts.none { it.first.id == paint.id }) parts = parts + (paint to 1)
         }
     }
 }

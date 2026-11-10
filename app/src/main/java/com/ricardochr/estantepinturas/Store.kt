@@ -231,6 +231,7 @@ class Store(private val context: Context) {
                     notes = e.optString("notes", ""),
                     updatedAt = e.optLong("updatedAt", 0L),
                     low = e.optBoolean("low", false),
+                    thin = e.optString("thin", ""),
                 )
             }
             val custom = ArrayList<Paint>()
@@ -317,6 +318,7 @@ class Store(private val context: Context) {
                         .put("notes", e.notes)
                         .put("updatedAt", e.updatedAt)
                         .put("low", e.low)
+                        .put("thin", e.thin)
                 )
             }
             o.put("owned", oa)
@@ -396,9 +398,18 @@ class ProjectStore(private val context: Context) {
                 p.paints.forEach { paints.put(JSONObject().put("paintId", it.paintId).put("use", it.use)) }
                 val photos = JSONArray()
                 p.photos.forEach { photos.put(JSONObject().put("file", it.file).put("takenAt", it.takenAt).put("caption", it.caption)) }
+                val plan = JSONArray()
+                p.plan.forEach { plan.put(JSONObject().put("id", it.id).put("zone", it.zone).put("text", it.text).put("done", it.done)) }
+                val recipes = JSONArray()
+                p.recipes.forEach { r ->
+                    val parts = JSONArray()
+                    r.parts.forEach { parts.put(JSONObject().put("paintId", it.paintId).put("parts", it.parts)) }
+                    recipes.put(JSONObject().put("id", r.id).put("name", r.name).put("parts", parts).put("hex", r.hex).put("note", r.note))
+                }
                 arr.put(
                     JSONObject().put("id", p.id).put("name", p.name).put("createdAt", p.createdAt).put("status", p.status)
                         .put("notes", p.notes).put("reference", p.reference ?: JSONObject.NULL).put("paints", paints).put("photos", photos)
+                        .put("plan", plan).put("recipes", recipes)
                 )
             }
             return arr
@@ -414,12 +425,29 @@ class ProjectStore(private val context: Context) {
                 val photos = ArrayList<ProgressPhoto>()
                 val ph = o.optJSONArray("photos") ?: JSONArray()
                 for (j in 0 until ph.length()) ph.getJSONObject(j).let { photos.add(ProgressPhoto(it.getString("file"), it.optLong("takenAt", 0L), it.optString("caption", ""))) }
+                val plan = ArrayList<PlanStep>()
+                val pl = o.optJSONArray("plan") ?: JSONArray()
+                for (j in 0 until pl.length()) pl.getJSONObject(j).let {
+                    plan.add(PlanStep(it.optString("id", "s$j"), it.optString("zone", ""), it.optString("text", ""), it.optBoolean("done", false)))
+                }
+                val recipes = ArrayList<SavedMix>()
+                val rc = o.optJSONArray("recipes") ?: JSONArray()
+                for (j in 0 until rc.length()) rc.getJSONObject(j).let { r ->
+                    val parts = r.optJSONArray("parts") ?: JSONArray()
+                    recipes.add(
+                        SavedMix(
+                            r.optString("id", "r$j"), r.optString("name", ""),
+                            (0 until parts.length()).map { k -> parts.getJSONObject(k).let { MixIngredient(it.getString("paintId"), it.optInt("parts", 1)) } },
+                            r.optString("hex", "#888888"), r.optString("note", ""),
+                        )
+                    )
+                }
                 out.add(
                     Project(
                         id = o.getString("id"), name = o.optString("name", "Proyecto"), createdAt = o.optLong("createdAt", 0L),
                         status = o.optString("status", "En progreso"), notes = o.optString("notes", ""),
                         reference = if (o.isNull("reference")) null else o.optString("reference", "").ifBlank { null },
-                        paints = paints, photos = photos,
+                        paints = paints, photos = photos, plan = plan, recipes = recipes,
                     )
                 )
             }

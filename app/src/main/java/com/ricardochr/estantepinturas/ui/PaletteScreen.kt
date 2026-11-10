@@ -31,6 +31,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -139,6 +141,9 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, onProjectCrea
 
     val sourceImg = remember(view.source) { view.source.asImageBitmap() }
     val previewImg = remember(view.preview) { view.preview.asImageBitmap() }
+    val basePreviewImg = remember(view.basePreview) { view.basePreview?.asImageBitmap() }
+    var showBase by remember(view.basePreview == null) { mutableStateOf(false) }
+    var pickFor by remember { mutableStateOf<PaletteFamily?>(null) }
     var selected by remember(view) { mutableStateOf<Highlight?>(null) }
     val sel = selected
     val highlightImg = remember(view, sel) {
@@ -181,7 +186,7 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, onProjectCrea
                     val oy = (bh - dh) / 2f
                     val center = Offset(bw / 2f, bh / 2f)
                     Image(
-                        bitmap = highlightImg ?: if (showPreview) previewImg else sourceImg,
+                        bitmap = highlightImg ?: if (showPreview) (if (showBase && basePreviewImg != null) basePreviewImg else previewImg) else sourceImg,
                         contentDescription = when {
                             sel != null -> "Dónde va el color seleccionado"
                             showPreview -> "Figura con tus pinturas"
@@ -264,9 +269,15 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, onProjectCrea
                         TextButton(onClick = { selected = null }) { Text("Ver todo") }
                     }
                 } else {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         FilterChip(selected = !showPreview, onClick = { showPreview = false }, label = { Text("Original") })
-                        FilterChip(selected = showPreview, onClick = { showPreview = true }, label = { Text("Con tus pinturas") })
+                        if (basePreviewImg == null) {
+                            FilterChip(selected = showPreview, onClick = { showPreview = true }, label = { Text("Con tus pinturas") })
+                        } else {
+                            // Con variantes de color: se compara el plan original contra la variante
+                            FilterChip(selected = showPreview && showBase, onClick = { showPreview = true; showBase = true }, label = { Text("Plan original") })
+                            FilterChip(selected = showPreview && !showBase, onClick = { showPreview = true; showBase = false }, label = { Text("Tu variante") })
+                        }
                     }
                 }
             }
@@ -313,6 +324,22 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, onProjectCrea
                     )
                 }
                 vm.paletteError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                if (view.recolored.isNotEmpty()) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        shape = RoundedCornerShape(10.dp),
+                    ) {
+                        Row(Modifier.padding(start = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                "Estás probando una variante de color: las pinturas y los pasos ya son los de la variante.",
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.weight(1f),
+                            )
+                            TextButton(onClick = { vm.clearRecolors() }) { Text("Quitar") }
+                        }
+                    }
+                }
                 Button(onClick = { askProjectName = true }, enabled = !vm.paletteBusy, modifier = Modifier.fillMaxWidth()) {
                     Text("Guardar como proyecto")
                 }
@@ -354,7 +381,22 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, onProjectCrea
                 onAddShopping = { b -> vm.addToShopping(b.id, "Para la paleta de una imagen") },
                 isInShopping = { b -> vm.shopping.any { it.paintId == b.id } },
                 kit = vm.gearKit,
+                recolored = f.members.any { it in view.recolored },
+                onRecolor = { lab -> vm.recolorZone(f.members, f.base, lab); showPreview = true; showBase = false; selected = null },
+                onPickPaint = { pickFor = f },
+                onResetColor = { vm.resetZoneColor(f.members) },
             )
+        }
+        item {
+            pickFor?.let { f ->
+                PaintPickerDialog(vm, "Pintar esta zona con…", onDismiss = { pickFor = null }, fromCatalog = true) { p ->
+                    pickFor = null
+                    if (p.hasColor) {
+                        vm.recolorZone(f.members, f.base, p.lab)
+                        showPreview = true; showBase = false; selected = null
+                    }
+                }
+            }
         }
         item {
             Text(
@@ -438,8 +480,13 @@ private fun ZoneCard(
     onAddShopping: (Paint) -> Unit,
     isInShopping: (Paint) -> Boolean,
     kit: com.ricardochr.estantepinturas.GearKit,
+    recolored: Boolean = false,
+    onRecolor: (Lab) -> Unit = {},
+    onPickPaint: () -> Unit = {},
+    onResetColor: () -> Unit = {},
 ) {
     val mb = matches.getOrNull(f.base) ?: return
+    var showVariants by remember { mutableStateOf(false) }
     val baseAdvice = zones.getOrNull(f.base)
     var showSteps by remember { mutableStateOf(false) }
     var showMix by remember { mutableStateOf(false) }
@@ -614,6 +661,48 @@ private fun ZoneCard(
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text("Otra base:", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     mb.alternatives.forEach { alt -> MiniPaint(alt.paint, onOpen, Modifier.weight(1f)) }
+                }
+            }
+
+            // Variantes: probar otro color en esta zona y ver la figura con él
+            Surface(
+                color = if (recolored) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.onSurface,
+                shape = RoundedCornerShape(10.dp),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Row(Modifier.fillMaxWidth().clickable { showVariants = !showVariants }, verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            if (recolored) "Probar otro color · variante activa" else "Probar otro color",
+                            style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f),
+                        )
+                        Text(if (showVariants) "▲" else "▼", style = MaterialTheme.typography.labelLarge)
+                    }
+                    if (showVariants) {
+                        val base = mb.cluster.lab
+                        Text(
+                            "Elige una variante y mira la figura arriba: se cambian la base, las sombras y las luces de esta zona, con las pinturas y los pasos que le corresponden.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            colorVariants(base).forEach { (label, lab) ->
+                                Column(
+                                    Modifier.clip(RoundedCornerShape(10.dp)).clickable { onRecolor(lab) }.padding(4.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                                ) {
+                                    ColorChip(com.ricardochr.estantepinturas.labToArgb(lab.l, lab.a, lab.b), 38.dp)
+                                    Text(label, style = MaterialTheme.typography.labelSmall, maxLines = 1)
+                                }
+                            }
+                        }
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedButton(onClick = onPickPaint) { Text("Elegir una pintura…") }
+                            if (recolored) TextButton(onClick = onResetColor) { Text("Volver al original") }
+                        }
+                    }
                 }
             }
 
@@ -863,4 +952,25 @@ private fun PickCard(
             }
         }
     }
+}
+
+/** Variantes de un color para probar en una zona: mismo valor con otro tono, o el mismo tono más claro, oscuro, vivo o apagado. */
+private fun colorVariants(base: Lab): List<Pair<String, Lab>> {
+    val c = kotlin.math.sqrt(base.a * base.a + base.b * base.b)
+    val h = kotlin.math.atan2(base.b, base.a)
+    fun lch(l: Double, chroma: Double, hueRad: Double) = Lab(l.coerceIn(5.0, 95.0), chroma * kotlin.math.cos(hueRad), chroma * kotlin.math.sin(hueRad))
+    // Un color casi gris no tiene tono que girar: se le da saturación para que la variante se note
+    val cc = c.coerceAtLeast(28.0)
+    fun turn(deg: Double) = lch(base.l, cc, h + Math.toRadians(deg))
+    return listOf(
+        "Análogo +" to turn(35.0),
+        "Análogo −" to turn(-35.0),
+        "Tríada +" to turn(120.0),
+        "Tríada −" to turn(-120.0),
+        "Complementario" to turn(180.0),
+        "Más claro" to lch(base.l + 14, c, h),
+        "Más oscuro" to lch(base.l - 14, c, h),
+        "Más vivo" to lch(base.l, (c * 1.45).coerceAtLeast(c + 12), h),
+        "Más apagado" to lch(base.l, c * 0.5, h),
+    )
 }

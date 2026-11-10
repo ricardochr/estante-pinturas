@@ -362,8 +362,11 @@ fun EntrySheet(
     onSetLow: (Boolean) -> Unit = {},
     projects: List<Project> = emptyList(),
     onAddToProject: (String) -> Unit = {},
+    equivalents: List<com.ricardochr.estantepinturas.MainViewModel.Equivalent>? = null,
+    onSaveThin: (String) -> Unit = {},
 ) {
     var projectMenu by remember { mutableStateOf(false) }
+    var thin by remember { mutableStateOf(entry?.thin ?: "") }
     var fixingColor by remember { mutableStateOf(false) }
     val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var qty by remember { mutableIntStateOf(entry?.qty ?: 1) }
@@ -511,6 +514,52 @@ fun EntrySheet(
             }
             if (paint.hasColor) TheorySection(paint, inventory, onOpenSimilar, onOpenWheel)
             DilutionSection(paint)
+            if (entry != null && entry.qty > 0) {
+                // Tu propia nota de dilución, junto a la guía de la marca
+                OutlinedTextField(
+                    value = thin,
+                    onValueChange = { thin = it },
+                    label = { Text("Mi dilución") },
+                    placeholder = { Text("1:2 con agua en mi aerógrafo de 0.3…") },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                if (thin.trim() != entry.thin) {
+                    TextButton(onClick = { onSaveThin(thin) }) { Text("Guardar mi dilución") }
+                }
+            }
+            if (!equivalents.isNullOrEmpty()) {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text("Equivalentes en otras marcas", style = MaterialTheme.typography.titleMedium)
+                    equivalents.forEach { e ->
+                        Row(
+                            Modifier.fillMaxWidth().clip(MaterialTheme.shapes.small).clickable { onOpenSimilar(e.paint) }.padding(vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        ) {
+                            Swatch(e.paint.hex, size = 30.dp, metallic = e.paint.type == "Metálica")
+                            Column(Modifier.weight(1f)) {
+                                Text(e.paint.name, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text(
+                                    listOf(e.paint.brand, e.paint.line).filter { it.isNotBlank() }.joinToString(" · "),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text(com.ricardochr.estantepinturas.similarityLabel(e.distance), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                if (e.owned) Text("✓ la tienes", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                    Text(
+                        "Son los colores más parecidos del catálogo, no equivalencias oficiales de las marcas.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
             if (entry != null && entry.qty > 0 && similar.isNotEmpty()) {
                 SimilarSection(paint, similar, onOpenSimilar, title = "Parecidas en tu estante")
             }

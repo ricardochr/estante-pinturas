@@ -125,6 +125,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Prefs.init(this)
+        I18n.load(this)
         enableEdgeToEdge()
         setContent {
             // Los íconos de la barra de estado siguen al tema elegido en Configuración, no al del teléfono
@@ -367,6 +368,8 @@ private fun App(vm: MainViewModel = viewModel()) {
                 vm.addPaintToProject(pid, p.id)
                 say("Agregada a ${vm.projects.firstOrNull { it.id == pid }?.name ?: "el proyecto"}")
             },
+            equivalents = produceState<List<MainViewModel.Equivalent>?>(null, p.id, vm.owned) { value = vm.equivalentsOf(p) }.value,
+            onSaveThin = { vm.setThinNote(p.id, it); say(tr("Dilución guardada")) },
             mixes = produceState<List<MixRecipe>?>(null, p.id, vm.owned) {
                 val ownedQty = vm.owned[p.id]?.qty ?: 0
                 value = if (ownedQty == 0 && p.hasColor) vm.mixesFor(p.lab, p.id) else emptyList()
@@ -441,7 +444,16 @@ private fun App(vm: MainViewModel = viewModel()) {
     }
 
     if (showCompare) {
-        com.ricardochr.estantepinturas.ui.CompareScreen(initialUri = null, onClose = { showCompare = false })
+        com.ricardochr.estantepinturas.ui.CompareScreen(
+            initialUri = null,
+            onClose = { showCompare = false },
+            saveTargets = vm.projects.map { it.id to it.name },
+            onSave = { pid, bmp ->
+                vm.addProgressBitmap(pid, bmp, tr("Comparación con la referencia")) { ok ->
+                    say(if (ok) tr("Comparación guardada en las fotos de avance") else tr("No pude guardar la comparación"))
+                }
+            },
+        )
     }
 
     if (showSettings) {

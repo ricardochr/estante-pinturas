@@ -102,7 +102,13 @@ private val LINE_NAMES = listOf("blanco", "verde", "rosa", "negro")
  * que el color distraiga; Congelar fija la imagen de la cámara para dejar el teléfono.
  */
 @Composable
-fun CompareScreen(initialUri: Uri? = null, onClose: () -> Unit) {
+fun CompareScreen(
+    initialUri: Uri? = null,
+    onClose: () -> Unit,
+    /** Proyectos donde se puede guardar la comparación (id, nombre). Vacío = sin botón de guardar. */
+    saveTargets: List<Pair<String, String>> = emptyList(),
+    onSave: (projectId: String, comparison: Bitmap) -> Unit = { _, _ -> },
+) {
     val context = LocalContext.current
     var hasPermission by remember {
         mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED)
@@ -132,6 +138,18 @@ fun CompareScreen(initialUri: Uri? = null, onClose: () -> Unit) {
     var camZoom by rememberSaveable { mutableFloatStateOf(0f) }
     var showControls by rememberSaveable { mutableStateOf(true) }
     var frozen by remember { mutableStateOf<Bitmap?>(null) }
+    // Guardar la comparación: se congela la cámara (si no lo está) y se arma la foto lado a lado
+    var pendingSave by remember { mutableStateOf(false) }
+    var chooseTarget by remember { mutableStateOf<Bitmap?>(null) }
+    LaunchedEffect(frozen, pendingSave) {
+        val cam = frozen
+        val ref = image
+        if (pendingSave && cam != null && ref != null) {
+            pendingSave = false
+            val side = withContext(Dispatchers.Default) { sideBySide(cam, ref) }
+            if (saveTargets.size == 1) onSave(saveTargets[0].first, side) else chooseTarget = side
+        }
+    }
 
     var scale by rememberSaveable { mutableFloatStateOf(1f) }
     var rotation by rememberSaveable { mutableFloatStateOf(0f) }
@@ -169,6 +187,20 @@ fun CompareScreen(initialUri: Uri? = null, onClose: () -> Unit) {
 
     Box(Modifier.fillMaxSize().background(Color.Black)) {
         BackHandler(onBack = onClose)
+        chooseTarget?.let { side ->
+            androidx.compose.material3.AlertDialog(
+                onDismissRequest = { chooseTarget = null },
+                title = { Text("¿En qué proyecto la guardo?") },
+                text = {
+                    Column {
+                        saveTargets.take(12).forEach { (id, name) ->
+                            TextButton(onClick = { chooseTarget = null; onSave(id, side) }) { Text(name) }
+                        }
+                    }
+                },
+                confirmButton = { TextButton(onClick = { chooseTarget = null }) { Text("Cancelar") } },
+            )
+        }
         Box(Modifier.fillMaxSize().onSizeChanged { boxWidth = it.width }) {
             // ---- Fondo: tu figura (cámara en vivo o congelada)
             val camModifier = Modifier.fillMaxSize().then(
@@ -319,6 +351,12 @@ fun CompareScreen(initialUri: Uri? = null, onClose: () -> Unit) {
                         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                             TextButton(onClick = { pick() }) { Text("Otra imagen", color = Color.White) }
                             TextButton(onClick = { resetImage() }) { Text("Centrar referencia", color = Color.White) }
+                            if (saveTargets.isNotEmpty() && image != null && hasPermission) {
+                                TextButton(onClick = {
+                                    pendingSave = true
+                                    if (frozen == null) frozenRequest.value++
+                                }) { Text("Guardar comparación", color = Color.White) }
+                            }
                         }
                         if (gray && Build.VERSION.SDK_INT < Build.VERSION_CODES.S && frozen == null) {
                             Text(
@@ -331,6 +369,21 @@ fun CompareScreen(initialUri: Uri? = null, onClose: () -> Unit) {
             }
         }
     }
+}
+
+/** Tu figura (cámara) a la izquierda y la referencia a la derecha, a la misma altura, en una sola imagen. */
+private fun sideBySide(camera: Bitmap, reference: Bitmap): Bitmap {
+    val h = 1200
+    val wc = (camera.width * h.toFloat() / camera.height).toInt().coerceAtLeast(1)
+    val wr = (reference.width * h.toFloat() / reference.height).toInt().coerceAtLeast(1)
+    val gap = 12
+    val out = Bitmap.createBitmap(wc + gap + wr, h, Bitmap.Config.ARGB_8888)
+    val canvas = android.graphics.Canvas(out)
+    canvas.drawColor(android.graphics.Color.WHITE)
+    val paint = android.graphics.Paint(android.graphics.Paint.FILTER_BITMAP_FLAG)
+    canvas.drawBitmap(camera, null, android.graphics.Rect(0, 0, wc, h), paint)
+    canvas.drawBitmap(reference, null, android.graphics.Rect(wc + gap, 0, wc + gap + wr, h), paint)
+    return out
 }
 
 /** Contador que pide a la cámara una foto fija (cada incremento = congelar). */
