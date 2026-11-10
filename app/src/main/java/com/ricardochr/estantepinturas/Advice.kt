@@ -213,7 +213,7 @@ fun buildAdvice(palette: ImagePalette, matches: List<PaletteMatch>, inventory: L
     if (kit.hasAirbrush) {
         val wide = kit.wide
         plan.add(
-            "Con aerógrafo: imprima con tu ${wide?.let { gearLabel(it) } ?: "aerógrafo"} a 25–30 psi. Zenital: todo en negro y luego blanco solo desde arriba a 45°; " +
+            "Con aerógrafo: imprima con tu ${wide?.let { gearLabel(it) } ?: "aerógrafo"} a ${pressure(25, 30)}. Zenital: todo en negro y luego blanco solo desde arriba a 45°; " +
                 "las zonas grandes (en cada tarjeta lo indico) se pueden basear y degradar con aerógrafo, y los detalles se terminan a pincel."
         )
     } else {

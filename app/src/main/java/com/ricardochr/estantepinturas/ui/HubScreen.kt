@@ -102,17 +102,6 @@ fun HubScreen(vm: MainViewModel, onAction: (HubAction) -> Unit) {
         HubTile(HubAction.Find, Icons.Rounded.TravelExplore, "Encontrar pintura", "En tu gaveta o estante", Pigment.Emerald),
         HubTile(HubAction.AddCustom, Icons.Rounded.AddCircle, "Fuera del catálogo", "Agrega una pintura a mano", Pigment.Crimson),
     )
-    val data = buildList {
-        add(HubTile(HubAction.UpdateCatalog, Icons.Rounded.Sync, if (vm.catalogUpdating) "Actualizando…" else "Actualizar catálogo", "${vm.catalog.size} pinturas", Pigment.Cobalt))
-        add(HubTile(HubAction.Backup, Icons.Rounded.Backup, "Respaldo", "Inventario y proyectos", Pigment.Emerald))
-        add(HubTile(HubAction.ExportInventory, Icons.Rounded.FileUpload, "Exportar inventario", "Archivo CSV", Pigment.Teal))
-        add(HubTile(HubAction.ImportInventory, Icons.Rounded.FileDownload, "Importar inventario", "Desde un CSV", Pigment.Teal))
-        add(HubTile(HubAction.ImportCatalog, Icons.Rounded.LibraryAdd, "Agregar al catálogo", "Pinturas desde un CSV", Pigment.Violet))
-        add(HubTile(HubAction.ExportCatalog, Icons.Rounded.FileUpload, "Exportar catálogo", "Todo en CSV", Pigment.Violet))
-        if (vm.extra.isNotEmpty()) add(HubTile(HubAction.ClearImported, Icons.Rounded.DeleteSweep, "Quitar importadas", "${vm.extra.size} pinturas", Pigment.Crimson))
-        add(HubTile(HubAction.About, Icons.Rounded.Info, "Acerca de", "Versión y fuentes", Pigment.Slate))
-    }
-
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 28.dp)) {
         item {
             PigmentCard(Pigment.Night, Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 6.dp)) {
@@ -138,7 +127,6 @@ fun HubScreen(vm: MainViewModel, onAction: (HubAction) -> Unit) {
         }
         hubSection("Pintar", Pigment.Magenta[0], paint, onAction)
         hubSection("Comprar y organizar", Pigment.Tangerine[0], shop, onAction)
-        dataSection("Catálogo y datos", Pigment.Cobalt[0], data, onAction)
     }
 }
 
@@ -159,33 +147,6 @@ private fun LazyListScope.hubSection(title: String, accent: Color, tiles: List<H
             Row(Modifier.fillMaxWidth().padding(bottom = 12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 row.forEach { t -> HubCard(t, Modifier.weight(1f)) { onAction(t.action) } }
                 if (row.size == 1) Spacer(Modifier.weight(1f))
-            }
-        }
-    }
-}
-
-/** Datos y archivos: filas compactas con ícono de color, para no competir con las herramientas. */
-private fun LazyListScope.dataSection(title: String, accent: Color, tiles: List<HubTile>, onAction: (HubAction) -> Unit) {
-    sectionTitle(title, accent)
-    item(key = "data-$title") {
-        Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = MaterialTheme.shapes.large, modifier = Modifier.fillMaxWidth()) {
-            Column(Modifier.padding(vertical = 6.dp)) {
-                tiles.forEach { t ->
-                    Row(
-                        Modifier.fillMaxWidth().clickable { onAction(t.action) }.padding(horizontal = 14.dp, vertical = 10.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(14.dp),
-                    ) {
-                        Box(Modifier.size(38.dp).clip(RoundedCornerShape(12.dp)).background(diagonal(t.colors)), contentAlignment = Alignment.Center) {
-                            Icon(t.icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
-                        }
-                        Column(Modifier.weight(1f)) {
-                            Text(t.title, style = MaterialTheme.typography.titleSmall)
-                            Text(t.subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                        Text("›", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                }
             }
         }
     }

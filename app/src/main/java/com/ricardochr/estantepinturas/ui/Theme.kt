@@ -32,19 +32,19 @@ private val Light = lightColorScheme(
     onTertiary = Color(0xFFFFFFFF),
     tertiaryContainer = Color(0xFFF8DCE9),
     onTertiaryContainer = Color(0xFF4A0C2B),
-    background = Color(0xFFF4F2EE),
+    background = Color(0xFFF1F2F5),
     onBackground = Color(0xFF1C1D22),
-    surface = Color(0xFFF4F2EE),
+    surface = Color(0xFFF1F2F5),
     onSurface = Color(0xFF1C1D22),
-    surfaceVariant = Color(0xFFE5E2DC),
+    surfaceVariant = Color(0xFFE3E5EA),
     onSurfaceVariant = Color(0xFF5F646E),
     surfaceContainerLowest = Color(0xFFFFFFFF),
-    surfaceContainerLow = Color(0xFFFBFAF7),
-    surfaceContainer = Color(0xFFEDEBE6),
+    surfaceContainerLow = Color(0xFFF8F9FB),
+    surfaceContainer = Color(0xFFE9EBF0),
     surfaceContainerHigh = Color(0xFFFFFFFF),
-    surfaceContainerHighest = Color(0xFFE8E5DF),
-    outline = Color(0xFFC6C2BA),
-    outlineVariant = Color(0xFFE0DDD6),
+    surfaceContainerHighest = Color(0xFFE2E5EB),
+    outline = Color(0xFFC3C7D0),
+    outlineVariant = Color(0xFFDCDFE6),
     error = Color(0xFFB3261E),
 )
 
@@ -126,7 +126,11 @@ private val AppShapes = Shapes(
 @Composable
 fun EstanteTheme(content: @Composable () -> Unit) {
     MaterialTheme(
-        colorScheme = if (isSystemInDarkTheme()) Dark else Light,
+        colorScheme = when (com.ricardochr.estantepinturas.Prefs.theme) {
+            "dark" -> Dark
+            "system" -> if (isSystemInDarkTheme()) Dark else Light
+            else -> Light
+        },
         typography = AppTypography,
         shapes = AppShapes,
         content = content,

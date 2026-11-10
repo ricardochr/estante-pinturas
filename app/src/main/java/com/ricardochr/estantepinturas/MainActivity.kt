@@ -96,6 +96,7 @@ import androidx.compose.material.icons.rounded.Layers
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.QrCodeScanner
 import androidx.compose.material.icons.rounded.ShoppingCart
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
@@ -123,8 +124,22 @@ import java.util.Locale
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Prefs.init(this)
         enableEdgeToEdge()
         setContent {
+            // Los íconos de la barra de estado siguen al tema elegido en Configuración, no al del teléfono
+            val dark = when (Prefs.theme) {
+                "dark" -> true
+                "system" -> androidx.compose.foundation.isSystemInDarkTheme()
+                else -> false
+            }
+            androidx.compose.runtime.LaunchedEffect(dark) {
+                val clear = android.graphics.Color.TRANSPARENT
+                enableEdgeToEdge(
+                    statusBarStyle = if (dark) androidx.activity.SystemBarStyle.dark(clear) else androidx.activity.SystemBarStyle.light(clear, clear),
+                    navigationBarStyle = androidx.activity.SystemBarStyle.dark(clear),
+                )
+            }
             EstanteTheme {
                 App()
             }
@@ -154,6 +169,7 @@ private fun App(vm: MainViewModel = viewModel()) {
     var showCompare by rememberSaveable { mutableStateOf(false) }
     var showSets by rememberSaveable { mutableStateOf(false) }
     var showGuide by rememberSaveable { mutableStateOf(false) }
+    var showSettings by rememberSaveable { mutableStateOf(false) }
     var showWheel by rememberSaveable { mutableStateOf(false) }
     fun goCatalog() { tab = Tab.Inventario; invMode = 1 }
     val snackbar = remember { SnackbarHostState() }
@@ -184,6 +200,43 @@ private fun App(vm: MainViewModel = viewModel()) {
         if (vm.adoptedCount > 0) say("${vm.adoptedCount} pinturas que agregaste a mano ya están en el catálogo y se unieron a él")
     }
 
+    val hubAction: (HubAction) -> Unit = { action ->
+        when (action) {
+                        HubAction.Compare -> showCompare = true
+                        HubAction.Wheel -> showWheel = true
+                        HubAction.Guide -> showGuide = true
+                        HubAction.Gear -> showGear = true
+                        HubAction.Shopping -> showShopping = true
+                        HubAction.Sets -> showSets = true
+                        HubAction.Find -> storage = StorageRequest()
+                        HubAction.AddCustom -> { createForBarcode = null; creating = true }
+                        HubAction.UpdateCatalog -> if (!vm.catalogUpdating) {
+                            say("Buscando novedades…")
+                            vm.refreshCatalog { say(it) }
+                        }
+                        HubAction.Backup -> showBackup = true
+                        HubAction.ExportInventory -> {
+                            val stamp = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+                            exportLauncher.launch("inventario-pinturas-$stamp.csv")
+                        }
+                        HubAction.ImportInventory -> importLauncher.launch(csvTypes)
+                        HubAction.ImportCatalog -> catalogImportLauncher.launch(csvTypes)
+                        HubAction.ExportCatalog -> catalogExportLauncher.launch("catalogo-pinturas.csv")
+                        HubAction.ClearImported -> confirmClearCatalog = true
+                        HubAction.About -> showAbout = true
+                        else -> {}
+        }
+    }
+
+    // Actualización automática del catálogo: una vez por semana, al abrir la app
+    androidx.compose.runtime.LaunchedEffect(vm.loading) {
+        if (!vm.loading && Prefs.autoUpdate && !vm.catalogUpdating &&
+            System.currentTimeMillis() - vm.catalogDownloadedAt > 7L * 24 * 3600 * 1000
+        ) {
+            vm.refreshCatalog { msg -> if (!msg.contains("No pude", ignoreCase = true)) say(msg) }
+        }
+    }
+
     BackHandler(enabled = tab != Tab.Inventario || invMode != 0) { tab = Tab.Inventario; invMode = 0 }
 
     Scaffold(
@@ -208,6 +261,7 @@ private fun App(vm: MainViewModel = viewModel()) {
                             Text(tab.label, style = MaterialTheme.typography.headlineSmall, maxLines = 1)
                         }
                     }
+                    HeaderButton(Icons.Rounded.Settings, "Configuración", Pigment.Slate) { showSettings = true }
                     HeaderButton(Icons.Rounded.Layers, "Superponer referencia", Pigment.Magenta) { showCompare = true }
                     Box {
                         HeaderButton(Icons.Rounded.ShoppingCart, "Lista de compras", Pigment.Tangerine) { showShopping = true }
@@ -258,7 +312,7 @@ private fun App(vm: MainViewModel = viewModel()) {
                 Tab.Escanear -> ScanScreen(
                     vm,
                     active = linking == null && editing == null && !creating && storage == null && liveFind == null &&
-                        openProject == null && !showShopping && !showBackup && !showGear && !showSets && !showCompare && !showWheel && !showGuide && wheelFor == null,
+                        openProject == null && !showShopping && !showBackup && !showGear && !showSets && !showCompare && !showWheel && !showGuide && !showSettings && wheelFor == null,
                     onLinkBarcode = { linking = it },
                     onNotFound = { goCatalog() },
                     onAdded = { say(it) },
@@ -267,32 +321,7 @@ private fun App(vm: MainViewModel = viewModel()) {
                     say("Proyecto creado: ${it.name}")
                     openProject = it.id
                 })
-                Tab.Taller -> HubScreen(vm) { action ->
-                    when (action) {
-                        HubAction.Compare -> showCompare = true
-                        HubAction.Wheel -> showWheel = true
-                        HubAction.Guide -> showGuide = true
-                        HubAction.Gear -> showGear = true
-                        HubAction.Shopping -> showShopping = true
-                        HubAction.Sets -> showSets = true
-                        HubAction.Find -> storage = StorageRequest()
-                        HubAction.AddCustom -> { createForBarcode = null; creating = true }
-                        HubAction.UpdateCatalog -> if (!vm.catalogUpdating) {
-                            say("Buscando novedades…")
-                            vm.refreshCatalog { say(it) }
-                        }
-                        HubAction.Backup -> showBackup = true
-                        HubAction.ExportInventory -> {
-                            val stamp = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
-                            exportLauncher.launch("inventario-pinturas-$stamp.csv")
-                        }
-                        HubAction.ImportInventory -> importLauncher.launch(csvTypes)
-                        HubAction.ImportCatalog -> catalogImportLauncher.launch(csvTypes)
-                        HubAction.ExportCatalog -> catalogExportLauncher.launch("catalogo-pinturas.csv")
-                        HubAction.ClearImported -> confirmClearCatalog = true
-                        HubAction.About -> showAbout = true
-                    }
-                }
+                Tab.Taller -> HubScreen(vm) { hubAction(it) }
             }
         }
     }
@@ -413,6 +442,15 @@ private fun App(vm: MainViewModel = viewModel()) {
 
     if (showCompare) {
         com.ricardochr.estantepinturas.ui.CompareScreen(initialUri = null, onClose = { showCompare = false })
+    }
+
+    if (showSettings) {
+        com.ricardochr.estantepinturas.ui.SettingsScreen(
+            vm,
+            onClose = { showSettings = false },
+            onAction = { hubAction(it) },
+            onLanguageChanged = { vm.refreshPaletteMatches() },
+        )
     }
 
     if (showGear) {
@@ -552,11 +590,12 @@ private fun HeaderButton(icon: ImageVector, description: String, colors: List<Co
  */
 @Composable
 private fun GotarioNavBar(current: Tab, onSelect: (Tab) -> Unit) {
-    Surface(
-        shape = RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        shadowElevation = 12.dp,
-        modifier = Modifier.fillMaxWidth(),
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .shadow(12.dp, RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp))
+            .clip(RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp))
+            .background(diagonal(Pigment.Night)),
     ) {
         Row(
             Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 4.dp, vertical = 6.dp),
@@ -571,7 +610,7 @@ private fun GotarioNavBar(current: Tab, onSelect: (Tab) -> Unit) {
 private fun NavItem(t: Tab, selected: Boolean, modifier: Modifier, onClick: () -> Unit) {
     val pg = tabPigment(t)
     val pillWidth by animateDpAsState(if (selected) 56.dp else 40.dp, label = "pill")
-    val iconTint by animateColorAsState(if (selected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, label = "tint")
+    val iconTint by animateColorAsState(if (selected) Color.White else Color.White.copy(alpha = 0.6f), label = "tint")
     Column(
         modifier
             .clip(RoundedCornerShape(18.dp))
@@ -594,7 +633,7 @@ private fun NavItem(t: Tab, selected: Boolean, modifier: Modifier, onClick: () -
             t.label,
             style = MaterialTheme.typography.labelSmall,
             fontWeight = if (selected) androidx.compose.ui.text.font.FontWeight.Bold else null,
-            color = if (selected) pg[1] else MaterialTheme.colorScheme.onSurfaceVariant,
+            color = if (selected) Color.White else Color.White.copy(alpha = 0.6f),
             maxLines = 1,
         )
     }

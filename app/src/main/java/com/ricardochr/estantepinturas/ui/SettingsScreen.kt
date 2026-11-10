@@ -1,0 +1,187 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
+package com.ricardochr.estantepinturas.ui
+
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.rounded.Backup
+import androidx.compose.material.icons.rounded.DeleteSweep
+import androidx.compose.material.icons.rounded.FileDownload
+import androidx.compose.material.icons.rounded.FileUpload
+import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.LibraryAdd
+import androidx.compose.material.icons.rounded.Sync
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
+import com.ricardochr.estantepinturas.MainViewModel
+import com.ricardochr.estantepinturas.Prefs
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
+/**
+ * Configuración: idioma, apariencia, preferencias del inventario y del aerógrafo, y todo lo de
+ * catálogo y datos (actualizar, respaldo, importar y exportar).
+ */
+@Composable
+fun SettingsScreen(vm: MainViewModel, onClose: () -> Unit, onAction: (HubAction) -> Unit, onLanguageChanged: () -> Unit) {
+    Box(Modifier.fillMaxSize()) {
+        BackHandler(onBack = onClose)
+        Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+            Column(Modifier.fillMaxSize().systemBarsPadding()) {
+                TopAppBar(
+                    title = { Text("Configuración") },
+                    navigationIcon = { IconButton(onClick = onClose) { Icon(Icons.Default.Close, contentDescription = "Cerrar") } },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
+                )
+                Column(
+                    Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(start = 16.dp, end = 16.dp, bottom = 32.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    SettingsCard("Idioma", Pigment.Cobalt) {
+                        Choice(
+                            "Idioma de la app",
+                            listOf("es" to "Español", "en" to "English"),
+                            Prefs.lang,
+                        ) { Prefs.changeLang(it); onLanguageChanged() }
+                        Hint("Los nombres de las pinturas, líneas y marcas no se traducen: se muestran como los llama cada marca.")
+                    }
+                    SettingsCard("Apariencia", Pigment.Violet) {
+                        Choice(
+                            "Tema",
+                            listOf("light" to "Claro", "dark" to "Oscuro", "system" to "Según el teléfono"),
+                            Prefs.theme,
+                        ) { Prefs.changeTheme(it) }
+                        Choice(
+                            "Listas de pinturas",
+                            listOf("compact" to "Compactas", "comfortable" to "Cómodas"),
+                            if (Prefs.compactRows) "compact" else "comfortable",
+                        ) { Prefs.changeCompactRows(it == "compact") }
+                    }
+                    SettingsCard("Inventario", Pigment.Emerald) {
+                        Choice(
+                            "Orden al abrir",
+                            InvSort.values().map { it.name to it.label },
+                            Prefs.defaultSort,
+                        ) { Prefs.changeDefaultSort(it) }
+                    }
+                    SettingsCard("Aerógrafo", Pigment.Slate) {
+                        Choice(
+                            "Unidad de presión",
+                            listOf("psi" to "psi", "bar" to "bar"),
+                            Prefs.pressureUnit,
+                        ) { Prefs.changePressureUnit(it); onLanguageChanged() }
+                    }
+                    SettingsCard("Catálogo", Pigment.Tangerine) {
+                        ActionRow(
+                            Icons.Rounded.Sync, Pigment.Cobalt,
+                            if (vm.catalogUpdating) "Actualizando…" else "Actualizar catálogo y sets",
+                            "${vm.catalog.size} pinturas · " +
+                                if (vm.catalogDownloadedAt > 0) "descargado el " + SimpleDateFormat("d MMM yyyy", Locale(Prefs.lang)).format(Date(vm.catalogDownloadedAt))
+                                else "el que vino con la app",
+                        ) { onAction(HubAction.UpdateCatalog) }
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 4.dp)) {
+                            Column(Modifier.weight(1f)) {
+                                Text("Actualizar sola cada semana", style = MaterialTheme.typography.titleSmall)
+                                Text("Al abrir la app, si hay internet", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            Switch(checked = Prefs.autoUpdate, onCheckedChange = { Prefs.changeAutoUpdate(it) })
+                        }
+                        ActionRow(Icons.Rounded.LibraryAdd, Pigment.Violet, "Agregar pinturas al catálogo", "Desde un archivo CSV") { onAction(HubAction.ImportCatalog) }
+                        ActionRow(Icons.Rounded.FileUpload, Pigment.Violet, "Exportar catálogo completo", "Archivo CSV") { onAction(HubAction.ExportCatalog) }
+                        if (vm.extra.isNotEmpty()) {
+                            ActionRow(Icons.Rounded.DeleteSweep, Pigment.Crimson, "Quitar pinturas importadas", "${vm.extra.size} pinturas que importaste") { onAction(HubAction.ClearImported) }
+                        }
+                    }
+                    SettingsCard("Tus datos", Pigment.Magenta) {
+                        ActionRow(Icons.Rounded.Backup, Pigment.Emerald, "Respaldo", "Copia de tu inventario y proyectos") { onAction(HubAction.Backup) }
+                        ActionRow(Icons.Rounded.FileUpload, Pigment.Teal, "Exportar inventario", "Archivo CSV") { onAction(HubAction.ExportInventory) }
+                        ActionRow(Icons.Rounded.FileDownload, Pigment.Teal, "Importar inventario", "Desde un archivo CSV") { onAction(HubAction.ImportInventory) }
+                    }
+                    SettingsCard("Gotario", Pigment.Night) {
+                        ActionRow(Icons.Rounded.Info, Pigment.Slate, "Acerca de", "Versión y fuentes del catálogo") { onAction(HubAction.About) }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SettingsCard(title: String, accent: List<Color>, content: @Composable () -> Unit) {
+    Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = MaterialTheme.shapes.large, modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Box(Modifier.size(width = 16.dp, height = 5.dp).clip(RoundedCornerShape(3.dp)).background(diagonal(accent)))
+                Text(title.uppercase(), style = MaterialTheme.typography.labelLarge)
+            }
+            content()
+        }
+    }
+}
+
+@Composable
+private fun Choice(label: String, options: List<Pair<String, String>>, selected: String, onSelect: (String) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(label, style = MaterialTheme.typography.titleSmall)
+        Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            options.forEach { (value, text) ->
+                FilterChip(selected = value == selected, onClick = { onSelect(value) }, label = { Text(text) })
+            }
+        }
+    }
+}
+
+@Composable
+private fun Hint(text: String) {
+    Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+}
+
+@Composable
+private fun ActionRow(icon: ImageVector, colors: List<Color>, title: String, subtitle: String, onClick: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().clip(MaterialTheme.shapes.small).clickable(onClick = onClick).padding(vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Box(Modifier.size(38.dp).clip(RoundedCornerShape(12.dp)).background(diagonal(colors)), contentAlignment = Alignment.Center) {
+            Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
+        }
+        Column(Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.titleSmall)
+            Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Text("›", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}

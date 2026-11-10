@@ -55,7 +55,7 @@ import kotlinx.coroutines.withContext
 private val paintOrder = compareBy<Paint>({ it.brand }, { it.line }, { it.code.ifBlank { it.name } }, { it.name })
 
 /** Cómo ordenar el inventario. */
-private enum class InvSort(val label: String) { Marca("Marca"), Color("Color"), Nombre("Nombre"), Cantidad("Cantidad"), Tipo("Tipo") }
+enum class InvSort(val label: String) { Marca("Marca"), Color("Color"), Nombre("Nombre"), Cantidad("Cantidad"), Tipo("Tipo") }
 
 /** Orden por color: primero los cromáticos por tono (rojo → naranja → … → morado) y luminosidad; al final grises, de claro a oscuro. */
 private fun colorKey(p: Paint): Triple<Int, Double, Double> {
@@ -67,7 +67,7 @@ private fun colorKey(p: Paint): Triple<Int, Double, Double> {
     return Triple(0, h, -p.lab.l)
 }
 
-private fun sortOwned(list: List<Pair<Paint, OwnedEntry>>, mode: InvSort): List<Pair<Paint, OwnedEntry>> = when (mode) {
+internal fun sortOwned(list: List<Pair<Paint, OwnedEntry>>, mode: InvSort): List<Pair<Paint, OwnedEntry>> = when (mode) {
     InvSort.Marca -> list.sortedWith(compareBy(paintOrder) { it.first })
     InvSort.Nombre -> list.sortedWith(compareBy({ norm(it.first.name) }, { it.first.brand }))
     InvSort.Cantidad -> list.sortedWith(compareByDescending<Pair<Paint, OwnedEntry>> { it.second.qty }.thenBy { it.first.brand }.thenBy { it.first.name })
@@ -106,7 +106,7 @@ fun InventoryScreen(
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     var brand by rememberSaveable { mutableStateOf<String?>(null) }
-    var sortMode by rememberSaveable { mutableStateOf(InvSort.Marca) }
+    var sortMode by rememberSaveable { mutableStateOf(InvSort.values().firstOrNull { it.name == com.ricardochr.estantepinturas.Prefs.defaultSort } ?: InvSort.Marca) }
     var onlyMultiple by rememberSaveable { mutableStateOf(false) }
     var sortMenu by remember { mutableStateOf(false) }
 

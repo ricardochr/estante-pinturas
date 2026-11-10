@@ -48,10 +48,10 @@ fun airbrushStep(kit: GearKit, base: Paint?, shadow: String, light: String): Str
     val fine = kit.fine?.takeIf { it.id != ab.id && it.nozzle < ab.nozzle }
     val baseText = base?.let { "${it.name} diluida ${airbrushRatio(it)}" } ?: "la base diluida 1:1"
     return buildString {
-        append("Con aerógrafo (tu ${gearLabel(ab)}): $baseText, a 18–25 psi y a 10–15 cm, en pasadas finas y cruzadas hasta cubrir parejo. ")
+        append("Con aerógrafo (tu ${gearLabel(ab)}): $baseText, a ${pressure(18, 25)} y a 10–15 cm, en pasadas finas y cruzadas hasta cubrir parejo. ")
         append("Sombra: $shadow aerografiada desde abajo y desde el lado contrario a la luz. ")
         append("Luz: $light desde arriba (zenital), dejando que se funda con la base")
-        append(if (fine != null) ", mejor con tu ${gearLabel(fine)} a 12–18 psi. " else " a 12–18 psi y más cerca. ")
+        append(if (fine != null) ", mejor con tu ${gearLabel(fine)} a ${pressure(12, 18)}. " else " a ${pressure(12, 18)} y más cerca. ")
         append("Bordes definidos, detalles, textura y pincel seco se terminan a pincel.")
         compressorNote(kit)?.let { append(" $it") }
     }
@@ -75,6 +75,6 @@ fun gearAdvice(kit: GearKit): List<String> {
         kit.compressor != null && !kit.compressor.tank ->
             out.add("Un compresor con tanque (1–3 L) y regulador con manómetro da aire constante, sin pulsos, y es más silencioso: es la mejora que más se nota al pintar figuras.")
     }
-    out.add("Presiones de referencia: imprimación 25–30 psi · bases 18–25 · degradados y veladuras 12–18 · detalles finos 10–15.")
+    out.add("Presiones de referencia: imprimación ${pressure(25, 30)} · bases ${pressure(18, 25)} · degradados y veladuras ${pressure(12, 18)} · detalles finos ${pressure(10, 15)}.")
     return out
 }

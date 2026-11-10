@@ -282,25 +282,26 @@ fun PaintRow(
     onClick: () -> Unit,
     trailing: @Composable () -> Unit,
 ) {
+    val compact = com.ricardochr.estantepinturas.Prefs.compactRows
     Row(
         Modifier
-            .padding(horizontal = 12.dp, vertical = 3.dp)
+            .padding(horizontal = 12.dp, vertical = if (compact) 3.dp else 5.dp)
             .fillMaxWidth()
             .clip(MaterialTheme.shapes.small)
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)
             .clickable(onClick = onClick)
-            .padding(start = 10.dp, end = 8.dp, top = 7.dp, bottom = 7.dp),
+            .padding(start = 10.dp, end = 8.dp, top = if (compact) 7.dp else 12.dp, bottom = if (compact) 7.dp else 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Swatch(paint.hex, size = 34.dp, metallic = paint.type == "Metálica")
+        Swatch(paint.hex, size = if (compact) 34.dp else 44.dp, metallic = paint.type == "Metálica")
         Column(Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
                     paint.name,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1,
+                    maxLines = if (compact) 1 else 2,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f, fill = false),
                 )
@@ -310,7 +311,7 @@ fun PaintRow(
                 paint.subtitle + (if (extra.isNullOrBlank()) "" else " — $extra"),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
+                maxLines = if (compact) 1 else 2,
                 overflow = TextOverflow.Ellipsis,
             )
         }
