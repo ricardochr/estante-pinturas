@@ -563,7 +563,7 @@ private fun App(vm: MainViewModel = viewModel()) {
                             (if (vm.catalogDownloadedAt > 0) tr("Descargado el ") + SimpleDateFormat("d MMM yyyy", Locale(com.ricardochr.estantepinturas.Prefs.lang)).format(Date(vm.catalogDownloadedAt)) + ". " else tr("Es el que vino con la app; usa Actualizar catálogo para bajar el más reciente. ")) +
                             tr("Importadas por ti: {}. Los colores son aproximados.\n\n", vm.extra.size) +
                             tr("El reconocimiento de etiquetas y códigos de barras usa ML Kit de Google y funciona sin internet. ") +
-                            tr("Tu inventario y proyectos se guardan en este teléfono; activa Respaldo (pestaña Taller) para tener una copia en Google Drive u otro lugar.")
+                            tr("Tu inventario y proyectos se guardan en este teléfono; activa Respaldo (en Configuración) para tener una copia en Google Drive u otro lugar.")
                     )
                     Text(tr("Pinturas por marca"), style = MaterialTheme.typography.titleSmall)
                     vm.brandCounts.forEach { (b, n) ->
