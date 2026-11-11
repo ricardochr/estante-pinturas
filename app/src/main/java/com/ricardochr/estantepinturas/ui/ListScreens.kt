@@ -55,27 +55,6 @@ import kotlinx.coroutines.withContext
 
 private val paintOrder = compareBy<Paint>({ it.brand }, { it.line }, { it.code.ifBlank { it.name } }, { it.name })
 
-/** Cómo ordenar el inventario. */
-enum class InvSort(val label: String) { Marca("Marca"), Color("Color"), Nombre("Nombre"), Cantidad("Cantidad"), Tipo("Tipo") }
-
-/** Orden por color: primero los cromáticos por tono (rojo → naranja → … → morado) y luminosidad; al final grises, de claro a oscuro. */
-private fun colorKey(p: Paint): Triple<Int, Double, Double> {
-    if (!p.hasColor) return Triple(2, 0.0, 0.0)
-    val c = kotlin.math.sqrt(p.lab.a * p.lab.a + p.lab.b * p.lab.b)
-    if (c < 10) return Triple(1, -p.lab.l, 0.0)
-    var h = Math.toDegrees(kotlin.math.atan2(p.lab.b, p.lab.a))
-    if (h < 15) h += 360   // los rojos (≈ 15–40°) quedan primero y los magentas al final
-    return Triple(0, h, -p.lab.l)
-}
-
-internal fun sortOwned(list: List<Pair<Paint, OwnedEntry>>, mode: InvSort): List<Pair<Paint, OwnedEntry>> = when (mode) {
-    InvSort.Marca -> list.sortedWith(compareBy(paintOrder) { it.first })
-    InvSort.Nombre -> list.sortedWith(compareBy({ norm(it.first.name) }, { it.first.brand }))
-    InvSort.Cantidad -> list.sortedWith(compareByDescending<Pair<Paint, OwnedEntry>> { it.second.qty }.thenBy { it.first.brand }.thenBy { it.first.name })
-    InvSort.Tipo -> list.sortedWith(compareBy({ com.ricardochr.estantepinturas.PAINT_TYPES.indexOf(it.first.type).let { i -> if (i < 0) 99 else i } }, { it.first.brand }, { it.first.name }))
-    InvSort.Color -> list.sortedWith(compareBy({ colorKey(it.first).first }, { colorKey(it.first).second }, { colorKey(it.first).third }))
-}
-
 /**
  * Filtra fuera del hilo principal y espera un momento mientras se escribe, para que el teclado
  * no se trabe con miles de pinturas. Mientras calcula, sigue mostrando el resultado anterior.
@@ -106,35 +85,27 @@ fun InventoryScreen(
     onOpenShopping: () -> Unit = {},
 ) {
     var query by rememberSaveable { mutableStateOf("") }
-    var brand by rememberSaveable { mutableStateOf<String?>(null) }
-    var sortMode by rememberSaveable { mutableStateOf(InvSort.values().firstOrNull { it.name == com.ricardochr.estantepinturas.Prefs.defaultSort } ?: InvSort.Marca) }
-    var onlyMultiple by rememberSaveable { mutableStateOf(false) }
-    // Filtro por acabado: null = todos; si no, el nombre de Finish
-    var finishFilter by rememberSaveable { mutableStateOf<String?>(null) }
-    var sortMenu by remember { mutableStateOf(false) }
+    var sortMode by rememberSaveable { mutableStateOf(PaintSort.values().firstOrNull { it.name == com.ricardochr.estantepinturas.Prefs.defaultSort } ?: PaintSort.Marca) }
+    var filter by rememberSaveable(stateSaver = PaintFilter.saver) { mutableStateOf(PaintFilter()) }
+    var showFilters by remember { mutableStateOf(false) }
 
     val ownedPaints: List<Pair<Paint, OwnedEntry>> = remember(vm.owned, vm.byId) {
-        vm.owned.values.mapNotNull { e -> vm.byId[e.paintId]?.let { it to e } }.sortedWith(compareBy(paintOrder) { it.first })
+        vm.owned.values.mapNotNull { e -> vm.byId[e.paintId]?.let { it to e } }
     }
-    val brands = remember(ownedPaints) {
-        ownedPaints.groupingBy { it.first.brand }.eachCount().toList().sortedBy { it.first }
-    }
-    val effectiveBrand = brand?.takeIf { b -> brands.any { it.first == b } }
-    val multipleCount = remember(ownedPaints) { ownedPaints.count { it.second.qty > 1 } }
-    val shown = rememberFiltered(query, effectiveBrand, listOf(ownedPaints, sortMode, onlyMultiple, finishFilter)) { words, b ->
-        sortOwned(
+    val brands = remember(ownedPaints) { ownedPaints.map { it.first.brand }.distinct() }
+    val counts = remember(ownedPaints) { FilterCounts(ownedPaints.map { it.first }, emptyMap()) }
+    val shown = rememberFiltered(query, null, listOf(ownedPaints, sortMode, filter)) { words, _ ->
+        sortPaints(
             ownedPaints.filter { (p, e) ->
-                (b == null || p.brand == b) && (!onlyMultiple || e.qty > 1) &&
-                    (finishFilter == null || com.ricardochr.estantepinturas.finishOf(p).finish.name == finishFilter) &&
-                    (words.isEmpty() || matchesWords(p.searchText + " " + norm(e.notes), words))
+                filter.matches(p, e.qty) && (words.isEmpty() || matchesWords(p.searchText + " " + norm(e.notes), words))
             },
-            sortMode,
+            sortMode, { it.first }, { it.second.qty },
         )
     }
     val totalBottles = ownedPaints.sumOf { it.second.qty }
 
     val listState = rememberLazyListState()
-    LaunchedEffect(query, effectiveBrand, sortMode, onlyMultiple, finishFilter) {
+    LaunchedEffect(query, sortMode, filter) {
         // Al cambiar filtros vuelve al principio de la lista, con el buscador a la vista
         if (listState.firstVisibleItemIndex > 1) listState.scrollToItem(1)
     }
@@ -181,66 +152,7 @@ fun InventoryScreen(
                     }
                 }
                 if (ownedPaints.isNotEmpty()) {
-                    androidx.compose.foundation.lazy.LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        contentPadding = PaddingValues(horizontal = 16.dp),
-                    ) {
-                        item {
-                            androidx.compose.foundation.layout.Box {
-                                androidx.compose.material3.FilterChip(
-                                    selected = true,
-                                    onClick = { sortMenu = true },
-                                    label = { Text("↕ ${sortMode.label}") },
-                                )
-                                androidx.compose.material3.DropdownMenu(expanded = sortMenu, onDismissRequest = { sortMenu = false }) {
-                                    InvSort.values().forEach { m ->
-                                        androidx.compose.material3.DropdownMenuItem(
-                                            text = { Text((if (m == sortMode) "✓ " else "") + tr("Ordenar por ") + m.label.lowercase()) },
-                                            onClick = { sortMode = m; sortMenu = false },
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                        item {
-                            androidx.compose.material3.FilterChip(
-                                selected = onlyMultiple,
-                                onClick = { onlyMultiple = !onlyMultiple },
-                                label = { Text(tr("Repetidas ({})", multipleCount)) },
-                            )
-                        }
-                        item {
-                            // Toca para pasar por Todos → Mate → Satinado → Brillante
-                            val order = listOf(null, "MATE", "SATINADO", "BRILLANTE")
-                            val label = when (finishFilter) {
-                                "MATE" -> tr("Mate")
-                                "SATINADO" -> tr("Satinado")
-                                "BRILLANTE" -> tr("Brillante")
-                                else -> tr("Todos")
-                            }
-                            androidx.compose.material3.FilterChip(
-                                selected = finishFilter != null,
-                                onClick = { finishFilter = order[(order.indexOf(finishFilter) + 1) % order.size] },
-                                label = { Text(tr("Acabado: {}", label)) },
-                            )
-                        }
-                        if (brands.size > 1) {
-                            item {
-                                androidx.compose.material3.FilterChip(
-                                    selected = effectiveBrand == null,
-                                    onClick = { brand = null },
-                                    label = { Text(tr("Todas")) },
-                                )
-                            }
-                            items(brands, key = { "b-" + it.first }) { (b, n) ->
-                                androidx.compose.material3.FilterChip(
-                                    selected = effectiveBrand == b,
-                                    onClick = { brand = if (effectiveBrand == b) null else b },
-                                    label = { Text("$b $n") },
-                                )
-                            }
-                        }
-                    }
+                    FilterBar(filter, { filter = it }, sortMode, PaintSort.values().toList(), { sortMode = it }, onOpenSheet = { showFilters = true })
                 }
             }
         }
@@ -258,7 +170,12 @@ fun InventoryScreen(
                     }
                 }
             }
-            onlyMultiple && shown.isEmpty() -> item { EmptyState(tr("Ninguna repetida"), tr("No tienes más de un bote de ninguna pintura con estos filtros.")) }
+            filter.activeCount > 0 && shown.isEmpty() -> item {
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                    EmptyState(tr("Nada con estos filtros"), tr("Ninguna de tus pinturas cumple todos los filtros elegidos."))
+                    TextButton(onClick = { filter = PaintFilter() }) { Text(tr("Quitar filtros")) }
+                }
+            }
             shown.isEmpty() -> item {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
                     EmptyState(tr("No la tienes"), tr("Ninguna pintura de tu inventario coincide con “{}”.", query))
@@ -277,6 +194,12 @@ fun InventoryScreen(
             }
         }
     }
+    if (showFilters) {
+        FilterSheet(
+            filter, { filter = it }, sortMode, PaintSort.values().toList(), { sortMode = it },
+            counts, shown?.size, inventory = true, ownedBrands = emptySet(),
+        ) { showFilters = false }
+    }
 }
 
 /** Lista del catálogo completo; se usa en la pestaña Catálogo y para asociar un código de barras. */
@@ -289,17 +212,20 @@ fun CatalogList(
     footer: @Composable () -> Unit = {},
 ) {
     var query by rememberSaveable { mutableStateOf(initialQuery) }
-    var brand by rememberSaveable { mutableStateOf<String?>(null) }
+    var filter by rememberSaveable(stateSaver = PaintFilter.saver) { mutableStateOf(PaintFilter()) }
+    var sortMode by rememberSaveable { mutableStateOf<PaintSort?>(null) } // null = relevancia: tus marcas primero
+    var showFilters by remember { mutableStateOf(false) }
     val mine = remember(vm.owned, vm.byId) { ownedBrandCounts(vm) }
     // Primero las marcas de las que ya tienes pinturas: al asignar una pintura escaneada casi siempre es de esas
     val all = remember(vm.catalog, vm.custom, vm.extra, mine) { vm.allPaints.sortedByDescending { mine[it.brand] ?: 0 } }
-    val brands = remember(all, mine) { brandsOwnedFirst(all.groupingBy { it.brand }.eachCount().toList(), mine) }
-    val shown = rememberFiltered(query, brand, all) { words, b ->
-        if (words.isEmpty() && b == null) all
-        else all.filter { (b == null || it.brand == b) && (words.isEmpty() || matchesWords(it.searchText, words)) }
+    val counts by produceState<FilterCounts?>(null, all, mine) { value = withContext(Dispatchers.Default) { FilterCounts(all, mine) } }
+    val shown = rememberFiltered(query, null, listOf(all, filter, sortMode, vm.owned)) { words, _ ->
+        val f = all.filter { (filter.activeCount == 0 || filter.matches(it, vm.qtyOf(it.id))) && (words.isEmpty() || matchesWords(it.searchText, words)) }
+        sortMode?.let { m -> sortPaints(f, m, { it }, { vm.qtyOf(it.id) }) } ?: f
     }
     val listState = rememberLazyListState()
-    LaunchedEffect(query, brand) { listState.scrollToItem(0) }
+    LaunchedEffect(query, filter, sortMode) { listState.scrollToItem(0) }
+    val catalogSorts = listOf(PaintSort.Marca, PaintSort.Color, PaintSort.Nombre, PaintSort.Tipo)
 
     Column(Modifier.fillMaxSize()) {
         Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -311,8 +237,16 @@ fun CatalogList(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        BrandChips(brands, brand, mine.keys) { brand = it }
+        FilterBar(filter, { filter = it }, sortMode ?: PaintSort.Marca, catalogSorts, { sortMode = it }, onOpenSheet = { showFilters = true })
         Spacer(Modifier.height(4.dp))
+        if (showFilters) {
+            counts?.let { c ->
+                FilterSheet(
+                    filter, { filter = it }, sortMode ?: PaintSort.Marca, catalogSorts, { sortMode = it },
+                    c, shown?.size, inventory = false, ownedBrands = mine.keys,
+                ) { showFilters = false }
+            }
+        }
         if (shown == null) {
             EmptyState(tr("Cargando…"), tr("Preparando el catálogo."))
             return@Column

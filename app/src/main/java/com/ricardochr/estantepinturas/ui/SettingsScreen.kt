@@ -93,7 +93,7 @@ fun SettingsScreen(vm: MainViewModel, onClose: () -> Unit, onAction: (HubAction)
                     SettingsCard(tr("Inventario"), Pigment.Emerald) {
                         Choice(
                             tr("Orden al abrir"),
-                            InvSort.values().map { it.name to it.label },
+                            PaintSort.values().map { it.name to tr(it.label) },
                             Prefs.defaultSort,
                         ) { Prefs.changeDefaultSort(it) }
                     }
