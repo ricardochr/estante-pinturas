@@ -25,6 +25,9 @@ private fun lineFinish(brand: String, line: String): Finish? = when {
     brand.contains("vallejo") && (line.startsWith("model color") || line.startsWith("model air") ||
         line.startsWith("game color") || line.startsWith("game air") || line.startsWith("panzer aces")) -> Finish.MATE
     brand.contains("vallejo") && line.startsWith("mecha color") -> Finish.SATINADO
+    // Kaleido Colorworks (Gaahleri): Mecha con brillo de 85 GU, Auto de alto brillo y Primary brillantes
+    // (sus "Matt …" se detectan por el nombre antes de llegar aquí)
+    brand.contains("kaleido") && (line.startsWith("mecha") || line.startsWith("auto") || line.startsWith("primary")) -> Finish.BRILLANTE
     brandKey(brand) == "proacryl" && (line == "pro acryl" || line.startsWith("signature") || line.startsWith("expert")) -> Finish.MATE
     brandKey(brand) == "akinteractive" && line.startsWith("3rd gen") -> Finish.MATE
     brand.contains("scale75") && (line.startsWith("scalecolor") || line.startsWith("fantasy") || line.startsWith("warfront") || line.startsWith("artist")) -> Finish.MATE
