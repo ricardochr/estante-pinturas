@@ -1,6 +1,6 @@
 # Validación de sets
 
-Sets publicados: 769 — ok 391, parcial 36, revisar 342. Descartados: 1466.
+Sets publicados: 769 — ok 391, parcial 36, revisar 342. Descartados: 1463.
 
 ## Por revisar o parciales
 
@@ -677,7 +677,6 @@ Sets publicados: 769 — ok 391, parcial 36, revisar 342. Descartados: 1466.
 - AK Interactive — METALLIC MARKERS – 4 UNITS SET (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — METALLICS: Effect set (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — MICRO ROLLING SET (Tienda oficial): solo 0 pinturas reconocidas
-- AK Interactive — MODELER’S KNIFE SET MINT GREEN VERSION (Tienda oficial): solo 1 pinturas reconocidas
 - AK Interactive — MODELING SPATULA SET (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — Modern US Army Stowage set (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — NATO Weathering Set (Tienda oficial): solo 1 pinturas reconocidas
@@ -687,7 +686,6 @@ Sets publicados: 769 — ok 391, parcial 36, revisar 342. Descartados: 1466.
 - AK Interactive — ORKTOBER PACK: ORCS AND GREEN MODELS + MORGUT WILD ORC SHAMAN – 75MM SCALE (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — PAINTING SET (ZEP) – S02 (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — PARTY TIME- SCENOGRAPHY WARGAME SET – 100% POLYURETHANE RESIN COMPATIBLE WITH 30-35MM SCALE (Tienda oficial): solo 0 pinturas reconocidas
-- AK Interactive — PEA187 WWII U.S. Jeep Willys MB tyre chains (For TAMIYA /ITALERI) detail set (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — PHOTO-ETCHED SAW SET (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — PREMIUM SET MARTA KOLINSKY TOP LINE (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — PRIMARY & SECONDARY COLORS SET (Tienda oficial): solo 2 pinturas reconocidas
@@ -1299,7 +1297,6 @@ Sets publicados: 769 — ok 391, parcial 36, revisar 342. Descartados: 1466.
 - The Army Painter — Army Painter Warpaints Fanatic - Most Wanted Paint Set (www.gapgames.com.au): solo 1 pinturas reconocidas
 - The Army Painter — Army Painter World War II German Paint Set - Warpaints Fanatic (www.tistaminis.com): solo 0 pinturas reconocidas
 - The Army Painter — Complete Starter Bundle (Tienda oficial): solo 1 pinturas reconocidas
-- The Army Painter — D&D Undead Paint Set (Tienda oficial): solo 0 pinturas reconocidas
 - The Army Painter — Death Guard Bundle (Tienda oficial): solo 0 pinturas reconocidas
 - The Army Painter — Deepcut Army Painter Speedpaint Markers – Full Set (www.tistaminis.com): solo 0 pinturas reconocidas
 - The Army Painter — Deepcut Army Painter Speedpaint Markers – Starter Set (www.tistaminis.com): solo 0 pinturas reconocidas
@@ -1366,7 +1363,7 @@ Sets publicados: 769 — ok 391, parcial 36, revisar 342. Descartados: 1466.
 - The Army Painter — Starter Bundle PLUS+ (Tienda oficial): solo 0 pinturas reconocidas
 - The Army Painter — The Army Painter - Historical: World War II British 8th Army Paint Set (www.gapgames.com.au): solo 0 pinturas reconocidas
 - The Army Painter — The Army Painter - Historical: World War II German Paint Set (www.gapgames.com.au): solo 0 pinturas reconocidas
-- The Army Painter — The Army Painter - Historical: World War II Soviet Union Paint Set - Pre-Order (www.gapgames.com.au): solo 0 pinturas reconocidas
+- The Army Painter — The Army Painter - Historical: World War II Soviet Union Paint Set (www.gapgames.com.au): solo 0 pinturas reconocidas
 - The Army Painter — The Army Painter - Speedpaint Marker: Mega Set (www.gapgames.com.au): solo 0 pinturas reconocidas
 - The Army Painter — The Army Painter - Speedpaint Marker: Metallics Set (www.gapgames.com.au): solo 0 pinturas reconocidas
 - The Army Painter — The Army Painter - Warpaints Air: Starter Set (www.gapgames.com.au): solo 0 pinturas reconocidas

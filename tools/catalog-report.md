@@ -1,6 +1,6 @@
 # Catálogo de pinturas
 
-Total: **8924** pinturas · generado 2026-11-09
+Total: **8924** pinturas · generado 2026-11-11
 
 | Marca | Pinturas | Fuente |
 |---|---:|---|
@@ -203,10 +203,10 @@ Total: **8924** pinturas · generado 2026-11-09
 - Surface Primer: 3
 - Game Color Wash: 2
 - Xpress Color Intense: 1
-- Pinturas con color estimado de la foto: 331
+- Pinturas con color estimado de la foto: 334
 
 ## Calidad del color
 
-- Medido (datos abiertos o muestra oficial): 6994
-- Estimado de la foto del producto: 1592
-- Típico según el nombre (aproximado): 338
+- Medido (datos abiertos o muestra oficial): 7146
+- Estimado de la foto del producto: 1623
+- Típico según el nombre (aproximado): 155
