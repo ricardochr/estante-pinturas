@@ -70,14 +70,14 @@ private val PAIR_RATIOS = listOf(1 to 1, 2 to 1, 1 to 2, 3 to 1, 1 to 3, 4 to 1,
 
 /**
  * Hasta [limit] recetas para acercarse a [target] usando [inventory].
- * Solo usa pinturas opacas (las metálicas, tintas y contrastes no se mezclan igual).
+ * Solo usa pinturas opacas comunes del mismo tipo de base y con acabados compatibles.
  */
 fun findMixes(target: Lab, inventory: List<Paint>, limit: Int = 3): List<MixRecipe> {
     // Solo acrílicos al agua opacos: las bases con alcohol, laca, esmalte u óleo no se mezclan con ellos,
     // y las gamas con diluyente propio cambian su acabado si se mezclan con otras
-    val paints = inventory.filter {
-        it.hasColor && typeGroup(it.type) == "opaca" && it.type != "Imprimación" && chemistryOf(it) == Chemistry.WATER_ACRYLIC
-    }.distinctBy { it.id }
+    // Además se descartan fluorescentes, transparentes, metálicas, perladas y de efecto: su color no se suma
+    // como el de una pintura normal (ver mixable)
+    val paints = inventory.filter { mixable(it) }.distinctBy { it.id }
     if (paints.size < 2) return emptyList()
 
     // Candidatas: las más cercanas al objetivo y los neutros (sirven para aclarar u oscurecer)
@@ -95,6 +95,8 @@ fun findMixes(target: Lab, inventory: List<Paint>, limit: Int = 3): List<MixReci
     }
     // Pares
     for (i in cand.indices) for (j in i + 1 until cand.size) {
+        // Brillante con mate: el acabado queda irregular, aunque el color salga bien
+        if (!finishesCompatible(cand[i], cand[j])) continue
         var bestD = Double.MAX_VALUE
         var bestR = PAIR_RATIOS[0]
         var bestArgb = 0
@@ -110,6 +112,7 @@ fun findMixes(target: Lab, inventory: List<Paint>, limit: Int = 3): List<MixReci
         .flatMap { r -> r.parts.map { it.paint } }.distinctBy { it.id }.take(10)
     val topKs = top.map { ksOf(it) }
     for (i in top.indices) for (j in i + 1 until top.size) for (k in j + 1 until top.size) {
+        if (!mixableTogether(listOf(top[i], top[j], top[k]))) continue
         var bestD = Double.MAX_VALUE
         var bestW = intArrayOf(1, 1, 1)
         var bestArgb = 0

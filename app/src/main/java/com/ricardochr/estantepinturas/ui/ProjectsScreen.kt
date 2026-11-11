@@ -685,6 +685,11 @@ private fun RecipeDialog(
                         )
                     }
                 }
+                if (parts.size >= 2) {
+                    com.ricardochr.estantepinturas.mixWarning(parts.map { it.first })?.let { w ->
+                        Text("⚠ $w", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                    }
+                }
                 OutlinedTextField(value = note, onValueChange = { note = it }, label = { Text(tr("Nota (dónde la usaste, dilución…)")) }, minLines = 2)
             }
         },

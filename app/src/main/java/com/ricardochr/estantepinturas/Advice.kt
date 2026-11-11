@@ -332,5 +332,14 @@ fun familySteps(f: PaletteFamily, matches: List<PaletteMatch>, zones: List<ZoneA
         tr("Unificar (veladura final): cuando todo esté seco, pasa {} sobre toda la zona, con el pincel casi descargado. ", glazeText) +
             tr("Tiñe todo con el mismo tono, junta sombras y luces y disimula pinceladas. Si la luz quedó apagada, recupera solo el punto más alto después.")
     )
+    // Si alguna pintura de la zona es brillante, el acabado queda disparejo: se avisa cómo igualarlo
+    val used = listOfNotNull(mb.best?.paint, mb.glaze, mb.shadow, mb.highlight, mb.washShadow, mb.quick) +
+        f.members.mapNotNull { matches.getOrNull(it)?.best?.paint }
+    used.filter { finishOf(it).finish == Finish.BRILLANTE }.distinctBy { it.id }.takeIf { it.isNotEmpty() }?.let { glossy ->
+        steps.add(
+            tr("Acabado: {} seca brillante. Al terminar, pasa barniz mate (o satinado) sobre la zona para que no quede con brillos disparejos; ", glossy.joinToString(", ") { it.name }) +
+                tr("déjala brillante solo si la zona debe brillar (ojos, gemas, sangre fresca, metal pulido).")
+        )
+    }
     return steps
 }

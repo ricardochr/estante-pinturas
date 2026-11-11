@@ -406,6 +406,15 @@ fun EntrySheet(
                 )
                 TextButton(onClick = { fixingColor = true }) { Text("Corregir color") }
             }
+            run {
+                val sp = com.ricardochr.estantepinturas.specialOf(paint)
+                Text(
+                    tr("Acabado: {}", com.ricardochr.estantepinturas.finishText(paint)) +
+                        (sp?.let { tr(" · Pintura {}", tr(it.label)) } ?: ""),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             if (fixingColor) {
                 ColorFixDialog(paint.hex, onDismiss = { fixingColor = false }, onSave = { fixingColor = false; onFixColor(it) })
             }

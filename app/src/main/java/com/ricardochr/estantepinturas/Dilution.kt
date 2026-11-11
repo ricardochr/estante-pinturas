@@ -313,6 +313,24 @@ fun mixWarning(paints: List<Paint>): String? {
     if (paints.any { it.type == "Contraste" } && paints.any { it.type != "Contraste" }) {
         return tr("Mezclar contraste con pintura opaca le quita el efecto de contraste.")
     }
+    paints.firstOrNull { specialOf(it) == Special.FLUOR }?.let {
+        return tr("{} es fluorescente: mezclada con otras pierde el brillo fluorescente y el color real no se parece al calculado.", it.name)
+    }
+    paints.firstOrNull { specialOf(it) == Special.METAL }?.takeIf { paints.any { p -> specialOf(p) != Special.METAL } }?.let {
+        return tr("{} es metálica: le pasa el brillo metálico a toda la mezcla (y aclara menos de lo que parece).", it.name)
+    }
+    paints.firstOrNull { specialOf(it) == Special.IRIDISCENTE }?.let {
+        return tr("{} es perlada o iridiscente: el efecto se diluye en la mezcla.", it.name)
+    }
+    paints.firstOrNull { specialOf(it) == Special.TRANSPARENTE }?.takeIf { paints.any { p -> specialOf(p) != Special.TRANSPARENTE } }?.let {
+        return tr("{} es transparente: tiñe pero casi no cubre, así que la mezcla queda más translúcida y el color calculado es aproximado.", it.name)
+    }
+    paints.firstOrNull { specialOf(it) == Special.EFECTO }?.let {
+        return tr("{} es una pintura de efecto o textura: no está hecha para mezclarse con otras.", it.name)
+    }
+    if (paints.any { finishOf(it).finish == Finish.BRILLANTE } && paints.any { finishOf(it).finish == Finish.MATE }) {
+        return tr("Mezclas una pintura brillante con una mate: el acabado queda irregular. Pasa barniz al final para igualarlo.")
+    }
     if (paints.map { it.brand }.toSet().size > 1 && c == Chemistry.WATER_ACRYLIC) {
         return tr("Acrílicos al agua de distintas marcas se pueden mezclar; prueba primero en poca cantidad.")
     }

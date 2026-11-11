@@ -24,7 +24,7 @@ data class Paint(
 
     /** Texto normalizado donde se busca: marca, línea, nombre, código, tipo y familia de color. */
     val searchText: String by lazy {
-        norm(listOf(brand, line, name, code, type, codeKey(code).lowercase(), colorWords(hex)).joinToString(" "))
+        norm(listOf(brand, line, name, code, type, codeKey(code).lowercase(), colorWords(hex), finishWords(this)).joinToString(" "))
     }
 
     /** Color en CIELAB, para comparar colores. */
@@ -230,3 +230,13 @@ fun matchesWords(hay: String, words: List<String>): Boolean {
     for (w in words) if (!hay.contains(w)) return false
     return true
 }
+
+// i18n:off — palabras de búsqueda
+/** Palabras para buscar por acabado: "brillante"/"gloss", "mate"/"matte", "satinado"/"satin". */
+fun finishWords(p: Paint): String = when (finishOf(p).finish) {
+    Finish.BRILLANTE -> "brillante gloss"
+    Finish.MATE -> "mate matte flat"
+    Finish.SATINADO -> "satinado satin"
+    Finish.DESCONOCIDO -> ""
+}
+// i18n:on

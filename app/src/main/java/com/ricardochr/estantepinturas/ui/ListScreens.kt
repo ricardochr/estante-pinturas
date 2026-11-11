@@ -109,6 +109,8 @@ fun InventoryScreen(
     var brand by rememberSaveable { mutableStateOf<String?>(null) }
     var sortMode by rememberSaveable { mutableStateOf(InvSort.values().firstOrNull { it.name == com.ricardochr.estantepinturas.Prefs.defaultSort } ?: InvSort.Marca) }
     var onlyMultiple by rememberSaveable { mutableStateOf(false) }
+    // Filtro por acabado: null = todos; si no, el nombre de Finish
+    var finishFilter by rememberSaveable { mutableStateOf<String?>(null) }
     var sortMenu by remember { mutableStateOf(false) }
 
     val ownedPaints: List<Pair<Paint, OwnedEntry>> = remember(vm.owned, vm.byId) {
@@ -119,10 +121,11 @@ fun InventoryScreen(
     }
     val effectiveBrand = brand?.takeIf { b -> brands.any { it.first == b } }
     val multipleCount = remember(ownedPaints) { ownedPaints.count { it.second.qty > 1 } }
-    val shown = rememberFiltered(query, effectiveBrand, Triple(ownedPaints, sortMode, onlyMultiple)) { words, b ->
+    val shown = rememberFiltered(query, effectiveBrand, listOf(ownedPaints, sortMode, onlyMultiple, finishFilter)) { words, b ->
         sortOwned(
             ownedPaints.filter { (p, e) ->
                 (b == null || p.brand == b) && (!onlyMultiple || e.qty > 1) &&
+                    (finishFilter == null || com.ricardochr.estantepinturas.finishOf(p).finish.name == finishFilter) &&
                     (words.isEmpty() || matchesWords(p.searchText + " " + norm(e.notes), words))
             },
             sortMode,
@@ -131,7 +134,7 @@ fun InventoryScreen(
     val totalBottles = ownedPaints.sumOf { it.second.qty }
 
     val listState = rememberLazyListState()
-    LaunchedEffect(query, effectiveBrand, sortMode, onlyMultiple) {
+    LaunchedEffect(query, effectiveBrand, sortMode, onlyMultiple, finishFilter) {
         // Al cambiar filtros vuelve al principio de la lista, con el buscador a la vista
         if (listState.firstVisibleItemIndex > 1) listState.scrollToItem(1)
     }
@@ -204,6 +207,21 @@ fun InventoryScreen(
                                 selected = onlyMultiple,
                                 onClick = { onlyMultiple = !onlyMultiple },
                                 label = { Text(tr("Repetidas ({})", multipleCount)) },
+                            )
+                        }
+                        item {
+                            // Toca para pasar por Todos → Mate → Satinado → Brillante
+                            val order = listOf(null, "MATE", "SATINADO", "BRILLANTE")
+                            val label = when (finishFilter) {
+                                "MATE" -> tr("Mate")
+                                "SATINADO" -> tr("Satinado")
+                                "BRILLANTE" -> tr("Brillante")
+                                else -> tr("Todos")
+                            }
+                            androidx.compose.material3.FilterChip(
+                                selected = finishFilter != null,
+                                onClick = { finishFilter = order[(order.indexOf(finishFilter) + 1) % order.size] },
+                                label = { Text(tr("Acabado: {}", label)) },
                             )
                         }
                         if (brands.size > 1) {
