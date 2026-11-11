@@ -80,10 +80,26 @@ def _hue_in(h, lo, hi):
     return lo <= h <= hi if lo <= hi else (h >= lo or h <= hi)
 
 
+# "Flesh"/"skin" en nombres de fantasía no dicen el color: "Waaagh! Flesh" y "Orc Skin" son verdes,
+# "Frozen Flesh" gris, "Ebony Flesh" café oscuro
+_FANTASY_SKIN = re.compile(r"\b(orc|ork|goblin|troll|waaagh|greenskin|zombie|ghoul|undead|daemon|demon|dragon|lizard|kraken|"
+                           r"frozen|ghost|alien|forest|ebony|african|dark|shadow|nurgle|plague|corpse|dead|rotting|vampire|"
+                           r"drow|elf|dwarf|ogre|gnoblar|surfer|sylvan|swamp|toad|frog|snake|serpent|reptile|deep)\b")
+# Códigos FS/RAL/BS: el número manda, no la palabra ("Duck Egg Blue FS 35622" es casi gris)
+_STANDARD_CODE = re.compile(r"\b(fs|ral|bs|bs381c|rlm|ana|munsell)\s?\d", re.I)
+
+
 def expectations(name):
     """Palabras de color reconocidas en el nombre, en orden."""
-    words = re.findall(r"[a-z]+", name.lower())
-    return [w for w in words if w in EXPECT]
+    low = name.lower()
+    words = re.findall(r"[a-z]+", low)
+    found = [w for w in words if w in EXPECT]
+    if _FANTASY_SKIN.search(low):
+        found = [w for w in found if w not in ("flesh", "skin")]
+    if _STANDARD_CODE.search(low) or re.search(r"\b(duck egg|pastel|faded|underside|light|pale)\b", low):
+        # Colores militares estandarizados o muy aclarados: el nombre da la familia pero no la saturación
+        found = [w for w in found if EXPECT[w][0] is None]
+    return found
 
 
 def satisfies(hexv, word):

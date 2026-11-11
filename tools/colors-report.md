@@ -1,0 +1,548 @@
+# Validación de colores
+
+Pinturas: 8924. Comparadas con paintdex y miniature-paints (ΔE2000).
+
+| Estado | Pinturas |
+|---|---:|
+| Coincide con otra fuente (<10) | 4592 |
+| Diferencia moderada (10–20) | 176 |
+| Se contradice (>20) | 202 |
+| Sin segunda fuente | 3946 |
+| Sin color | 8 |
+
+Color que contradice el nombre: 827
+No se parece a ninguna fuente: 192
+Marcadas como dudosas en la app: 0
+
+## Por marca
+
+| Marca | Coincide | Moderada | Contradice | Sin 2.ª fuente | Sin color |
+|---|---:|---:|---:|---:|---:|
+| AK Interactive | 998 | 56 | 54 | 505 | 1 |
+| Ammo by Mig | 249 | 1 | 2 | 40 | 0 |
+| Citadel | 432 | 6 | 13 | 157 | 0 |
+| Coat d'Arms | 0 | 0 | 3 | 154 | 0 |
+| DSPIAE | 0 | 0 | 0 | 55 | 0 |
+| Duncan Rhodes | 173 | 4 | 3 | 0 | 0 |
+| Foundry | 0 | 1 | 10 | 349 | 0 |
+| Green Stuff World | 215 | 0 | 4 | 81 | 0 |
+| Humbrol | 0 | 0 | 1 | 114 | 0 |
+| Kaleido Colorworks | 0 | 0 | 0 | 168 | 0 |
+| Kimera Kolors | 0 | 1 | 2 | 36 | 0 |
+| Mission Models | 0 | 0 | 2 | 199 | 0 |
+| Mr. Hobby | 0 | 0 | 20 | 648 | 0 |
+| P3 | 128 | 0 | 1 | 0 | 0 |
+| Pro Acryl | 35 | 23 | 12 | 148 | 0 |
+| Reaper | 0 | 1 | 2 | 435 | 0 |
+| Scale75 | 330 | 6 | 8 | 213 | 0 |
+| Tamiya | 304 | 3 | 13 | 9 | 0 |
+| The Army Painter | 591 | 46 | 21 | 125 | 0 |
+| Turbo Dork | 0 | 0 | 0 | 40 | 0 |
+| Vallejo | 1137 | 27 | 31 | 293 | 7 |
+| Warcolours | 0 | 1 | 0 | 177 | 0 |
+
+## Se contradicen (las 200 peores)
+
+- **Mr. Hobby — MS Blue** (SG3, Gundam Color Spray): catálogo #2A5AB0 · miniature-paints #FAC000 · ΔE 69
+- **Mr. Hobby — MS Blue** (UG3, Mr Color Gundam Color): catálogo #2A5AB0 · miniature-paints #FAC000 · ΔE 69
+- **Reaper — Ebony Flesh** (9440, Master Series Paints Bones): catálogo #E0A882 · miniature-paints #130C04 · ΔE 62
+- **Green Stuff World — Ork Flesh Dip** (s/c, Dipping Inks): catálogo #E0A882 · paintdex #13331B, miniature-paints #13331B · ΔE 61
+- **Citadel — Waaagh! Flesh** (s/c, Base): catálogo #E0A882 · paintdex #0B3B36, miniature-paints #0B3B36 · ΔE 60
+- **Mr. Hobby — MS White** (SG2, Gundam Color Spray): catálogo #F2F2F0 · miniature-paints #00489B · ΔE 59
+- **Mr. Hobby — MS White** (UG2, Mr Color Gundam Color): catálogo #F2F2F0 · miniature-paints #00489B · ΔE 59
+- **Green Stuff World — Royal Burgundy** (s/c, Chameleon Colorshift Metallic): catálogo #5E1A2C · paintdex #90A375, miniature-paints #90A375 · ΔE 57
+- **The Army Painter — Troll Skin** (s/c, D&D Nolzur's Marvelous Pigments): catálogo #D29A7A · paintdex #06381F, miniature-paints #06381F · ΔE 56
+- **AK Interactive — Pastel Blue** (AK11168, 3rd Gen Pastel): catálogo #2A5AB0 · paintdex #BDDDB8, miniature-paints #BDDDB8 · ΔE 56
+- **Green Stuff World — Red Goblin** (s/c, Chameleon Colorshift Metallic): catálogo #B52A2A · paintdex #A9BA73, miniature-paints #A9BA73 · ΔE 56
+- **Tamiya — Red brown 2** (XF-90, Acrylics Mini Flat): catálogo #6B4A32 · paintdex #FFFFFF, miniature-paints #FFFFFF · ΔE 55
+- **Mr. Hobby — MS Titans Blue 2** (UG18, Gundam Color for Builders): catálogo #2A5AB0 · miniature-paints #DEEFE0 · ΔE 54
+- **Kimera Kolors — Phthalo Blu (Green Shade)** (PB15.4, Kimera Kolors Pure Pigments): catálogo #3A8A3A · miniature-paints #203479 · ΔE 53
+- **Mr. Hobby — Blue Fs35622** (314, Mr Color): catálogo #2A5AB0 · miniature-paints #EBF5EC · ΔE 53
+- **Coat d'Arms — Dark Flesh** (216, Military Range): catálogo #E0A882 · miniature-paints #3E373E · ΔE 53
+- **Tamiya — Pure metallic red** (TS-95, Tamiya Spray): catálogo #B52A2A · paintdex #FFFFFF, miniature-paints #FFFFFF · ΔE 53
+- **Tamiya — Pure blue** (TS-93, Tamiya Spray): catálogo #2A5AB0 · paintdex #FFFFFF, miniature-paints #FFFFFF · ΔE 53
+- **Vallejo — Snow** (26.820, Diorama FX): catálogo #6D5434 · paintdex #FFFFFF, miniature-paints #FFFFFF · ΔE 51
+- **Mr. Hobby — Blue Fs35622** (H314, Aqueous Hobby Color): catálogo #2A5AB0 · miniature-paints #E6F4F3 · ΔE 50
+- **AK Interactive — FS 35622 Light Blue 17 Ml** (AK2154, Air): catálogo #2A5AB0 · paintdex #CDDBCE, miniature-paints #CDDBCE · ΔE 50
+- **Scale75 — Greenskin Flesh** (SFG-21, Fantasy & Games): catálogo #E0A882 · paintdex #006F34, miniature-paints #006F34 · ΔE 48
+- **The Army Painter — Orc Skin** (WP2009, Speedpaint 2.0): catálogo #D29A7A · paintdex #2D5B2F, miniature-paints #2D5B2F · ΔE 47
+- **The Army Painter — Orc Skin** (SM1022, Speedpaint Marker): catálogo #D29A7A · paintdex #2D5B2F, miniature-paints #2D5B2F · ΔE 47
+- **Duncan Rhodes — Apocalypse Sky** (s/c, Wave 3): catálogo #8AB8E0 · paintdex #E34E3F, miniature-paints #E34E3F · ΔE 47
+- **AK Interactive — Duck Egg Blue FS 35622** (AK11880, 3rd Gen Air): catálogo #2A5AB0 · paintdex #C3CFC5, miniature-paints #C3CFC5 · ΔE 47
+- **AK Interactive — Duck Egg Blue FS 35622** (RC911, Real Colors - Military): catálogo #2A5AB0 · paintdex #C3CFC5, miniature-paints #C3CFC5 · ΔE 47
+- **AK Interactive — Duck Egg Blue Fs 35622 10ml** (RC241, Real Colors - Air): catálogo #2A5AB0 · paintdex #C5CFC6, miniature-paints #C5CFC6 · ΔE 47
+- **Vallejo — Light Blue** (71.328, Model Air): catálogo #2A5AB0 · paintdex #C6C9C0, miniature-paints #C6C9C0 · ΔE 47
+- **Mr. Hobby — RX-78 Blue** (UG20, Gundam Color for Builders): catálogo #2A5AB0 · miniature-paints #E72D1C · ΔE 47
+- **Pro Acryl — Faded Plum** (MPA-063, Pro Acryl): catálogo #5D3955 · miniature-paints #C8B5D5 · ΔE 46
+- **AK Interactive — Pale Blue** (AK11161, 3rd Gen Standard): catálogo #2A5AB0 · paintdex #B4C4B7, miniature-paints #B4C4B7 · ΔE 46
+- **Vallejo — Deep Forest Skin** (74.009, Nocturna Models): catálogo #D29A7A · paintdex #3E4A4A, miniature-paints #3E4A4A · ΔE 46
+- **Vallejo — Underside Blue “Faded”** (71.332, Model Air): catálogo #2A5AB0 · paintdex #C4D4D1, miniature-paints #C4D4D1 · ΔE 46
+- **Citadel — Space Wolves Grey** (s/c, Foundation (descontinuada)): catálogo #91BFDC · paintdex #1F486B, miniature-paints #1F486B · ΔE 45
+- **Foundry — Dark African Flesh Shade** (121A, Foundry Paint System): catálogo #E0A882 · miniature-paints #4D4C4A · ΔE 44
+- **Mr. Hobby — MS Deep Green** (SG8, Gundam Color Spray): catálogo #3A8A3A · miniature-paints #A688BD · ΔE 44
+- **Mr. Hobby — MS Deep Green** (UG8, Mr Color Gundam Color): catálogo #3A8A3A · miniature-paints #A688BD · ΔE 44
+- **Tamiya — Dark green 2** (XF-89, Acrylics Mini Flat): catálogo #3A8A3A · paintdex #FFFFFF, miniature-paints #FFFFFF · ΔE 43
+- **Tamiya — Dark green 2 (RAF)** (XF-81, Acrylics Mini Flat): catálogo #3A8A3A · paintdex #FFFFFF, miniature-paints #FFFFFF · ΔE 43
+- **Tamiya — Dark green (JGSDF)** (TS-91, Tamiya Spray): catálogo #3A8A3A · paintdex #FFFFFF, miniature-paints #FFFFFF · ΔE 43
+- **Citadel — Drakenhof Nightshade** (s/c, Shade): catálogo #1B3E6E · paintdex #1B3E6E, miniature-paints #A1A5AF · ΔE 43
+- **AK Interactive — Clear Blue** (RC822, Real Colors - Standard): catálogo #7C9ED1 · paintdex #0D265C, miniature-paints #0D265C · ΔE 43
+- **AK Interactive — Dust** (AK14014, Liquid Pigments): catálogo #2F3231 · paintdex #AB9765, miniature-paints #AB9765 · ΔE 42
+- **Citadel — Dark Angels Green** (s/c, Contrast): catálogo #3A8A3A · paintdex #00110F, miniature-paints #00110F · ΔE 42
+- **Pro Acryl — Dark Flesh** (MPA-068, Pro Acryl): catálogo #E0A882 · miniature-paints #674137 · ΔE 42
+- **Tamiya — Sky** (XF-21, Acrylics Mini Flat): catálogo #8AB8E0 · paintdex #B8BE77, miniature-paints #B8BE77 · ΔE 41
+- **Scale75 — Surfer Orc Flesh** (SFG-22, Fantasy & Games): catálogo #E0A882 · paintdex #00A58B, miniature-paints #00A58B · ΔE 41
+- **Foundry — Leather & Metal Washes Light** (47C, Foundry Paint System): catálogo #7A4E2E · miniature-paints #BEBEBE · ΔE 41
+- **Vallejo — Frozen Flesh** (74.010, Nocturna Models): catálogo #E0A882 · paintdex #57555B, miniature-paints #57555B · ΔE 41
+- **AK Interactive — Spectrum Blue** (AK11162, 3rd Gen Standard): catálogo #2A5AB0 · paintdex #B4BEBF, miniature-paints #B4BEBF · ΔE 40
+- **Tamiya — Fluorescent orange** (TS-96, Tamiya Spray): catálogo #E07020 · paintdex #FFFFFF, miniature-paints #FFFFFF · ΔE 39
+- **Tamiya — Metallic orange** (TS-92, Tamiya Spray): catálogo #E07020 · paintdex #FFFFFF, miniature-paints #FFFFFF · ΔE 39
+- **Tamiya — Pure orange** (TS-98, Tamiya Spray): catálogo #E07020 · paintdex #FFFFFF, miniature-paints #FFFFFF · ΔE 39
+- **AK Interactive — Rlm 79** (RC947, Real Colors - Military): catálogo #E9A35B · paintdex #694724, miniature-paints #694724 · ΔE 39
+- **Citadel — Agrax Earthshade** (s/c, Shade): catálogo #3C3C28 · paintdex #3C3C28, miniature-paints #A99D8D · ΔE 39
+- **Foundry — American Olive Green Shade** (94A, Foundry Paint System): catálogo #3A8A3A · miniature-paints #2F363E · ΔE 39
+- **Humbrol — Dark Green** (S163, Humbrol Aerosol Sprays - Satin): catálogo #3A8A3A · miniature-paints #1C1D15 · ΔE 38
+- **The Army Painter — Kraken Skin** (WP1435, Warpaints): catálogo #D29A7A · paintdex #71BF87, miniature-paints #71BF87 · ΔE 38
+- **Citadel — Nuln Oil** (s/c, Shade): catálogo #393944 · paintdex #393944, miniature-paints #9E9A98 · ΔE 38
+- **Citadel — Reikland Fleshshade** (s/c, Shade): catálogo #7E3226 · paintdex #7E3226, miniature-paints #BE9A80 · ΔE 37
+- **Foundry — British Denison Green Shade** (98A, Foundry Paint System): catálogo #3A8A3A · miniature-paints #303133 · ΔE 37
+- **P3 — Bleached Blue** (s/c, Privateer Press Formula P3): catálogo #2A5AB0 · paintdex #877A68, miniature-paints #877A68 · ΔE 37
+- **Mr. Hobby — Midnight Blue** (H55, Aqueous Hobby Color): catálogo #2A5AB0 · miniature-paints #000000 · ΔE 36
+- **The Army Painter — Unforgiven Green** (AW3112, Warpaints Air): catálogo #3A8A3A · paintdex #242923, miniature-paints #242923 · ΔE 36
+- **The Army Painter — Banshee Brown** (WP4005, John Blanche Masterclass): catálogo #6B4A32 · paintdex #342B28, miniature-paints #BFA59B · ΔE 35
+- **AK Interactive — Gold** (AK17065, Quick Gen): catálogo #FCE472 · paintdex #9E6806, miniature-paints #9E6806 · ΔE 35
+- **Reaper — Ancient Wood** (9315, Master Series Paints Core Colors): catálogo #7E5A3A · miniature-paints #BFB4BC · ΔE 35
+- **AK Interactive — Dark Sea Blue** (AK11190, 3rd Gen Standard): catálogo #2A5AB0 · paintdex #0D1814, miniature-paints #0D1814 · ΔE 35
+- **AK Interactive — Purple** (AKABT620, Oils): catálogo #601F84 · paintdex #B47C89, miniature-paints #B47C89 · ΔE 35
+- **AK Interactive — Raf Sky / Fs 34424 – 10ml** (RC290, Real Colors - WWII): catálogo #8AB8E0 · paintdex #B1BA8D, miniature-paints #B1BA8D · ΔE 35
+- **Vallejo — Dark Sea Green** (70.868, Model Color): catálogo #3A8A3A · paintdex #4B4545, miniature-paints #4B4545 · ΔE 35
+- **Mr. Hobby — RX-78 White** (UG19, Gundam Color for Builders): catálogo #F2F2F0 · miniature-paints #0098D6 · ΔE 35
+- **AK Interactive — RAF Dark Green** (RC960, Real Colors - Military): catálogo #3A8A3A · paintdex #2E2E26, miniature-paints #2E2E26 · ΔE 35
+- **Citadel — Athonian Camoshade** (s/c, Shade): catálogo #485F2B · paintdex #485F2B, miniature-paints #B6B788 · ΔE 34
+- **Pro Acryl — Vince Venturella Dark Jade** (MPA-S01, Signature Series): catálogo #3A9A7A · miniature-paints #2C4855 · ΔE 34
+- **Mission Models — US Dark Green FS 34079** (MMP-058, Mission Models): catálogo #3A8A3A · miniature-paints #2B302A · ΔE 34
+- **Green Stuff World — Ranger Green** (s/c, Acrylic Colors): catálogo #3A8A3A · paintdex #38352E, miniature-paints #38352E · ΔE 34
+- **Vallejo — Malefic Flesh** (74.012, Nocturna Models): catálogo #E0A882 · paintdex #696061, miniature-paints #696061 · ΔE 34
+- **AK Interactive — Q1 Anti-glare Blue-blacl** (AK2066, Air): catálogo #2A5AB0 · paintdex #151716, miniature-paints #151716 · ΔE 34
+- **The Army Painter — Commando Green** (WP4058, Warpaints Historical): catálogo #21240D · paintdex #847F37, miniature-paints #847F37 · ΔE 33
+- **Mr. Hobby — RX-78 Yellow** (SG1, Gundam Color Spray): catálogo #E8C21A · miniature-paints #F1F7FA · ΔE 33
+- **Vallejo — Olive Green** (71.007, Model Air): catálogo #3A8A3A · paintdex #343A38, miniature-paints #343A38 · ΔE 33
+- **Vallejo — UK Bronze Green** (70.607, Primers): catálogo #3A8A3A · paintdex #3C3E3D, miniature-paints #3C3E3D · ΔE 33
+- **Vallejo — Light Green** (69.025, Mecha Color): catálogo #3A8A3A · paintdex #C6C9C0, miniature-paints #C6C9C0 · ΔE 32
+- **AK Interactive — Old Gold** (AK17068, Quick Gen): catálogo #754920 · paintdex #B89402, miniature-paints #B89402 · ΔE 32
+- **AK Interactive — Clear Smoke** (RC826, Real Colors - Standard): catálogo #949492 · paintdex #734C21, miniature-paints #734C21 · ΔE 32
+- **Foundry — Soviet Winter Green Shade** (96A, Foundry Paint System): catálogo #3A8A3A · miniature-paints #504E51 · ΔE 32
+- **AK Interactive — Raf Sky** (AK2015, Air): catálogo #8AB8E0 · paintdex #A9C29B, miniature-paints #A9C29B · ΔE 32
+- **Duncan Rhodes — War Master Green** (s/c, Wave 3): catálogo #3A8A3A · paintdex #3A4140, miniature-paints #3A4140 · ΔE 32
+- **AK Interactive — IJN / IJA Aotake** (RC958, Real Colors - Military): catálogo #59B0AE · paintdex #015E70, miniature-paints #015E70 · ΔE 32
+- **Mission Models — RAF underside Sky 610** (MMP-080, Mission Models): catálogo #8AB8E0 · miniature-paints #AAB08E · ΔE 32
+- **Mr. Hobby — Sky Bs381c/210** (368, Mr Color): catálogo #8AB8E0 · miniature-paints #ACBE99 · ΔE 31
+- **Coat d'Arms — Angel Green** (155, Fantasy Range): catálogo #3A8A3A · miniature-paints #3B413F · ΔE 31
+- **Tamiya — Dark yellow 2** (XF-88, Acrylics Mini Flat): catálogo #E8C21A · paintdex #FFFFFF, miniature-paints #FFFFFF · ΔE 31
+- **Tamiya — Pearl yellow** (TS-97, Tamiya Spray): catálogo #E8C21A · paintdex #FFFFFF, miniature-paints #FFFFFF · ΔE 31
+- **Mr. Hobby — MS Red** (SG5, Gundam Color Spray): catálogo #B52A2A · miniature-paints #323232 · ΔE 31
+- **Mr. Hobby — MS Red** (UG5, Mr Color Gundam Color): catálogo #B52A2A · miniature-paints #323232 · ΔE 31
+- **The Army Painter — Fairy Dust** (AW1489, Warpaints Air Metallics): catálogo #A93C27 · paintdex #8C8C8C, miniature-paints #8C8C8C · ΔE 31
+- **Citadel — Carroburg Crimson** (s/c, Shade): catálogo #752455 · paintdex #752455, miniature-paints #BE80A4 · ΔE 31
+- **Citadel — Leviadon Blue** (s/c, Contrast): catálogo #2A5AB0 · paintdex #000A13, miniature-paints #000A13 · ΔE 31
+- **AK Interactive — Bronze Green** (RC931, Real Colors - Military): catálogo #3A8A3A · paintdex #273423, miniature-paints #273423 · ΔE 31
+- **Foundry — Prussian Blue Shade** (66A, Foundry Paint System): catálogo #2A5AB0 · miniature-paints #080F15 · ΔE 31
+- **Mr. Hobby — Topaz Gold** (XC02, Mr Crystal Color): catálogo #C09A3A · miniature-paints #C3D5D3 · ΔE 30
+- **Vallejo — Green RLM72** (71.263, Model Air): catálogo #3A8A3A · paintdex #474948, miniature-paints #474948 · ΔE 30
+- **The Army Painter — Skeleton Bone** (AW1125, Warpaints Air): catálogo #C2B293 · paintdex #666D74, miniature-paints #666D74 · ΔE 30
+- **The Army Painter — Skeleton Bone** (WP3087, Warpaints Fanatic): catálogo #C2B293 · paintdex #666D74, miniature-paints #666D74 · ΔE 30
+- **AK Interactive — Dark Sea Blue / WWI French Uniform Shadow -72-** (AK3103, Figures): catálogo #2A5AB0 · paintdex #151F20, miniature-paints #151F20 · ΔE 30
+- **Kimera Kolors — Cloudy Sky** (s/c, Kimera Kolors Michal Pisarski Signature Set): catálogo #8AB8E0 · miniature-paints #A99E85 · ΔE 30
+- **Vallejo — Gold** (70.791, Liquid Metal): catálogo #C09A3A · paintdex #EEE6E3, miniature-paints #EEE6E3 · ΔE 30
+- **Foundry — Soviet Winter Green** (96B, Foundry Paint System): catálogo #3A8A3A · miniature-paints #676364 · ΔE 30
+- **Vallejo — 3B Russian Green** (71.281, Model Air): catálogo #3A8A3A · paintdex #474946, miniature-paints #474946 · ΔE 30
+- **AK Interactive — Sea Blue 5 S** (AK5005, Naval): catálogo #2A5AB0 · paintdex #363B37, miniature-paints #363B37 · ΔE 30
+- **Vallejo — Continental Blue** (70.754, Model Color): catálogo #2A5AB0 · paintdex #25242A, miniature-paints #25242A · ΔE 29
+- **Pro Acryl — Matt Cexwish Dark Emerald** (MPA-S20, Signature Series): catálogo #1E8A5A · miniature-paints #194245 · ΔE 29
+- **AK Interactive — Purple** (AK11073, 3rd Gen Standard): catálogo #553753 · paintdex #B47C89, miniature-paints #B47C89 · ΔE 29
+- **Vallejo — Green RLM73** (71.256, Model Air): catálogo #3A8A3A · paintdex #444D4C, miniature-paints #444D4C · ΔE 29
+- **AK Interactive — Forest Green FS 34079** (RC900, Real Colors - Military): catálogo #3A8A3A · paintdex #2A3517, miniature-paints #2A3517 · ΔE 29
+- **AK Interactive — Orange Brown** (AK17054, Quick Gen): catálogo #4F2910 · paintdex #A8773C, miniature-paints #A8773C · ΔE 29
+- **Pro Acryl — Vince Venturella Beige Red** (MPA-S05, Signature Series): catálogo #B52A2A · miniature-paints #A68E86 · ΔE 29
+- **Ammo by Mig — Sky Type S (bs 210)** (AMIG0243, Acrylics): catálogo #8AB8E0 · paintdex #B4B299, miniature-paints #B4B299 · ΔE 29
+- **AK Interactive — Cadmium Red** (AKABT560, Oils): catálogo #7C1515 · paintdex #E9582C, miniature-paints #E9582C · ΔE 29
+- **The Army Painter — Cold Flesh** (s/c, D&D Undead Set): catálogo #E0A882 · paintdex #E7F0F9, miniature-paints #E7F0F9 · ΔE 29
+- **Vallejo — Sky Type S** (71.302, Model Air): catálogo #8AB8E0 · paintdex #A2A48C, miniature-paints #A2A48C · ΔE 29
+- **Foundry — American Green Shade** (93A, Foundry Paint System): catálogo #3A8A3A · miniature-paints #5A554F · ΔE 28
+- **AK Interactive — Dark Green Fs 34064** (RC342, Real Colors - Air): catálogo #3A8A3A · paintdex #4B4B43, miniature-paints #4B4B43 · ΔE 28
+- **AK Interactive — Dark Flesh** (AK17061, Quick Gen): catálogo #8F6956 · paintdex #EBA43A, miniature-paints #EBA43A · ΔE 28
+- **AK Interactive — Clear Red** (RC821, Real Colors - Standard): catálogo #F29280 · paintdex #C61215, miniature-paints #C61215 · ΔE 28
+- **Vallejo — UK Bronze Green** (28.004, Hobby Paint): catálogo #3A8A3A · paintdex #535554, miniature-paints #535554 · ΔE 28
+- **Scale75 — Hellbound Flesh** (SFG-16, Fantasy & Games): catálogo #E0A882 · paintdex #9CB1AC, miniature-paints #9CB1AC · ΔE 28
+- **Vallejo — Russian Green 4BO** (70.609, Primers): catálogo #3A8A3A · paintdex #4B4C44, miniature-paints #4B4C44 · ΔE 28
+- **Vallejo — Cold Flesh** (74.014, Nocturna Models): catálogo #E0A882 · paintdex #838591, miniature-paints #838591 · ΔE 28
+- **AK Interactive — NATO Green** (RC886, Real Colors - Military): catálogo #3A8A3A · paintdex #45473A, miniature-paints #45473A · ΔE 28
+- **Vallejo — Dark Green RLM83** (71.011, Model Air): catálogo #3A8A3A · paintdex #4E4E46, miniature-paints #4E4E46 · ΔE 28
+- **Pro Acryl — Flesh Wash** (MPA-202, Wash): catálogo #AE8C82 · miniature-paints #734238 · ΔE 28
+- **Vallejo — Camouflage Dark Green** (71.019, Model Air): catálogo #3A8A3A · paintdex #4B4E47, miniature-paints #4B4E47 · ΔE 28
+- **Scale75 — Abyssal Blue** (SC-08, Scalecolor): catálogo #2A5AB0 · paintdex #292A2F, miniature-paints #292A2F · ΔE 27
+- **Pro Acryl — Dark Golden Brown** (MPA-062, Pro Acryl): catálogo #5F481B · miniature-paints #A58F56 · ΔE 27
+- **AK Interactive — French Army Green (vert Kaki)** (AK4082, AFV): catálogo #3A8A3A · paintdex #4A4D44, miniature-paints #4A4D44 · ΔE 27
+- **Vallejo — Dark Steel** (74.251, Squidmar Color): catálogo #CBCCCB · paintdex #737476, miniature-paints #737476 · ΔE 27
+- **AK Interactive — RAF Sky / FS 34424** (AK11844, 3rd Gen Air): catálogo #8AB8E0 · paintdex #B3B59F, miniature-paints #B3B59F · ΔE 27
+- **AK Interactive — RAF Sky / FS 34424** (RC964, Real Colors - Military): catálogo #8AB8E0 · paintdex #B3B59F, miniature-paints #B3B59F · ΔE 27
+- **Duncan Rhodes — Incubus Purple** (s/c, Wave 3): catálogo #6A2A80 · paintdex #6A696C, miniature-paints #6A696C · ΔE 27
+- **AK Interactive — Intermediate Blue** (AK11163, 3rd Gen Standard): catálogo #2A5AB0 · paintdex #676966, miniature-paints #676966 · ΔE 27
+- **Vallejo — US Forest Green** (71.294, Model Air): catálogo #3A8A3A · paintdex #54544C, miniature-paints #54544C · ΔE 27
+- **AK Interactive — French Blue** (AK11166, 3rd Gen Standard): catálogo #2A5AB0 · paintdex #545653, miniature-paints #545653 · ΔE 27
+- **Scale75 — Sky Blue** (SART-52, Artist): catálogo #C0E4ED · paintdex #2496C8, miniature-paints #2496C8 · ΔE 26
+- **Scale75 — Sky Blue** (SC-50, Scalecolor): catálogo #C0E4ED · paintdex #2496C8, miniature-paints #2496C8 · ΔE 26
+- **Vallejo — Hull Red** (71.039, Model Air): catálogo #B52A2A · paintdex #483D39, miniature-paints #483D39 · ΔE 26
+- **AK Interactive — Navy Blue 5 N** (AK5004, Naval): catálogo #2A5AB0 · paintdex #333438, miniature-paints #333438 · ΔE 26
+- **Vallejo — Jade Green** (72.026, Game Color): catálogo #007155 · paintdex #77B48A, miniature-paints #007155 · ΔE 26
+- **AK Interactive — Deck Blue 20 B** (AK5001, Naval): catálogo #2A5AB0 · paintdex #272F31, miniature-paints #272F31 · ΔE 26
+- **AK Interactive — British Desert Pink ZI** (RC871, Real Colors - Military): catálogo #E58AA8 · paintdex #F09060, miniature-paints #F09060 · ΔE 26
+- **Pro Acryl — Transparent Brown** (MPA-052, Transparent): catálogo #6B4A32 · miniature-paints #120B0A · ΔE 25
+- **Ammo by Mig — Fs 25042 Sea Blue (ana 606)** (AMIG0227, Acrylics): catálogo #2A5AB0 · paintdex #21262C, miniature-paints #21262C · ΔE 25
+- **Mr. Hobby — Zeon's MS Gray** (SG10, Gundam Color Spray): catálogo #808080 · miniature-paints #DD6B69 · ΔE 25
+- **Mr. Hobby — Zeon's MS Gray** (UG10, Mr Color Gundam Color): catálogo #808080 · miniature-paints #DD6B69 · ΔE 25
+- **AK Interactive — Clear Yellow** (RC825, Real Colors - Standard): catálogo #F4E38F · paintdex #F49401, miniature-paints #F49401 · ΔE 25
+- **AK Interactive — Pale Blue** (RC816, Real Colors - Standard): catálogo #5F8497 · paintdex #B4C4B7, miniature-paints #B4C4B7 · ΔE 25
+- **Foundry — American Green** (93B, Foundry Paint System): catálogo #3A8A3A · miniature-paints #76716B · ΔE 25
+- **AK Interactive — Dull Dark Green FS 34092** (RC902, Real Colors - Military): catálogo #3A8A3A · paintdex #485750, miniature-paints #485750 · ΔE 25
+- **AK Interactive — IDF Modern Grey** (RC882, Real Colors - Military): catálogo #9A9383 · paintdex #6D582D, miniature-paints #6D582D · ΔE 25
+- **Foundry — Red Oxide Shade** (102A, Foundry Paint System): catálogo #B52A2A · miniature-paints #514644 · ΔE 25
+- **Vallejo — Dark Green** (71.012, Model Air): catálogo #3A8A3A · paintdex #5D5E56, miniature-paints #5D5E56 · ΔE 25
+- **Citadel — Dark Angels Green** (s/c, Foundation (descontinuada)): catálogo #19553C · paintdex #00110F, miniature-paints #00110F · ΔE 24
+- **AK Interactive — Green FS 34102** (RC905, Real Colors - Military): catálogo #3A8A3A · paintdex #43481F, miniature-paints #43481F · ΔE 24
+- **Scale75 — Pastel Green** (SART-46, Artist): catálogo #3A8A3A · paintdex #929D97, miniature-paints #929D97 · ΔE 24
+- **Scale75 — Pastel Green** (SDP-99, Drop & Paint): catálogo #3A8A3A · paintdex #929D97, miniature-paints #929D97 · ΔE 24
+- **AK Interactive — Braun-Brown RAL 8020** (RC865, Real Colors - Military): catálogo #6B4A32 · paintdex #AE8557, miniature-paints #AE8557 · ΔE 24
+- **The Army Painter — Dorado Skin** (WP3161, Warpaints Fanatic): catálogo #EEC79E · paintdex #A97761, miniature-paints #A97761 · ΔE 24
+- **Vallejo — Green** (71.223, Model Air): catálogo #3A8A3A · paintdex #A4A792, miniature-paints #A4A792 · ΔE 24
+- **Coat d'Arms — Field Blue** (518, World War II Range): catálogo #2A5AB0 · miniature-paints #616F6F · ΔE 24
+- **Pro Acryl — Matt Cexwish Bone** (MPA-S23, Signature Series): catálogo #DCD2B4 · miniature-paints #8D857E · ΔE 24
+- **AK Interactive — Intermediate Grey** (AK3058, Figures): catálogo #808080 · paintdex #648C45, miniature-paints #648C45 · ΔE 23
+- **AK Interactive — FS 35164 Intermediate Blue** (AK2054, Air): catálogo #2A5AB0 · paintdex #364143, miniature-paints #364143 · ΔE 23
+- **AK Interactive — FS 36320 Dark Ghost Green** (AK2058, Air): catálogo #3A8A3A · paintdex #757E7B, miniature-paints #757E7B · ΔE 23
+- **The Army Painter — Lich Skin** (s/c, D&D Nolzur's Marvelous Pigments): catálogo #D29A7A · paintdex #83827B, miniature-paints #83827B · ΔE 23
+- **AK Interactive — Clear Orange** (RC824, Real Colors - Standard): catálogo #E3B182 · paintdex #EB5D0B, miniature-paints #EB5D0B · ΔE 23
+- **AK Interactive — Ocean Blue** (AK16014, The Inks): catálogo #223167 · paintdex #1E3636, miniature-paints #1E3636 · ΔE 22
+- **The Army Painter — Frost Blue** (WP3018, Warpaints Fanatic): catálogo #9ABEDE · paintdex #0080BF, miniature-paints #0080BF · ΔE 22
+- **AK Interactive — Dunkelgelb-Dark Yellow RAL 7028** (RC859, Real Colors - Military): catálogo #E8C21A · paintdex #9C8853, miniature-paints #9C8853 · ΔE 22
+- **AK Interactive — Dark Sea Blue** (RC925, Real Colors - Military): catálogo #2A5AB0 · paintdex #082533, miniature-paints #082533 · ΔE 22
+- **Mr. Hobby — Olive Drab Fs34087** (304, Mr Color): catálogo #6A6A30 · miniature-paints #373C34 · ΔE 22
+- **Vallejo — Rust Texture** (73.821, Weathering FX): catálogo #8E3E1E · paintdex #463C3A, miniature-paints #463C3A · ΔE 22
+- **Citadel — Biel-Tan Green** (s/c, Shade): catálogo #336F47 · paintdex #336F47, miniature-paints #7DA57A · ΔE 22
+- **Vallejo — Green** (71.329, Model Air): catálogo #3A8A3A · paintdex #71746B, miniature-paints #71746B · ΔE 22
+- **Vallejo — Yellow Olive** (71.013, Model Air): catálogo #6A6A30 · paintdex #434542, miniature-paints #434542 · ΔE 22
+- **The Army Painter — Mocca Skin** (WP3159, Warpaints Fanatic): catálogo #81655A · paintdex #402828, miniature-paints #402828 · ΔE 21
+- **Pro Acryl — Turquoise** (MPA-054, Pro Acryl): catálogo #14A2B3 · miniature-paints #75F1F1 · ΔE 21
+- **AK Interactive — Woodgrain** (AK19318, Acrylic Wash): catálogo #917258 · paintdex #503A2D, miniature-paints #503A2D · ΔE 21
+- **Vallejo — Bright Green** (70.758, Model Color): catálogo #6F8348 · paintdex #61C44E, miniature-paints #61C44E · ΔE 21
+- **Pro Acryl — Orange** (MPA-511, 1-Step): catálogo #C42520 · miniature-paints #E56B20 · ΔE 21
+- **The Army Painter — Lava Orange** (AW1106, Warpaints Air): catálogo #BF3D20 · paintdex #F5792C, miniature-paints #F5792C · ΔE 21
+- **The Army Painter — Lava Orange** (WP3099, Warpaints Fanatic): catálogo #BF3D20 · paintdex #F5792C, miniature-paints #F5792C · ΔE 21
+- **Tamiya — Flat clear** (s/c, Tamiya Spray): catálogo #FFFFFF · paintdex #9DB3BF, miniature-paints #9DB3BF · ΔE 21
+- **AK Interactive — Sea Blue** (RC924, Real Colors - Military): catálogo #2A5AB0 · paintdex #232F3B, miniature-paints #232F3B · ΔE 20
+- **The Army Painter — Magnolia Brown** (AW3124, Warpaints Air): catálogo #6B4A32 · paintdex #2C2C24, miniature-paints #2C2C24 · ΔE 20
+- **The Army Painter — Light Tone** (WP3202, Warpaints Fanatic Wash): catálogo #7F5216 · paintdex #AB3B2C, miniature-paints #AB3B2C · ΔE 20
+- **The Army Painter — Fire Giant Orange** (WP2017, Speedpaint 2.0): catálogo #E77924 · paintdex #BE3F20, miniature-paints #BE3F20 · ΔE 20
+- **The Army Painter — Fire Giant Orange** (SM1003, Speedpaint Marker): catálogo #E77924 · paintdex #BE3F20, miniature-paints #BE3F20 · ΔE 20
+
+## Color que contradice el nombre
+
+- AK Interactive — British Desert Pink Zi (AK11382): #F09060
+- AK Interactive — French Army Green (AK11364): #4B584E
+- AK Interactive — Idf Modern Grey (AK11352): #6D582D
+- AK Interactive — Idf Sand Grey 1970s-1980s (AK11353): #73643B
+- AK Interactive — Khaki Green No.3 (AK11373): #4F4231
+- AK Interactive — Laf Green (AK11357): #2E3022
+- AK Interactive — Silver Grey No.28 (AK11374): #9F9D6A
+- AK Interactive — Sla Blue (AK11356): #43605C
+- AK Interactive — Wwi French Green 2 (AK11306): #2A281C
+- AK Interactive — Deep Sea Blue (AK11864): #36434C
+- AK Interactive — RAF Dark Green (AK11840): #56564C
+- AK Interactive — Base Flesh (AK11401): #824C30
+- AK Interactive — Dark Green (AK11410): #212F22
+- AK Interactive — French Greyish Blue (AK11439): #415057
+- AK Interactive — Russian Blue Base (AK11432): #12161F
+- AK Interactive — Russian Blue Lights (AK11431): #222836
+- AK Interactive — Anodized Violet (AK11202): #9D8696
+- AK Interactive — Metallic Blue (AK11199): #829C99
+- AK Interactive — Dragon Blood (AK11272): #361835
+- AK Interactive — Archaic Turquoise (AK11172): #003839
+- AK Interactive — Beige (AK11030): #E2B848
+- AK Interactive — Beige Red (AK11064): #DE935A
+- AK Interactive — British Khaki (AK11127): #654D1F
+- AK Interactive — Brown Rose (AK11063): #D78464
+- AK Interactive — Brownish Green (AK11151): #57460E
+- AK Interactive — Buff (AK11031): #D1AC5C
+- AK Interactive — Burnt Red (AK11097): #533125
+- AK Interactive — Camouflage Green (AK11156): #4F411C
+- AK Interactive — Carmine (AK11091): #B83E26
+- AK Interactive — Dark Prussian Blue (AK11189): #0A0C1B
+- AK Interactive — Dark Sand (AK11033): #E6BC56
+- AK Interactive — Deck Tan (AK11114): #CCC4AF
+- AK Interactive — Decomposed Flesh (AK11058): #B7A261
+- AK Interactive — Extra Dark Green (AK11153): #243128
+- AK Interactive — Fluorescent Magenta (AK11068): #FF4C69
+- AK Interactive — Golden Brown (AK11117): #AB7602
+- AK Interactive — Grimy Grey (AK11008): #DFC998
+- AK Interactive — Hull Red (AK11108): #381A02
+- AK Interactive — Laser Magenta (AK11066): #6B102F
+- AK Interactive — Lilac (AK11071): #656074
+- AK Interactive — Magenta (AK11067): #B1325F
+- AK Interactive — Medium Sand (AK11034): #CC9B35
+- AK Interactive — Ocean Blue (AK11173): #1E3636
+- AK Interactive — Radiant Flesh (AK11053): #FEB254
+- AK Interactive — Reflective Green (AK11158): #352E11
+- AK Interactive — Snow Blue (AK11174): #CAE4E1
+- AK Interactive — Strong Dark Blue (AK11187): #04151F
+- AK Interactive — Sunny Skin Tone (AK11055): #FFA84F
+- AK Interactive — Turquoise (AK11171): #004A4D
+- AK Interactive — Us Dark Green (AK11157): #423910
+- AK Interactive — Vampiric Flesh (AK11057): #CFBC81
+- AK Interactive — Violet Red (AK11075): #573536
+- AK Interactive — 7k Russian Tan (AK748): #766A44
+- AK Interactive — Bsc. Nº61 Khaki Drab (AK4071): #544937
+- AK Interactive — Buff Dark Shade (AK4007): #857748
+- AK Interactive — French Green  2 (AK4055): #30332A
+- AK Interactive — Greyish Yellow (AK4131): #BBB27B
+- AK Interactive — Khaki Green Nº3 (new Service Colour) (AK4035): #413E2D
+- AK Interactive — Nº6 Earth Yellow (AK4222): #8A6133
+- AK Interactive — Pla Dark Blue (AK4251): #304246
+- AK Interactive — Protective Green (AK750): #43493B
+- AK Interactive — Red Primer Base (AK127): #4F392E
+- AK Interactive — Red Primer Dark Base (AK126): #43342F
+- AK Interactive — Red Primer Shadow (AK125): #382D29
+- AK Interactive — Red Primer Shine (AK130): #AC724A
+- AK Interactive — J3 Sp (amber Grey) (AK2062): #807641
+- AK Interactive — Winter Streaking Grime (AK014): #3A3A2B
+- AK Interactive — American Blue -80- (AK3079): #649E92
+- AK Interactive — Base Flesh -17- (AK3011): #6E4937
+- AK Interactive — Dark Blue / Blue Tank Crew Base -73- (AK3125): #1F282F
+- AK Interactive — Dark Blue Green / Green Uniform Shadows -41- (AK3116): #2D2E1E
+- AK Interactive — Golden Sand / Desert Uniform Base -10- (AK3111): #907131
+- AK Interactive — Greyish Blue / WWI French Uniform Base -75- (AK3101): #3B4F50
+- AK Interactive — Ivory -2- (AK3028): #DEF2CD
+- AK Interactive — Khaki / Splittermuster Base (AK3041): #59553A
+- AK Interactive — Turquoise -76- (AK3068): #0F3E44
+- AK Interactive — Light Grey Brown (AK786): #B4A270
+- AK Interactive — Shadow Rust (AK710): #4B3D32
+- AK Interactive — Weathered Wood (AK783): #463D34
+- AK Interactive — Sooty Black (AK11222): #5F5D48
+- AK Interactive — Pb20 Dark Blue (AK5043): #1B1F2A
+- AK Interactive — Western Appoaches Blue (AK5044): #C1D1C6
+- AK Interactive — Olive Drab Surface Primer (AK11249): #655238
+- AK Interactive — Graubeige – Grey Beige RAL 1040-f9 (RC089): #988050
+- AK Interactive — Graugrün – Gray Green RAL 7008 (RC053): #837038
+- AK Interactive — Khaki Green Nº3 (RC033): #4F4231
+- AK Interactive — Sand 7k (RC075): #84632D
+- AK Interactive — Bsc Nº28 Silver Grey (RC038): #9F9D6A
+- AK Interactive — Dark Sea Blue 10ml (RC258): #36434C
+- AK Interactive — Marinegrau – Navy Grey RAL 7002 (RC051): #80774E
+- AK Interactive — Medium Green 42 10ml (RC260): #495241
+- AK Interactive — Raf Dark Green – 10ml (RC286): #4F5143
+- Ammo by Mig — Bone (AMIG0122): #EDEEDC
+- Ammo by Mig — Burnt Sand (AMIG0118): #7E5A3A
+- Ammo by Mig — Copper (AMIG0199): #C94A5D
+- Ammo by Mig — Cyan (AMIG0128): #2495FB
+- Ammo by Mig — Desert Yellow (AMIG0138): #B8996D
+- Ammo by Mig — Dull Green (AMIG0077): #3D595A
+- Ammo by Mig — Fs 15102 Dark Gray Blue (AMIG0229): #2489BD
+- Ammo by Mig — Gold (AMIG0198): #B8B021
+- Ammo by Mig — Khaki (AMIG0071): #735533
+- Ammo by Mig — Light Sand Grey (AMIG0067): #B8A680
+- Ammo by Mig — New  Wood (AMIG0037): #C1AB72
+- Ammo by Mig — Old Rust (AMIG0042): #452621
+- Ammo by Mig — Old Wood (AMIG0036): #BFAB8A
+- Ammo by Mig — Real Idf Sinai Grey 82 (AMIG0131): #534F2A
+- Ammo by Mig — Red Primer  High Lights (AMIG0922): #7F3D1A
+- Ammo by Mig — Red Primer  Shine (AMIG0923): #9E5922
+- Ammo by Mig — Red Primer Dark Base (AMIG0919): #593B23
+- Ammo by Mig — Red Primer Shadow (AMIG0918): #321819
+- Ammo by Mig — Rust Tracks (AMIG0034): #38261C
+- Ammo by Mig — Shadow Rust (AMIG0043): #331716
+- Ammo by Mig — Spanish Green-khaki (AMIG0031): #504728
+- Ammo by Mig — Yellow Grey (AMIG0057): #C9B68E
+- Ammo by Mig — Zimmerit Ochre Color (AMIG0114): #9A8B76
+- Ammo by Mig — Oilbrusher Raptor Shuttle Turquoise (AMIG3533): #142D37
+- Ammo by Mig — Oilbrusher Starship Filth (AMIG3513): #3F3F34
+- Ammo by Mig — Oilbrusher Sunny Flesh (AMIG3518): #EDDA9C
+- Ammo by Mig — One Shot Primer - Green (AMIG2028): #263427
+- Citadel — Balthasar Gold (s/c): #A77353
+- Citadel — Caledor Sky (s/c): #366699
+- Citadel — Gal Vorbak Red (s/c): #4B213C
+- Citadel — Nocturne Green (s/c): #162A29
+- Citadel — Sons of Horus Green (s/c): #00545E
+- Citadel — Tallarn Sand (s/c): #A07409
+- Citadel — Temple Guard Blue (s/c): #239489
+- Citadel — Balthasar Gold (s/c): #A77353
+- Citadel — Caledor Sky (s/c): #366699
+- Citadel — Gal Vorbak Red (s/c): #4B213C
+- Citadel — Ionrach Skin (s/c): #97A384
+- Citadel — Nocturne Green (s/c): #162A29
+- Citadel — Orruk Flesh (s/c): #97C17E
+- Citadel — Rakarth Flesh (s/c): #9C998D
+- Citadel — Screamer Pink (s/c): #7A0E44
+- Citadel — Stegadon Scale Green (s/c): #06455D
+- Citadel — Warplock Bronze (s/c): #B36E4F
+- Citadel — Akhelian Green (s/c): #004F63
+- Citadel — Darkoath Flesh (s/c): #98615B
+- Citadel — Fyreslayer Flesh (s/c): #724E3C
+- Citadel — Gryph-Charger Grey (s/c): #25698A
+- Citadel — Nazdreg Yellow (s/c): #6C4C00
+- Citadel — Plaguebearer Flesh (s/c): #718025
+- Citadel — Space Wolves Grey (s/c): #1F486B
+- Citadel — Terradon Turquoise (s/c): #005862
+- Citadel — Volupus Pink (s/c): #60001C
+- Citadel — Thunderhawk Blue (s/c): #396A70
+- Citadel — Underhive Ash (s/c): #BCBB7E
+- Citadel — Bronzed Flesh (s/c): #EC9A36
+- Citadel — Bubonic Brown (s/c): #B89142
+- Citadel — Gretchin Green (s/c): #7E6930
+- Citadel — Leprous Brown (s/c): #D88E2D
+- Citadel — Pallid Flesh (s/c): #EEC8C7
+- Citadel — Scaly Green (s/c): #006063
+- Citadel — Shadow Grey (s/c): #106993
+- Citadel — Vomit Brown (s/c): #CE8B3C
+- Citadel — Bloodreaver Flesh (s/c): #6A4848
+- Citadel — Deepkin Flesh (s/c): #A9B79F
+- Citadel — Knight-Questor Flesh (s/c): #996563
+- Citadel — Pallid Wych Flesh (s/c): #CACCBB
+- Citadel — Pink Horror (s/c): #8E2757
+- Citadel — Sons of Horus Green (s/c): #00545E
+- Citadel — Sotek Green (s/c): #0B6371
+- Citadel — Squig Orange (s/c): #A74D42
+- Citadel — Tallarn Sand (s/c): #A07409
+- Citadel — Temple Guard Blue (s/c): #239489
+- Citadel — Thunderhawk Blue (s/c): #396A70
+- Citadel — Mortarion Grime (s/c): #7F7928
+- Citadel — Carmine Blades 1 (s/c): #3C262A
+- Citadel — Carmine Blades 2 (s/c): #5B3538
+- Citadel — Carthalos Skin 1 (s/c): #241815
+- Citadel — Carthalos Skin 2 (s/c): #2D140C
+- Citadel — Carthalos Skin 3 (s/c): #4E2212
+- Citadel — Carthalos Skin 4 (s/c): #5F3A37
+- Citadel — Chotec Orange 2 (s/c): #B82F2D
+- Citadel — Green Morkshroom 1 (s/c): #143230
+- Citadel — Kasrkin Green 1 (s/c): #001B1B
+- Citadel — Magnus the Red 1 (s/c): #3A202D
+- Citadel — Magnus the Red 2 (s/c): #4A123E
+- Citadel — Necrolith Bone 1 (s/c): #877561
+- Citadel — Necrolith Bone 2 (s/c): #B0916A
+- Citadel — Seraphon Blue 4 (s/c): #008D92
+- Citadel — Seraphon Blue 5 (s/c): #00B7B9
+- Citadel — Shalaxi Violet 1 (s/c): #130040
+- Citadel — Ta'unar Ochre 1 (s/c): #BB5528
+- Citadel — Ta'unar Ochre 2 (s/c): #D27144
+- Citadel — Ta'unar Ochre 3 (s/c): #E78344
+- Citadel — Ta'unar Ochre 4 (s/c): #EA9B6B
+- Coat d'Arms — Dark Sand (404): #7D7640
+- Coat d'Arms — Billous Brown (130): #C98651
+- Coat d'Arms — Dark Elf Green (111): #394A44
+- Coat d'Arms — Dwarven Bronze (143): #D6A48B
+- Coat d'Arms — Festering Brown (126): #B5955C
+- Coat d'Arms — Grey Primer (141): #8A584D
+- Coat d'Arms — Hawk Turquoise (165): #0291B9
+- Coat d'Arms — Leprous Brown (156): #FC7B37
+- Coat d'Arms — Shadow Grey (150): #637FA4
+- Coat d'Arms — Warlock Purple (157): #C6385E
+- Coat d'Arms — Black (154): #646B64
+- Coat d'Arms — Bronze (232): #D1C0B0
+- Coat d'Arms — Flesh (213): #FFF4CE
+- Coat d'Arms — Light Grey (211): #FCFDF7
+- Coat d'Arms — Olive (226): #54674B
+- Coat d'Arms — Purple (210): #C74B6D
+- Coat d'Arms — Brick Red (509): #794D40
+- Coat d'Arms — Dark Leather (534): #5E533D
+- Coat d'Arms — Italian Red Earth (532): #D66C30
+- Coat d'Arms — Olive (226): #54674B
+- Coat d'Arms — Russian Brown (528): #7A8461
+- Coat d'Arms — Tan Earth (524): #91824B
+- Coat d'Arms — Tank Light Grey (526): #F0F5EF
+- Coat d'Arms — Us Dark Green (523): #455B4F
+- Duncan Rhodes — Archaic Sepia Wash (s/c): #A48773
+- Duncan Rhodes — Cuirass Leather (s/c): #514239
+- Duncan Rhodes — Gravestone Blue (s/c): #7A8896
+- Duncan Rhodes — RC Flesh Wash (s/c): #52854C
+- Duncan Rhodes — Sir Coates Silver (s/c): #4D4F4F
+- Duncan Rhodes — Wyvern Green (s/c): #404942
+- Duncan Rhodes — Amulet Purple (s/c): #BEACD2
+- Duncan Rhodes — Ares Flesh (s/c): #DEC287
+- Duncan Rhodes — Cerberus Brown (s/c): #DFAD58
+- Duncan Rhodes — Dread Red (s/c): #6E3E3E
+- Duncan Rhodes — Druid Flesh (s/c): #533D33
+- Duncan Rhodes — Helion Red Wash (s/c): #865453
+- Duncan Rhodes — Hydra Green (s/c): #344B4D
+- Duncan Rhodes — Paladin Flesh (s/c): #76564B
+- Duncan Rhodes — Satyr Brown (s/c): #D59657
+- Duncan Rhodes — Sentient Turquoise (s/c): #3A83A0
+- Duncan Rhodes — Amphora Red (s/c): #482124
+- Duncan Rhodes — Decadent Purple (s/c): #C1BED3
+- Duncan Rhodes — Enticing Purple (s/c): #7F7A8B
+- Duncan Rhodes — Faust Blue (s/c): #45515B
+- Duncan Rhodes — Frost Blue (s/c): #78969D
+- Duncan Rhodes — Hazard Yellow Wash (s/c): #E5C0B4
+- Duncan Rhodes — Ion Blue (s/c): #B7D5D8
+- Duncan Rhodes — Omega Blue (s/c): #58B9B6
+- Duncan Rhodes — Oxidation Green (s/c): #34444C
+- Duncan Rhodes — Shadow Blue (s/c): #4F646B
+- Duncan Rhodes — Smoke Grey Wash (s/c): #FBFCFB
+- Duncan Rhodes — Twin Suns Yellow (s/c): #E5E6AC
+- Foundry — American Olive Green (94B): #313E44
+- Foundry — American Tan Shade (92A): #AD9F7A
+- Foundry — Austrian Gun Ochre (107B): #C0C46D
+- Foundry — Austrian Gun Ochre Shade (107A): #A1B669
+- Foundry — Bone yard Shade (9A): #D2A552
+- Foundry — British Blanco Green (91B): #7A8F80
+- Foundry — British Blanco Green Shade (91A): #4C564B
+- Foundry — British Denison Brown Shade (97A): #B2A289
+- Foundry — British Denison Green (98B): #4E5447
+- Foundry — British Denison Tan Shade (99A): #7F6B62
+- Foundry — British Equipment Tan (89B): #85796D
+- Foundry — British Equipment Tan Shade (89A): #7D7369
+- Foundry — British Royal Blue Shade (74A): #283B42
+- Foundry — Buff Leather (7B): #EDBB5A
+- Foundry — Buff Leather Shade (7A): #D79750
+- Foundry — Burning Gold (44B): #FFFFBA
+- Foundry — Burning Gold Shade (44A): #ECE07C
+- Foundry — Burnished Copper (43B): #AC915C
+- Foundry — Conker Brown Shade (54A): #371718
+- Foundry — Dusky Flesh Shade (6A): #6E3B20
+- Foundry — Expert Flesh Final Highlight (127F): #F9EDCE
+- Foundry — Flesh (5B): #FC9D4D
+- Foundry — Flesh Shade (5A): #C26424
+- Foundry — French Chasseur A Cheval Green Shade (71A): #172B2C
+- Foundry — German Splinter Green Shade (84A): #4F5950
+- Foundry — German Splinter Tan (85B): #7F7865
+- Foundry — German Splinter Tan Shade (85A): #666352
+- Foundry — Leather & Metal Washes (47B): #B6A18E
+- Foundry — Leather & Metal Washes Shade (47A): #DDBA9E
+- Foundry — Musket Stock Brown Shade (72A): #2C1F26
+- Foundry — Native American Flesh Shade (120A): #B95851
+- Foundry — Night Sky (62B): #326576
+- Foundry — Night Sky Shade (62A): #2B5470
+- Foundry — Peaty Brown Shade (61A): #2F1D1D
+- Foundry — Red Oxide (102B): #594345
+- Foundry — Russian Green (69B): #223428
+- Foundry — Russian Green Shade (69A): #1E2A20
+- Foundry — Shadow Pink Shade (18A): #6A1D47
+- Foundry — South American Flesh Shade (119A): #955553
+- Foundry — Soviet Summer Tan (79B): #81784F
+- Foundry — Soviet Summer Tan Shade (79A): #6D6B54
+- Foundry — Soviet Winter Brown (95B): #44323E
+- Foundry — Soviet Winter Brown Shade (95A): #473646
+- Foundry — Storm Blue Shade (39A): #254047
+- Foundry — Tan (14B): #9F5913
+- Foundry — Tan Shade (14A): #542F15
+- Foundry — Union Blue (111B): #2A404D
+- Foundry — Union Blue Shade (111A): #26343F
+- Green Stuff World — Arachnid Green (s/c): #124244
+- Green Stuff World — Arrakis Brown (s/c): #E39C28
+- Green Stuff World — Blushing Flesh (s/c): #DA523A
+- Green Stuff World — Dark Beige (s/c): #715C41
+- Green Stuff World — Dwarven Flesh (s/c): #FF7D4B
+- Green Stuff World — Foxhide Brown (s/c): #C16001
+- Green Stuff World — Gengis Khaki (s/c): #665B3B
+- Green Stuff World — Golden Cream (s/c): #FFCE53
+- Green Stuff World — Komodo Khaki (s/c): #885A29
+- Green Stuff World — Peach Flesh (s/c): #E47700
+- Green Stuff World — Scorched Wood (s/c): #24110A
+- Green Stuff World — Sun-bleached Bone (s/c): #D1904E
+- Green Stuff World — Tiger Brown (s/c): #F19200

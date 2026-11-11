@@ -20,20 +20,40 @@ private val SATIN_RX = Regex("""\b(semi[- ]?gloss|satin|satinado|semibrillo|semi
 private val GLOSS_RX = Regex("""\b(gloss|glossy|brillo|brillante|lucido|candy)\b""")
 private val MATT_RX = Regex("""\b(flat|matt|matte|mate|ultra[- ]?matt?e?|dead flat)\b""")
 
-/** Acabado general de líneas de miniaturas (dato por línea, según las marcas y reseñas). */
-private fun lineFinish(brand: String, line: String): Finish? = when {
-    brand.contains("vallejo") && (line.startsWith("model color") || line.startsWith("model air") ||
-        line.startsWith("game color") || line.startsWith("game air") || line.startsWith("panzer aces")) -> Finish.MATE
-    brand.contains("vallejo") && line.startsWith("mecha color") -> Finish.SATINADO
-    // Kaleido Colorworks (Gaahleri): Mecha con brillo de 85 GU, Auto de alto brillo y Primary brillantes
-    // (sus "Matt …" se detectan por el nombre antes de llegar aquí)
-    brand.contains("kaleido") && (line.startsWith("mecha") || line.startsWith("auto") || line.startsWith("primary")) -> Finish.BRILLANTE
-    brandKey(brand) == "proacryl" && (line == "pro acryl" || line.startsWith("signature") || line.startsWith("expert")) -> Finish.MATE
-    brandKey(brand) == "akinteractive" && line.startsWith("3rd gen") -> Finish.MATE
-    brand.contains("scale75") && (line.startsWith("scalecolor") || line.startsWith("fantasy") || line.startsWith("warfront") || line.startsWith("artist")) -> Finish.MATE
-    brandKey(brand) == "citadel" && (line.startsWith("base") || line.startsWith("layer")) -> Finish.SATINADO
-    brandKey(brand) == "armypainter" && (line == "warpaints" || line == "warpaints fanatic") -> Finish.SATINADO
-    else -> null
+/**
+ * Acabado general de una línea, solo donde la marca (o una reseña independiente) lo dice para toda la
+ * línea. Las líneas donde cada color tiene su acabado (Mr. Hobby, Tamiya TS/LP, Ammo, DSPIAE) o donde no
+ * se encontró un dato confiable quedan "Sin dato" en vez de suponer.
+ */
+private fun lineFinish(brand: String, line: String): Finish? {
+    val bk = brandKey(brand)
+    return when {
+        // Vallejo: Model Color, Model Air, Game Color y Game Air son mate; Mecha Color, satinado.
+        // Panzer Aces y Nocturna usan la fórmula de Model Color. Hobby Paint (spray) es mate.
+        brand.contains("vallejo") && (line.startsWith("model color") || line.startsWith("model air") ||
+            line.startsWith("game color") || line.startsWith("game air") || line.startsWith("panzer aces") ||
+            line.startsWith("nocturna") || line.startsWith("hobby paint")) -> Finish.MATE
+        brand.contains("vallejo") && line.startsWith("mecha color") -> Finish.SATINADO
+        // Pro Acryl (núcleo y Signature): mate
+        bk == "proacryl" && (line == "pro acryl" || line.startsWith("signature")) -> Finish.MATE
+        // AK: 3rd Gen y Real Colors (laca) secan mate
+        bk == "akinteractive" && (line.startsWith("3rd gen") || line.contains("(3rd gen)") || line.startsWith("real colors")) -> Finish.MATE
+        // Scale75 Scalecolor: mate
+        brand.contains("scale75") && line.startsWith("scalecolor") -> Finish.MATE
+        // Citadel: Base, Layer y Shade se venden como acabado mate
+        bk == "citadel" && (line.startsWith("base") || line.startsWith("layer") || line.startsWith("shade")) -> Finish.MATE
+        // Army Painter: Warpaints/Fanatic con un ligero satinado (reseñas); Colour Primer, mate
+        bk == "armypainter" && (line == "warpaints" || line == "warpaints fanatic") -> Finish.SATINADO
+        bk == "armypainter" && line.startsWith("colour primer") -> Finish.MATE
+        // Green Stuff World Acrylic Colors, Two Thin Coats y Mission Models: mate
+        bk == "greenstuffworld" && line.startsWith("acrylic colors") -> Finish.MATE
+        brand.contains("duncan rhodes") && line.startsWith("wave") -> Finish.MATE
+        brand.contains("mission models") && line == "mission models" -> Finish.MATE
+        // Kaleido Colorworks (Gaahleri): Mecha con brillo de 85 GU, Auto de alto brillo y Primary brillantes
+        // (sus "Matt …" se detectan por el nombre antes de llegar aquí)
+        brand.contains("kaleido") && (line.startsWith("mecha") || line.startsWith("auto") || line.startsWith("primary")) -> Finish.BRILLANTE
+        else -> null
+    }
 }
 // i18n:on
 
@@ -43,7 +63,8 @@ fun finishOf(p: Paint): FinishInfo = finishCache.getOrPut(p.id) {
     val brand = norm(p.brand)
     val line = norm(p.line)
     val name = norm(p.name)
-    val text = "$line $name"
+    // "Matt Cexwish" es el nombre de un pintor (serie Signature de Pro Acryl), no un acabado
+    val text = "$line $name".replace("matt cexwish", "cexwish")
     when {
         SATIN_RX.containsMatchIn(text) -> FinishInfo(Finish.SATINADO, true)
         GLOSS_RX.containsMatchIn(text) -> FinishInfo(Finish.BRILLANTE, true)

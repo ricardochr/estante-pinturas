@@ -76,7 +76,7 @@ fun recommendPaints(owned: List<Paint>, catalog: List<Paint>, max: Int = 24): Li
             if (chosen.containsKey(p.id)) continue
             val d = deltaE2000(target, p.lab)
             if (d > tolerance) continue
-            val score = d + brandPenalty(p) + if (p.quality == "f") 1.5 else 0.0
+            val score = d + brandPenalty(p) + if (p.quality == "f" || p.quality == "d") 1.5 else 0.0
             if (score < bestScore) {
                 bestScore = score
                 best = p

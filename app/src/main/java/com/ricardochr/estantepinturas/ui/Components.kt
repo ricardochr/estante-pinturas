@@ -398,10 +398,11 @@ fun EntrySheet(
                         "f" -> "Color aproximado, tomado de la foto del producto."
                         "n" -> "Color aproximado según el nombre: no hay una muestra confiable."
                         "u" -> "Color corregido por ti."
+                        "d" -> "Color por confirmar: las fuentes no coinciden en este color. Compáralo con el bote y corrígelo si hace falta."
                         else -> "Color de muestra medida."
                     },
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (paint.quality == "f" || paint.quality == "n") MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = if (paint.quality == "f" || paint.quality == "n" || paint.quality == "d") MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.weight(1f),
                 )
                 TextButton(onClick = { fixingColor = true }) { Text("Corregir color") }

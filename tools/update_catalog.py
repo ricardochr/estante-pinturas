@@ -688,6 +688,16 @@ def severe_mismatch(hexv, name):
     return True
 
 
+def is_placeholder(hexv, name):
+    h = hexv.upper()
+    n = name.lower()
+    if h == "#FFFFFF":
+        return not re.search(r"white|blanc|clear|varnish|gloss|matt|medium|snow|ivory|thinner|primer|transparent|base", n)
+    if h == "#000000":
+        return not re.search(r"black|negro|noir|schwarz|oil|nuln|abaddon|shadow|void|night|dark|primer", n)
+    return False
+
+
 def key_code(r):
     ck = code_key(r["code"])
     return (r["brand"], ck) if ck else None
@@ -723,6 +733,10 @@ def build(args):
     hex_by_code, hex_by_name = {}, {}
     for r in mp_all_hex + mp_hex + pdx:
         if not re.match(r"^#[0-9A-F]{6}$", r.get("hex", "")):
+            continue
+        # Blanco o negro puros en una pintura que no es blanca, negra ni transparente: es un valor de relleno
+        # del conjunto de datos (paintdex lo usa cuando no tiene la muestra), no el color real
+        if is_placeholder(r["hex"], r["name"]):
             continue
         kc = key_code(r)
         if kc:
@@ -847,7 +861,10 @@ def build(args):
             if t:
                 r["hex"] = t; r["quality"] = "n"; fixed_name += 1
             continue
-        if t and (r.get("quality") == "f" or severe_mismatch(hx, r["name"])):
+        # Un color medido (de los datos abiertos o la muestra oficial) nunca se reemplaza por el típico
+        # del nombre: nombres como "Waaagh! Flesh" (verde) u "Orc Skin" engañan. Solo las estimaciones
+        # de foto que contradicen el nombre se corrigen; las medidas dudosas quedan en el reporte.
+        if t and r.get("quality") == "f":
             r["hex"] = t; r["quality"] = "n"; fixed_name += 1
         elif t:
             kept_suspicious.append(r)
