@@ -369,6 +369,7 @@ fun EntrySheet(
     var projectMenu by remember { mutableStateOf(false) }
     var thin by remember { mutableStateOf(entry?.thin ?: "") }
     var fixingColor by remember { mutableStateOf(false) }
+    var measuring by remember { mutableStateOf(false) }
     val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var qty by remember { mutableIntStateOf(entry?.qty ?: 1) }
     var notes by remember { mutableStateOf(entry?.notes ?: "") }
@@ -417,7 +418,20 @@ fun EntrySheet(
                 )
             }
             if (fixingColor) {
-                ColorFixDialog(paint.hex, onDismiss = { fixingColor = false }, onSave = { fixingColor = false; onFixColor(it) })
+                ColorFixDialog(
+                    paint.hex,
+                    onDismiss = { fixingColor = false },
+                    onSave = { fixingColor = false; onFixColor(it) },
+                    onMeasure = { fixingColor = false; measuring = true },
+                )
+            }
+            if (measuring) {
+                MeasureColorDialog(
+                    target = paint,
+                    owned = inventory,
+                    onDismiss = { measuring = false },
+                    onSave = { measuring = false; onFixColor(it) },
+                )
             }
             if (entry != null && entry.qty > 0) {
                 Surface(

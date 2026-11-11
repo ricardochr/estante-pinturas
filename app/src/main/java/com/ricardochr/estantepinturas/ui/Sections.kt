@@ -198,7 +198,7 @@ fun DilutionSection(paint: Paint) {
 
 /** Elegir el color correcto de una pintura con tono, saturación y brillo, o escribiendo el código #RRGGBB. */
 @Composable
-fun ColorFixDialog(initial: String, onDismiss: () -> Unit, onSave: (String) -> Unit) {
+fun ColorFixDialog(initial: String, onDismiss: () -> Unit, onSave: (String) -> Unit, onMeasure: (() -> Unit)? = null) {
     val hsv = remember {
         FloatArray(3).also { android.graphics.Color.colorToHSV(parseHex(initial).toInt(), it) }
     }
@@ -213,6 +213,18 @@ fun ColorFixDialog(initial: String, onDismiss: () -> Unit, onSave: (String) -> U
         title = { Text(tr("Corregir color")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (onMeasure != null) {
+                    androidx.compose.material3.Button(onClick = onMeasure, modifier = Modifier.fillMaxWidth()) {
+                        androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Default.CameraAlt, contentDescription = null)
+                        androidx.compose.foundation.layout.Spacer(Modifier.width(8.dp))
+                        Text(tr("Medir con cámara o foto"))
+                    }
+                    Text(
+                        tr("Lo más preciso: compara una muestra pintada con pinturas tuyas de color conocido. O ajústalo a mano:"),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         ColorSquare(parseHex(initial).toInt(), 44.dp)
