@@ -25,7 +25,7 @@ from collections import Counter, defaultdict
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
-from colornames import hex_to_lab, plausible, expectations  # noqa: E402
+from colornames import hex_to_lab, plausible, expectations, typical  # noqa: E402
 import update_catalog as uc  # noqa: E402
 
 CATALOG = os.path.join(ROOT, "app", "src", "main", "assets", "catalog.json")
@@ -71,8 +71,24 @@ def index(records):
         kc = uc.key_code(r)
         if kc:
             by_code[kc].append(r["hex"])
-        by_name[uc.key_name(r)].append(r["hex"])
+        by_name[uc.key_name(r)].append((uc.norm(r.get("line", "")), uc.code_key(r.get("code", "")), r["hex"]))
     return by_code, by_name
+
+
+def lookup(bc, bn, r):
+    """Color de la fuente para esta pintura: por código; por nombre solo si es la misma línea o la
+    fuente no trae código (el mismo nombre en otra línea, p. ej. "Dark Flesh" de 3rd Gen y de Quick Gen,
+    es otra pintura)."""
+    kc = uc.key_code(r)
+    if kc and bc.get(kc):
+        return bc[kc][0]
+    line, code = uc.norm(r.get("line", "")), uc.code_key(r.get("code", ""))
+    for l, c, h in bn.get(uc.key_name(r), []):
+        if (code and c and c != code):
+            continue
+        if l == line or not c or not code:
+            return h
+    return None
 
 
 def main():
@@ -93,6 +109,20 @@ def main():
     sources = {"paintdex": index(pdx), "miniature-paints": index(mp)}
 
     cat = json.load(open(CATALOG, encoding="utf-8"))
+    # 1) Colores estimados (de la foto o típicos del nombre) que sí tienen una medición en los datos
+    #    abiertos para la misma pintura (mismo código, o mismo nombre y línea): se usa la medición
+    adopted = 0
+    if args.write_flags:
+        for row in cat:
+            q = row[6] if len(row) > 6 else ""
+            if q not in ("f", "n", "d"):
+                continue
+            r = {"brand": row[0], "name": row[2], "code": row[3], "line": row[1]}
+            v = lookup(*sources["paintdex"], r) or lookup(*sources["miniature-paints"], r)
+            if v:
+                row[4] = v
+                row[6] = ""
+                adopted += 1
     status = Counter()
     by_brand = defaultdict(Counter)
     problems = []      # (ΔE, fila, colores de las fuentes)
@@ -102,13 +132,12 @@ def main():
     for row in cat:
         brand, line, name, code, hx = row[0], row[1], row[2], row[3], row[4]
         q = row[6] if len(row) > 6 else ""
-        r = {"brand": brand, "name": name, "code": code}
+        r = {"brand": brand, "name": name, "code": code, "line": line}
         found = {}
         for sname, (bc, bn) in sources.items():
-            kc = uc.key_code(r)
-            vals = (bc.get(kc) if kc else None) or bn.get(uc.key_name(r))
-            if vals:
-                found[sname] = vals[0]
+            v = lookup(bc, bn, r)
+            if v:
+                found[sname] = v
         if hx.upper() == "#888888":
             st = "sin_color"
         else:
@@ -137,13 +166,25 @@ def main():
         # Dudosas: el color no se parece a ninguna fuente, o contradice el nombre y nadie más lo confirma
         bad = {(r[0], r[1], r[2], r[3]) for r in against_all}
         bad |= {(r[0], r[1], r[2], r[3]) for r in name_bad if (r[0], r[1], r[2], r[3]) in unconfirmed}
+        renamed = 0
         for row in cat:
             if (row[0], row[1], row[2], row[3]) in bad:
                 while len(row) < 7:
                     row.append("")
-                if row[6] in ("", "f"):
+                if row[6] not in ("", "f"):
+                    continue
+                # Sin segunda fuente y el color contradice de lleno el nombre (un "Yellow" casi blanco, un
+                # "Blue" amarillo): el dato está corrido; mejor el color típico del nombre, marcado como aproximado
+                key = (row[0], row[1], row[2], row[3])
+                t = typical(row[2])
+                if key in unconfirmed and t and uc.severe_mismatch(row[4], row[2]):
+                    row[4] = t
+                    row[6] = "n"
+                    renamed += 1
+                else:
                     row[6] = "d"
                     flagged += 1
+        print(f"Reemplazadas por el color típico del nombre: {renamed}")
         with open(CATALOG, "w", encoding="utf-8") as f:
             json.dump(cat, f, ensure_ascii=False, separators=(",", ":"))
 
@@ -155,7 +196,8 @@ def main():
     for k in ["coincide", "discrepa", "contradice", "sin_contraste", "sin_color"]:
         lines.append(f"| {labels[k]} | {status[k]} |")
     lines += ["", f"Color que contradice el nombre: {len(name_bad)}",
-              f"No se parece a ninguna fuente: {len(against_all)}", f"Marcadas como dudosas en la app: {flagged}", "",
+              f"No se parece a ninguna fuente: {len(against_all)}", f"Marcadas como dudosas en la app: {flagged}",
+              f"Estimaciones reemplazadas por una medición de los datos abiertos: {adopted}", "",
               "## Por marca", "", "| Marca | Coincide | Moderada | Contradice | Sin 2.ª fuente | Sin color |", "|---|---:|---:|---:|---:|---:|"]
     for b in sorted(by_brand):
         c = by_brand[b]
