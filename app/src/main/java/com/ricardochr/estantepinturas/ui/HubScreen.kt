@@ -39,6 +39,7 @@ import androidx.compose.material.icons.rounded.ShoppingCart
 import androidx.compose.material.icons.rounded.Sync
 import androidx.compose.material.icons.rounded.TravelExplore
 import androidx.compose.material.icons.rounded.Widgets
+import androidx.compose.material.icons.rounded.WbSunny
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -58,7 +59,7 @@ import com.ricardochr.estantepinturas.MainViewModel
 
 /** Acciones que abre el Taller; cada una la resuelve la pantalla principal. */
 enum class HubAction {
-    Compare, Wheel, Schemes, Gaps, Guide, Gear,
+    Compare, Light, Wheel, Schemes, Gaps, Guide, Gear,
     Shopping, Sets, Find, AddCustom,
     UpdateCatalog, Backup, ExportInventory, ImportInventory,
     ImportCatalog, ExportCatalog, ClearImported, About,
@@ -95,6 +96,7 @@ fun HubScreen(vm: MainViewModel, onAction: (HubAction) -> Unit) {
 
     val paint = listOf(
         HubTile(HubAction.Compare, Icons.Rounded.Layers, tr("Superponer referencia"), tr("Compara tu figura con una foto"), Pigment.Magenta),
+        HubTile(HubAction.Light, Icons.Rounded.WbSunny, tr("Luz y sombra"), tr("Ilumina tu figura en 3D o en fotos"), Pigment.Gold),
         HubTile(HubAction.Wheel, Icons.Rounded.ColorLens, tr("Círculo cromático"), tr("Armonías con tus pinturas"), Pigment.Violet),
         HubTile(HubAction.Schemes, Icons.Rounded.AutoAwesome, tr("Esquemas de color"), tr("Arma una paleta sin foto"), Pigment.Cobalt),
         HubTile(HubAction.Gaps, Icons.Rounded.GridView, tr("Huecos de tu colección"), tr("Qué tonos te faltan"), Pigment.Emerald),

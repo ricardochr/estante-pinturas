@@ -81,4 +81,6 @@ dependencies {
     implementation("com.google.mlkit:barcode-scanning:17.3.0")
     implementation("com.google.mlkit:text-recognition:16.0.1")
     implementation("androidx.exifinterface:exifinterface:1.3.7")
+    // Modelo de profundidad para "Luz y sombra" con fotos (el modelo se descarga aparte)
+    implementation("com.microsoft.onnxruntime:onnxruntime-android:1.20.0")
 }

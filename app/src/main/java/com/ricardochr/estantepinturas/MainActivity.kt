@@ -168,6 +168,7 @@ private fun App(vm: MainViewModel = viewModel()) {
     var showBackup by rememberSaveable { mutableStateOf(false) }
     var showGear by rememberSaveable { mutableStateOf(false) }
     var showCompare by rememberSaveable { mutableStateOf(false) }
+    var showLight by rememberSaveable { mutableStateOf(false) }
     var showSets by rememberSaveable { mutableStateOf(false) }
     var showGuide by rememberSaveable { mutableStateOf(false) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
@@ -206,6 +207,7 @@ private fun App(vm: MainViewModel = viewModel()) {
     val hubAction: (HubAction) -> Unit = { action ->
         when (action) {
                         HubAction.Compare -> showCompare = true
+                        HubAction.Light -> showLight = true
                         HubAction.Wheel -> showWheel = true
                         HubAction.Schemes -> showSchemes = true
                         HubAction.Gaps -> showGaps = true
@@ -326,7 +328,7 @@ private fun App(vm: MainViewModel = viewModel()) {
                 Tab.Escanear -> ScanScreen(
                     vm,
                     active = linking == null && editing == null && !creating && storage == null && liveFind == null &&
-                        openProject == null && !showShopping && !showBackup && !showGear && !showSets && !showCompare && !showWheel && !showGuide && !showSettings && !showSchemes && !showGaps && wheelFor == null,
+                        openProject == null && !showShopping && !showBackup && !showGear && !showSets && !showCompare && !showLight && !showWheel && !showGuide && !showSettings && !showSchemes && !showGaps && wheelFor == null,
                     onLinkBarcode = { linking = it },
                     onNotFound = { goCatalog() },
                     onAdded = { say(it) },
@@ -454,6 +456,10 @@ private fun App(vm: MainViewModel = viewModel()) {
 
     if (showSets) {
         com.ricardochr.estantepinturas.ui.SetsScreen(vm, onClose = { showSets = false }, onOpenPaint = { editing = it }, say = { say(it) })
+    }
+
+    if (showLight) {
+        com.ricardochr.estantepinturas.ui.LightScreen(onClose = { showLight = false })
     }
 
     if (showCompare) {
