@@ -132,7 +132,7 @@ private class CountingStream(input: InputStream, private val onBytes: (Long) -> 
 }
 
 /** Abre un flujo nuevo cada vez: el archivo se lee en varias pasadas. */
-private class Source(val name: String, val size: Long, val opener: () -> InputStream)
+private class MeshSource(val name: String, val size: Long, val opener: () -> InputStream)
 
 private enum class MeshFormat { STL_BINARY, STL_ASCII, OBJ }
 
@@ -186,7 +186,7 @@ private class Clusterer(private val b: Bounds, cells: Long) {
 
 // ---------------------------------------------------------------- lectura
 
-private fun detect(src: Source): MeshFormat {
+private fun detect(src: MeshSource): MeshFormat {
     val lower = src.name.lowercase()
     if (lower.endsWith(".obj")) return MeshFormat.OBJ
     val head = ByteArray(512)
@@ -299,7 +299,7 @@ private fun readObj(input: InputStream, onVertex: (Float, Float, Float) -> Unit,
  * Lee el modelo y lo deja listo para dibujar.
  * @param progress fase ("Midiendo", "Leyendo", "Preparando") y avance 0–1.
  */
-private fun loadSource(src: Source, progress: (String, Float) -> Unit): MeshData {
+private fun loadSource(src: MeshSource, progress: (String, Float) -> Unit): MeshData {
     val format = detect(src)
     val total = src.size.coerceAtLeast(1)
     fun counted(phase: String): InputStream = CountingStream(src.opener()) { progress(phase, (it.toFloat() / total).coerceIn(0f, 1f)) }
@@ -478,7 +478,7 @@ fun zipPartsOf(context: Context, uri: Uri): Pair<File, List<ZipPart>>? {
 /** Carga un STL u OBJ suelto. */
 fun loadMeshFromUri(context: Context, uri: Uri, progress: (String, Float) -> Unit): MeshData {
     val (name, size) = displayName(context, uri)
-    val src = Source(name, size) { context.contentResolver.openInputStream(uri) ?: throw MeshLoadException(tr("No pude abrir el archivo.")) }
+    val src = MeshSource(name, size) { context.contentResolver.openInputStream(uri) ?: throw MeshLoadException(tr("No pude abrir el archivo.")) }
     return loadSource(src, progress)
 }
 
@@ -487,7 +487,7 @@ fun loadMeshFromZip(zip: File, part: ZipPart, progress: (String, Float) -> Unit)
     val z = ZipFile(zip)
     try {
         val entry = z.getEntry(part.name) ?: throw MeshLoadException(tr("No encontré la pieza en el ZIP."))
-        val src = Source(part.name.substringAfterLast('/'), entry.size) { z.getInputStream(entry) }
+        val src = MeshSource(part.name.substringAfterLast('/'), entry.size) { z.getInputStream(entry) }
         return loadSource(src, progress)
     } finally {
         z.close()
