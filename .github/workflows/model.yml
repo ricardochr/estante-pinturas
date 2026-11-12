@@ -1,0 +1,52 @@
+name: Modelo de profundidad
+
+# Publica el modelo de profundidad (Depth Anything V2 Small, ONNX cuantizado) en una release propia.
+# La app lo descarga la primera vez que se usa "Luz y sombra" con fotos.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/model.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  model:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Descargar y probar
+        run: |
+          pip install -q huggingface_hub onnx onnxruntime numpy
+          python - <<'EOF'
+          from huggingface_hub import list_repo_files, hf_hub_download
+          import onnxruntime as ort, numpy as np, shutil, os
+          repo = "onnx-community/depth-anything-v2-small"
+          files = list_repo_files(repo)
+          print("\n".join(f for f in files if f.endswith(".onnx")))
+          path = hf_hub_download(repo, "onnx/model_quantized.onnx")
+          os.makedirs("dist", exist_ok=True)
+          shutil.copy(path, "dist/depth-v2-small-q8.onnx")
+          print("tamaño MB", os.path.getsize(path) / 1e6)
+          s = ort.InferenceSession(path, providers=["CPUExecutionProvider"])
+          for i in s.get_inputs(): print("IN", i.name, i.shape, i.type)
+          for o in s.get_outputs(): print("OUT", o.name, o.shape, o.type)
+          for h, w in [(392, 294), (518, 518)]:
+              x = np.random.rand(1, 3, h, w).astype(np.float32)
+              y = s.run(None, {s.get_inputs()[0].name: x})[0]
+              print("prueba", (h, w), "->", y.shape, float(y.min()), float(y.max()))
+          EOF
+
+      - name: Publicar
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: model-depth-v1
+          name: Modelo de profundidad v1
+          body: Depth Anything V2 Small (Apache-2.0), ONNX cuantizado de onnx-community. Lo descarga la app al usar Luz y sombra con fotos.
+          files: dist/depth-v2-small-q8.onnx
+          make_latest: "false"
