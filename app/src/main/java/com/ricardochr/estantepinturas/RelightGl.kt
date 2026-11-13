@@ -27,7 +27,18 @@ data class LightParams(
     val zones: Int = 0,
     /** Colores de las zonas (de oscuro a claro) tomados de las pinturas de un esquema; null = grises. */
     val zonePalette: IntArray? = null,
+    /** Segunda luz (relleno, contraluz o luz de color para OSL), sin sombras propias. Intensidad 0 = apagada. */
+    val azimuth2: Float = 200f,
+    val elevation2: Float = 15f,
+    val color2: FloatArray = floatArrayOf(1f, 0.55f, 0.2f),
+    val intensity2: Float = 0f,
 ) {
+    fun direction2(): FloatArray {
+        val az = Math.toRadians(azimuth2.toDouble())
+        val el = Math.toRadians(elevation2.toDouble())
+        return floatArrayOf((sin(az) * cos(el)).toFloat(), sin(el).toFloat(), (cos(az) * cos(el)).toFloat())
+    }
+
     fun zoneColorsFor(): IntArray = zonePalette?.takeIf { it.size == (if (zones == 3) 3 else 5) } ?: zoneColors(if (zones == 3) 3 else 5)
 
     /** Dirección hacia la luz en el sistema de la figura (X derecha, Y arriba, Z hacia quien mira de frente). */
@@ -40,9 +51,10 @@ data class LightParams(
     override fun equals(other: Any?): Boolean =
         other is LightParams && azimuth == other.azimuth && elevation == other.elevation && ambient == other.ambient &&
             cavity == other.cavity && color.contentEquals(other.color) && zones == other.zones &&
-            (zonePalette?.contentEquals(other.zonePalette) ?: (other.zonePalette == null))
+            (zonePalette?.contentEquals(other.zonePalette) ?: (other.zonePalette == null)) &&
+            azimuth2 == other.azimuth2 && elevation2 == other.elevation2 && color2.contentEquals(other.color2) && intensity2 == other.intensity2
 
-    override fun hashCode(): Int = arrayOf<Any>(azimuth, elevation, ambient, cavity, color.contentHashCode(), zones, zonePalette?.contentHashCode() ?: 0).contentHashCode()
+    override fun hashCode(): Int = arrayOf<Any>(azimuth, elevation, ambient, cavity, color.contentHashCode(), zones, zonePalette?.contentHashCode() ?: 0, azimuth2, elevation2, color2.contentHashCode(), intensity2).contentHashCode()
 }
 
 /** Límites de cada zona (intensidad de luz 0–1) y su tono para el mapa de zonas. */
@@ -74,6 +86,9 @@ class RelightRenderer(private val requestRender: () -> Unit) : GLSurfaceView.Ren
     @Volatile var turnsY = 0
     @Volatile var turnsX = 0
     @Volatile var albedo = floatArrayOf(0.62f, 0.62f, 0.63f)
+    /** Si no es null, el próximo cuadro se copia a una imagen y se entrega aquí (desde el hilo de dibujo). */
+    @Volatile var captureNext: ((android.graphics.Bitmap) -> Unit)? = null
+
     /** Se llama (desde el hilo de dibujo) si la malla no cabe en la memoria de video. */
     @Volatile var onUploadError: (() -> Unit)? = null
 
@@ -229,6 +244,9 @@ class RelightRenderer(private val requestRender: () -> Unit) : GLSurfaceView.Ren
         GLES30.glUniformMatrix4fv(u("uLightMVP"), 1, false, lightMVP, 0)
         GLES30.glUniform3f(u("uLightDir"), l[0], l[1], l[2])
         GLES30.glUniform3f(u("uLightColor"), lp.color[0], lp.color[1], lp.color[2])
+        val l2 = lp.direction2()
+        GLES30.glUniform3f(u("uLight2Dir"), l2[0], l2[1], l2[2])
+        GLES30.glUniform3f(u("uLight2Color"), lp.color2[0] * lp.intensity2, lp.color2[1] * lp.intensity2, lp.color2[2] * lp.intensity2)
         GLES30.glUniform3f(u("uAlbedo"), albedo[0], albedo[1], albedo[2])
         GLES30.glUniform1f(u("uAmbient"), lp.ambient)
         GLES30.glUniform1f(u("uCavity"), lp.cavity)
@@ -250,6 +268,19 @@ class RelightRenderer(private val requestRender: () -> Unit) : GLSurfaceView.Ren
         GLES30.glUniform1i(u("uShadow"), 0)
         bindAttribs()
         GLES30.glDrawElements(GLES30.GL_TRIANGLES, indexCount, GLES30.GL_UNSIGNED_INT, 0)
+        captureNext?.let { cb ->
+            captureNext = null
+            val buf = ByteBuffer.allocateDirect(width * height * 4).order(ByteOrder.nativeOrder())
+            GLES30.glReadPixels(0, 0, width, height, GLES30.GL_RGBA, GLES30.GL_UNSIGNED_BYTE, buf)
+            val bmp = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
+            buf.rewind()
+            bmp.copyPixelsFromBuffer(buf)
+            // OpenGL entrega las filas de abajo hacia arriba
+            val m = android.graphics.Matrix().apply { postScale(1f, -1f) }
+            val flipped = android.graphics.Bitmap.createBitmap(bmp, 0, 0, width, height, m, false)
+            if (flipped !== bmp) bmp.recycle()
+            cb(flipped)
+        }
     }
 
     private fun program(vs: String, fs: String): Int {
@@ -304,6 +335,8 @@ in vec4 vShadow;
 in float vCav;
 uniform vec3 uLightDir;
 uniform vec3 uLightColor;
+uniform vec3 uLight2Dir;
+uniform vec3 uLight2Color;
 uniform vec3 uAlbedo;
 uniform float uAmbient;
 uniform float uCavity;
@@ -335,7 +368,9 @@ void main() {
     float sky = 0.65 + 0.35 * n.y;
     float direct = (1.0 - uAmbient) * diff * sh;
     float amb = uAmbient * ao * sky;
-    float intensity = direct + amb * 1.4;
+    float fill = max(dot(n, normalize(uLight2Dir)), 0.0);
+    vec3 second = uLight2Color * fill;
+    float intensity = direct + amb * 1.4 + dot(second, vec3(0.2126, 0.7152, 0.0722));
     if (uZones > 0) {
         int z;
         if (uZones == 3) z = intensity < uThresh.x ? 0 : (intensity < uThresh.y ? 1 : 2);
@@ -343,7 +378,7 @@ void main() {
         outColor = vec4(uZoneColors[z], 1.0);
         return;
     }
-    vec3 c = uAlbedo * (uLightColor * direct + vec3(amb)) * 1.25;
+    vec3 c = uAlbedo * (uLightColor * direct + vec3(amb) + second) * 1.25;
     // Directo a pantalla con corrección gamma y un tope suave para que la luz máxima no se queme
     c = c / (1.0 + 0.25 * c);
     outColor = vec4(pow(c, vec3(1.0 / 2.2)), 1.0);

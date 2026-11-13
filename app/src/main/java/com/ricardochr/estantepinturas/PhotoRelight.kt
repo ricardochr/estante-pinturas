@@ -486,6 +486,12 @@ class PhotoScene(
         val lx = lw[0] * c - lw[2] * s
         val ly = lw[1]
         val lz = lw[0] * s + lw[2] * c
+        val l2 = light.direction2()
+        val l2x = l2[0] * c - l2[2] * s
+        val l2y = l2[1]
+        val l2z = l2[0] * s + l2[2] * c
+        val c2 = light.color2
+        val i2 = light.intensity2
 
         // Sombras proyectadas a baja resolución: desde cada punto se avanza hacia la luz por el relieve
         val shadow = FloatArray(n) { 1f }
@@ -538,8 +544,9 @@ class PhotoScene(
                 val sky = 0.65f + 0.35f * ay
                 val direct = (1f - light.ambient) * diff * sh
                 val amb = light.ambient * occl * sky
+                val fill = if (i2 > 0f) max(ax * l2x + ay * l2y + az * l2z, 0f) * i2 else 0f
                 if (zones > 0) {
-                    val intensity = direct + amb * 1.4f
+                    val intensity = direct + amb * 1.4f + fill * (0.2126f * c2[0] + 0.7152f * c2[1] + 0.0722f * c2[2])
                     var z = 0
                     while (z < th.size && intensity >= th[z]) z++
                     out[i] = zc[z]
@@ -554,11 +561,11 @@ class PhotoScene(
                     ar = 0.62f * dt; ag = 0.62f * dt; ab = 0.63f * dt
                 }
                 val k = if (look == PhotoLook.FOTO) 1.9f else 1.25f
-                fun tone(albedo: Float, lc: Float): Int {
-                    val v = albedo * (lc * direct + amb) * k
+                fun tone(albedo: Float, lc: Float, l2c: Float): Int {
+                    val v = albedo * (lc * direct + amb + l2c * fill) * k
                     return enc(v / (1f + 0.25f * v))
                 }
-                out[i] = (0xFF shl 24) or (tone(ar, light.color[0]) shl 16) or (tone(ag, light.color[1]) shl 8) or tone(ab, light.color[2])
+                out[i] = (0xFF shl 24) or (tone(ar, light.color[0], c2[0]) shl 16) or (tone(ag, light.color[1], c2[1]) shl 8) or tone(ab, light.color[2], c2[2])
             }
         }
         return Bitmap.createBitmap(out, W, H, Bitmap.Config.ARGB_8888)

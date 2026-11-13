@@ -459,7 +459,14 @@ private fun App(vm: MainViewModel = viewModel()) {
     }
 
     if (showLight) {
-        com.ricardochr.estantepinturas.ui.LightScreen(projects = vm.projects, byId = vm.byId, onClose = { showLight = false })
+        com.ricardochr.estantepinturas.ui.LightScreen(
+            projects = vm.projects,
+            byId = vm.byId,
+            onSaveToProject = { pid, bmp, caption ->
+                vm.addProgressBitmap(pid, bmp, caption) { ok -> if (!ok) say(tr("No pude guardar la imagen en el proyecto")) }
+            },
+            onClose = { showLight = false },
+        )
     }
 
     if (showCompare) {

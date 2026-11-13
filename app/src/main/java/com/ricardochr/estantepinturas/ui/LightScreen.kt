@@ -122,6 +122,34 @@ private class PhotoSlot(val photo: Bitmap) {
     var status by mutableStateOf<String?>(null)
 }
 
+/** Colores de la segunda luz: relleno blanco o luces de color para practicar OSL. */
+private enum class Light2Color(val label: String, val rgb: FloatArray) {
+    FUEGO("Fuego", floatArrayOf(1f, 0.5f, 0.15f)),
+    BLANCA("Blanca", floatArrayOf(1f, 1f, 1f)),
+    AZUL("Azul", floatArrayOf(0.3f, 0.6f, 1f)),
+    VERDE("Verde", floatArrayOf(0.35f, 1f, 0.4f)),
+    MORADA("Morada", floatArrayOf(0.75f, 0.35f, 1f)),
+}
+
+/** Guarda la imagen en la galería (Imágenes/Gotario). Devuelve false si no se pudo. */
+private fun saveToGallery(context: android.content.Context, bmp: Bitmap, name: String): Boolean = try {
+    val resolver = context.contentResolver
+    if (android.os.Build.VERSION.SDK_INT >= 29) {
+        val values = android.content.ContentValues().apply {
+            put(android.provider.MediaStore.Images.Media.DISPLAY_NAME, "$name.png")
+            put(android.provider.MediaStore.Images.Media.MIME_TYPE, "image/png")
+            put(android.provider.MediaStore.Images.Media.RELATIVE_PATH, "Pictures/Gotario")
+        }
+        val uri = resolver.insert(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+        uri != null && (resolver.openOutputStream(uri)?.use { bmp.compress(Bitmap.CompressFormat.PNG, 100, it) } ?: false)
+    } else {
+        @Suppress("DEPRECATION")
+        android.provider.MediaStore.Images.Media.insertImage(resolver, bmp, name, null) != null
+    }
+} catch (_: Exception) {
+    false
+}
+
 private enum class LightTemp(val label: String, val rgb: FloatArray) {
     CALIDA("Cálida", floatArrayOf(1f, 0.82f, 0.62f)),
     NEUTRA("Neutra", floatArrayOf(1f, 1f, 1f)),
@@ -137,6 +165,7 @@ private enum class LightTemp(val label: String, val rgb: FloatArray) {
 fun LightScreen(
     projects: List<com.ricardochr.estantepinturas.Project> = emptyList(),
     byId: Map<String, com.ricardochr.estantepinturas.Paint> = emptyMap(),
+    onSaveToProject: (projectId: String, bmp: Bitmap, caption: String) -> Unit = { _, _, _ -> },
     onClose: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -156,7 +185,10 @@ fun LightScreen(
     var schemeIndex by rememberSaveable { mutableIntStateOf(0) }
     val schemeZonesList = schemeProjects.firstOrNull { it.first.id == schemeProjectId }?.second
     val schemeZone = schemeZonesList?.getOrNull(schemeIndex)
-    val light = LightParams(azimuth, elevation, ambient, cavity, temp.rgb, zones, if (zones > 0) schemeZone?.palette(zones) else null)
+    val light = LightParams(
+        azimuth, elevation, ambient, cavity, temp.rgb, zones, if (zones > 0) schemeZone?.palette(zones) else null,
+        azimuth2 = az2, elevation2 = el2, color2 = Light2Color.entries[color2].rgb, intensity2 = if (light2On) int2 else 0f,
+    )
 
     // ---- 3D
     val glHolder = remember { arrayOfNulls<GLSurfaceView>(1) }
@@ -166,7 +198,16 @@ fun LightScreen(
     var loadPhase by remember { mutableStateOf<String?>(null) }
     var loadProgress by remember { mutableFloatStateOf(0f) }
     var meshError by remember { mutableStateOf<String?>(null) }
-    var zipChoice by remember { mutableStateOf<Pair<File, List<ZipPart>>?>(null) }
+    var zipChoice by remember { mutableStateOf<Triple<File, List<ZipPart>, Uri>?>(null) }
+    // Archivo del modelo abierto: si la pantalla se recrea (giro, memoria) se vuelve a abrir solo
+    var openFile by rememberSaveable { mutableStateOf<String?>(null) }
+    var light2On by rememberSaveable { mutableStateOf(false) }
+    var az2 by rememberSaveable { mutableFloatStateOf(200f) }
+    var el2 by rememberSaveable { mutableFloatStateOf(15f) }
+    var int2 by rememberSaveable { mutableFloatStateOf(0.6f) }
+    var color2 by rememberSaveable { mutableIntStateOf(0) }
+    var exportMsg by remember { mutableStateOf<String?>(null) }
+    var projectMenu by remember { mutableStateOf(false) }
     val prefs = remember { context.getSharedPreferences("luz", android.content.Context.MODE_PRIVATE) }
     val bigMemory = remember {
         val am = context.getSystemService(android.content.Context.ACTIVITY_SERVICE) as android.app.ActivityManager
@@ -188,8 +229,12 @@ fun LightScreen(
     }
     LaunchedEffect(light) { renderer.light = light }
     LaunchedEffect(mesh) { renderer.mesh = mesh }
+    LaunchedEffect(Unit) {
+        val f = openFile
+        if (mesh == null && f != null && File(f).exists()) runLoad(save = false) { _ -> loadSavedMesh(File(f)) }
+    }
 
-    fun runLoad(block: ((String, Float) -> Unit) -> MeshData) {
+    fun runLoad(save: Boolean = true, block: ((String, Float) -> Unit) -> MeshData) {
         meshError = null
         loadPhase = tr("Abriendo")
         loadProgress = 0f
@@ -197,8 +242,8 @@ fun LightScreen(
             val result = withContext(Dispatchers.Default) {
                 try {
                     val m = block { phase, p -> scope.launch(Dispatchers.Main) { loadPhase = tr(phase); loadProgress = p } }
-                    try { saveMesh(context, m) } catch (_: Exception) { }
-                    Result.success(m)
+                    val file = if (save) try { saveMesh(context, m) } catch (_: Exception) { null } else null
+                    Result.success(m to file)
                 } catch (e: MeshLoadException) {
                     Result.failure(e)
                 } catch (e: OutOfMemoryError) {
@@ -208,8 +253,9 @@ fun LightScreen(
                 }
             }
             loadPhase = null
-            result.onSuccess {
-                mesh = it
+            result.onSuccess { (m, file) ->
+                mesh = m
+                if (file != null) openFile = file.absolutePath
                 renderer.turnsX = 0; renderer.turnsY = 0; renderer.yaw = 0f; renderer.pitch = 12f; renderer.distance = 4.4f
                 saved = withContext(Dispatchers.IO) { savedMeshes(context) }
             }.onFailure { meshError = tr(it.message ?: tr("No pude leer el modelo.")) }
@@ -218,6 +264,8 @@ fun LightScreen(
 
     val openModel = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
         if (uri == null) return@rememberLauncherForActivityResult
+        // Permiso duradero para poder reabrir el archivo con otra calidad más adelante
+        try { context.contentResolver.takePersistableUriPermission(uri, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION) } catch (_: Exception) { }
         meshError = null
         loadPhase = tr("Abriendo")
         scope.launch {
@@ -229,8 +277,8 @@ fun LightScreen(
             zip.onSuccess { z ->
                 when {
                     z == null -> runLoad { p -> loadMeshFromUri(context, uri, quality, p) }
-                    z.second.size == 1 -> runLoad { p -> loadMeshFromZip(z.first, z.second[0], quality, p) }
-                    else -> zipChoice = z
+                    z.second.size == 1 -> runLoad { p -> loadMeshFromZip(z.first, z.second, quality, uri.toString(), p) }
+                    else -> zipChoice = Triple(z.first, z.second, uri)
                 }
             }
         }
@@ -366,6 +414,7 @@ fun LightScreen(
                                 factory = { ctx ->
                                     GLSurfaceView(ctx).apply {
                                         setEGLContextClientVersion(3)
+                                        preserveEGLContextOnPause = true
                                         setRenderer(renderer)
                                         renderMode = GLSurfaceView.RENDERMODE_WHEN_DIRTY
                                         glHolder[0] = this
@@ -491,6 +540,75 @@ fun LightScreen(
                     }
                     LabeledSlider(tr("Luz ambiental"), ambient, 0.03f..0.6f) { ambient = it }
                     LabeledSlider(tr("Oscurecer huecos"), cavity, 0f..1f) { cavity = it }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text(tr("Segunda luz"), style = MaterialTheme.typography.titleSmall)
+                            Text(
+                                tr("Relleno, luz de borde o de color (OSL). No proyecta sombras."),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        androidx.compose.material3.Switch(checked = light2On, onCheckedChange = { light2On = it })
+                    }
+                    if (light2On) {
+                        androidx.compose.foundation.lazy.LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            items(Light2Color.entries.size) { i ->
+                                val c = Light2Color.entries[i]
+                                FilterChip(
+                                    selected = color2 == i,
+                                    onClick = { color2 = i },
+                                    leadingIcon = {
+                                        Box(Modifier.size(14.dp).clip(RoundedCornerShape(7.dp)).background(Color(c.rgb[0].coerceIn(0f, 1f), c.rgb[1].coerceIn(0f, 1f), c.rgb[2].coerceIn(0f, 1f))))
+                                    },
+                                    label = { Text(tr(c.label)) },
+                                )
+                            }
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                            LightPad(az2, el2, Modifier.size(110.dp)) { a, e -> az2 = a; el2 = e }
+                            Column(Modifier.weight(1f)) {
+                                Text(describeLight(az2, el2), style = MaterialTheme.typography.bodySmall)
+                                LabeledSlider(tr("Fuerza"), int2, 0.05f..1.5f) { int2 = it }
+                            }
+                        }
+                    }
+                    // Exportar la vista actual
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        fun withImage(use: (Bitmap) -> Unit) {
+                            if (tab == 0) {
+                                if (mesh == null) return
+                                renderer.captureNext = { b -> scope.launch(Dispatchers.Main) { use(b) } }
+                                glHolder[0]?.requestRender()
+                            } else {
+                                rendered?.let(use)
+                            }
+                        }
+                        val canExport = if (tab == 0) mesh != null else rendered != null
+                        OutlinedButton(onClick = {
+                            withImage { b ->
+                                scope.launch {
+                                    val ok = withContext(Dispatchers.IO) { saveToGallery(context, b, "luz-${System.currentTimeMillis()}") }
+                                    exportMsg = if (ok) tr("Imagen guardada en la galería (Gotario).") else tr("No pude guardar la imagen en la galería.")
+                                }
+                            }
+                        }, enabled = canExport) { Text(tr("Guardar imagen")) }
+                        Box {
+                            OutlinedButton(onClick = { projectMenu = true }, enabled = canExport && projects.isNotEmpty()) { Text(tr("A un proyecto")) }
+                            androidx.compose.material3.DropdownMenu(expanded = projectMenu, onDismissRequest = { projectMenu = false }) {
+                                projects.forEach { pr ->
+                                    androidx.compose.material3.DropdownMenuItem(text = { Text(pr.name) }, onClick = {
+                                        projectMenu = false
+                                        withImage { b ->
+                                            onSaveToProject(pr.id, b, tr("Luz y sombra: {}", describeLight(azimuth, elevation)))
+                                            exportMsg = tr("Guardada en las fotos de avance de {}", pr.name)
+                                        }
+                                    })
+                                }
+                            }
+                        }
+                    }
+                    exportMsg?.let { Text(it, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary) }
 
                     if (tab == 0) {
                         mesh?.let { m ->
@@ -546,13 +664,26 @@ fun LightScreen(
                             saved.forEach { sm ->
                                 Row(
                                     Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).clickable(enabled = loadPhase == null) {
-                                        runLoad { _ -> loadSavedMesh(sm.file) }
+                                        openFile = sm.file.absolutePath
+                                        runLoad(save = false) { _ -> loadSavedMesh(sm.file) }
                                     }.padding(vertical = 4.dp, horizontal = 4.dp),
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
                                     Column(Modifier.weight(1f)) {
                                         Text(sm.name, style = MaterialTheme.typography.bodyMedium, maxLines = 1)
-                                        Text(tr("{} triángulos", "%,d".format(sm.triangles)), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        val q = MeshQuality.entries.firstOrNull { it.name == sm.quality }
+                                        Text(
+                                            tr("{} triángulos", "%,d".format(sm.triangles)) + (q?.let { " · " + tr(it.label) } ?: ""),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                        val better = sm.sourceUri.isNotBlank() && sm.sourceTriangles > sm.triangles &&
+                                            (q == null || quality.ordinal > q.ordinal)
+                                        if (better) {
+                                            TextButton(onClick = {
+                                                runLoad { p -> com.ricardochr.estantepinturas.reopenMesh(context, sm, quality, p) }
+                                            }, enabled = loadPhase == null) { Text(tr("Reabrir en calidad {}", tr(quality.label))) }
+                                        }
                                     }
                                     IconButton(onClick = {
                                         sm.file.delete()
@@ -635,21 +766,42 @@ fun LightScreen(
         }
     }
 
-    DisposableEffect(Unit) { onDispose { glHolder[0]?.onPause(); glHolder[0] = null } }
+    // Pausa y reanuda el dibujo con la app; si el sistema destruye el contexto, el renderer vuelve a subir la malla
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val obs = androidx.lifecycle.LifecycleEventObserver { _, e ->
+            when (e) {
+                androidx.lifecycle.Lifecycle.Event.ON_PAUSE -> glHolder[0]?.onPause()
+                androidx.lifecycle.Lifecycle.Event.ON_RESUME -> { glHolder[0]?.onResume(); glHolder[0]?.requestRender() }
+                else -> {}
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(obs)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(obs)
+            glHolder[0]?.onPause()
+            glHolder[0] = null
+        }
+    }
 
-    zipChoice?.let { (file, parts) ->
+    zipChoice?.let { (file, parts, zipUri) ->
+        val chosen = remember(parts) { mutableStateMapOf<String, Boolean>().also { m -> parts.forEach { m[it.name] = false } } }
         AlertDialog(
             onDismissRequest = { zipChoice = null },
-            title = { Text(tr("¿Qué pieza abro?")) },
+            title = { Text(tr("¿Qué piezas abro?")) },
             text = {
                 Column(Modifier.verticalScroll(rememberScrollState())) {
+                    Text(
+                        tr("Marca varias para verlas juntas (por ejemplo, cuerpo, brazos y cabeza)."),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                     parts.forEach { p ->
                         Row(
-                            Modifier.fillMaxWidth().clickable {
-                                zipChoice = null
-                                runLoad { pr -> loadMeshFromZip(file, p, quality, pr) }
-                            }.padding(vertical = 8.dp),
+                            Modifier.fillMaxWidth().clickable { chosen[p.name] = chosen[p.name] != true }.padding(vertical = 2.dp),
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
+                            androidx.compose.material3.Checkbox(checked = chosen[p.name] == true, onCheckedChange = { chosen[p.name] = it })
                             Text(p.name.substringAfterLast('/'), modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
                             // i18n:off
                             Text(if (p.size > 0) String.format("%.1f MB", p.size / 1e6) else "", style = MaterialTheme.typography.labelSmall)
@@ -658,7 +810,14 @@ fun LightScreen(
                     }
                 }
             },
-            confirmButton = { TextButton(onClick = { zipChoice = null }) { Text(tr("Cancelar")) } },
+            confirmButton = {
+                val sel = parts.filter { chosen[it.name] == true }
+                TextButton(onClick = {
+                    zipChoice = null
+                    runLoad { pr -> loadMeshFromZip(file, sel, quality, zipUri.toString(), pr) }
+                }, enabled = sel.isNotEmpty()) { Text(tr("Abrir {}", sel.size)) }
+            },
+            dismissButton = { TextButton(onClick = { zipChoice = null }) { Text(tr("Cancelar")) } },
         )
     }
 }

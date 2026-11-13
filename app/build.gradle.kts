@@ -60,6 +60,7 @@ android {
     testOptions {
         // Las pruebas de cálculos no usan Android; si algo lo toca por accidente, devuelve valores neutros
         unitTests.isReturnDefaultValues = true
+        unitTests.all { it.testLogging { showStandardStreams = true; events("passed", "failed") } }
     }
 }
 

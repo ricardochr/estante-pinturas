@@ -38,13 +38,24 @@ class MeshData(
     val indices: IntArray,
     /** Triángulos del archivo original, antes de simplificar. */
     val sourceTriangles: Long,
+    /** Calidad con que se abrió ([MeshQuality.name]); vacío si no se sabe. */
+    val quality: String = "",
+    /** De dónde salió, para reabrirlo con otra calidad: uri del archivo, o "zip:uri#pieza|pieza". */
+    val sourceUri: String = "",
 ) {
     val vertexCount: Int get() = positions.size / 3
     val triangleCount: Int get() = indices.size / 3
 }
 
 /** Modelo guardado en la app. */
-data class SavedMesh(val file: File, val name: String, val triangles: Int, val sourceTriangles: Long)
+data class SavedMesh(
+    val file: File,
+    val name: String,
+    val triangles: Int,
+    val sourceTriangles: Long,
+    val quality: String = "",
+    val sourceUri: String = "",
+)
 
 /** Pieza dentro de un ZIP. */
 data class ZipPart(val name: String, val size: Long)
@@ -136,9 +147,9 @@ private class CountingStream(input: InputStream, private val onBytes: (Long) -> 
 }
 
 /** Abre un flujo nuevo cada vez: el archivo se lee en varias pasadas. */
-private class MeshSource(val name: String, val size: Long, val opener: () -> InputStream)
+internal class MeshSource(val name: String, val size: Long, val opener: () -> InputStream)
 
-private enum class MeshFormat { STL_BINARY, STL_ASCII, OBJ }
+internal enum class MeshFormat { STL_BINARY, STL_ASCII, OBJ }
 
 private class Bounds {
     var minX = Float.MAX_VALUE; var minY = Float.MAX_VALUE; var minZ = Float.MAX_VALUE
@@ -202,7 +213,7 @@ private class Clusterer(private val b: Bounds, cells: Long, expectedTris: Int) {
 
 // ---------------------------------------------------------------- lectura
 
-private fun detect(src: MeshSource): MeshFormat {
+internal fun detect(src: MeshSource): MeshFormat {
     val lower = src.name.lowercase()
     if (lower.endsWith(".obj")) return MeshFormat.OBJ
     val head = ByteArray(512)
@@ -311,11 +322,19 @@ private fun readObj(input: InputStream, onVertex: (Float, Float, Float) -> Unit,
 
 // ---------------------------------------------------------------- carga completa
 
+/** Malla en las coordenadas del archivo, antes de orientarla y escalarla. */
+internal class RawMesh(val pos: FloatArray, val idx: IntArray, val sourceTris: Long)
+
+/** Triángulos de entrada máximos para la simplificación por error cuádrico (memoria del teléfono). */
+private const val QEM_MAX_INPUT = 2_500_000
+
 /**
- * Lee el modelo y lo deja listo para dibujar.
- * @param progress fase ("Midiendo", "Leyendo", "Preparando") y avance 0–1.
+ * Lee el modelo en coordenadas del archivo. Si pasa de [budget] triángulos, primero se agrupan los
+ * vértices en una cuadrícula fina (hasta el doble del presupuesto, para que quepa en memoria) y luego se
+ * simplifica por error cuádrico hasta [budget], conservando filos y detalle. Con [qem] = false solo
+ * se usa la cuadrícula (método anterior; también es el respaldo si falta memoria).
  */
-private fun loadSource(src: MeshSource, budget: Int, progress: (String, Float) -> Unit): MeshData {
+internal fun readRaw(src: MeshSource, budget: Int, progress: (String, Float) -> Unit, qem: Boolean = true): RawMesh {
     val format = detect(src)
     val total = src.size.coerceAtLeast(1)
     fun counted(phase: String): InputStream = CountingStream(src.opener()) { progress(phase, (it.toFloat() / total).coerceIn(0f, 1f)) }
@@ -336,17 +355,19 @@ private fun loadSource(src: MeshSource, budget: Int, progress: (String, Float) -
     }
     if (!b.valid || b.triangles == 0L) throw MeshLoadException(tr("No encontré triángulos en el archivo."))
 
-    // 2) Triángulos, simplificando si hace falta
-    // Si cabe en el presupuesto solo se unen los vértices repetidos (sin perder nada). Si no, el tamaño de
+    // 2) Triángulos. Si caben solo se unen los vértices repetidos (sin perder nada). Si no, el tamaño de
     // celda sale de la superficie real: cada vértice nuevo cubre más o menos celda² de superficie, y hay
     // cerca de la mitad de vértices que de triángulos.
-    val targetVerts = budget / 2.0 * 0.9
+    val inter = min(b.triangles, min(budget * 2L, QEM_MAX_INPUT.toLong())).toInt()
+    val useQem = qem && b.triangles > budget && inter > budget * 1.1
+    val gridBudget = if (useQem) inter else budget
+    val targetVerts = gridBudget / 2.0 * 0.9
     var cells: Long = when {
-        b.triangles <= budget -> 1L shl 20
+        b.triangles <= gridBudget -> 1L shl 20
         b.area > 0 -> (b.maxDim / sqrt(1.6 * b.area / targetVerts)).toLong()
         else -> sqrt(targetVerts / 3.0).toLong()
     }
-    val expected = min(b.triangles, (budget * 1.2).toLong()).toInt()
+    val expected = min(b.triangles, (gridBudget * 1.2).toLong()).toInt()
     var cl: Clusterer
     var attempt = 0
     while (true) {
@@ -371,29 +392,108 @@ private fun loadSource(src: MeshSource, budget: Int, progress: (String, Float) -
             }
         }
         val got = c.tris.size / 3
-        if (got <= budget * 1.3 || attempt >= 3) break
+        if (got <= gridBudget * 1.3 || attempt >= 3) break
         // Quedó más detallado de lo previsto: celdas más grandes y otra pasada
-        cells = (cells * sqrt(budget.toDouble() / got) * 0.95).toLong().coerceAtLeast(16)
+        cells = (cells * sqrt(gridBudget.toDouble() / got) * 0.95).toLong().coerceAtLeast(16)
         attempt++
     }
     if (cl.tris.size == 0) throw MeshLoadException(tr("El modelo quedó vacío al leerlo."))
-    progress(tr("Preparando"), 1f)
-    return finish(src.name, cl, b.triangles)
+    val nv = cl.counts.size
+    var pos = FloatArray(nv * 3)
+    for (i in 0 until nv) {
+        val c = cl.counts.data[i].coerceAtLeast(1).toFloat()
+        pos[i * 3] = cl.sums.data[i * 3] / c
+        pos[i * 3 + 1] = cl.sums.data[i * 3 + 1] / c
+        pos[i * 3 + 2] = cl.sums.data[i * 3 + 2] / c
+    }
+    var idx = if (cl.tris.data.size == cl.tris.size) cl.tris.data else cl.tris.toArray()
+    if (useQem && idx.size / 3 > budget) {
+        try {
+            val simp = MeshSimplifier(pos, idx)
+            pos = FloatArray(0); idx = IntArray(0) // libera memoria antes de simplificar
+            val (p2, i2) = simp.simplify(budget) { progress(tr("Simplificando sin perder filos"), it) }
+            pos = p2; idx = i2
+        } catch (e: OutOfMemoryError) {
+            return readRaw(src, budget, progress, qem = false)
+        }
+    }
+    return RawMesh(pos, idx, b.triangles)
+}
+
+/** Une varias piezas (por ejemplo, las de un ZIP) en una sola malla. */
+internal fun mergeRaw(parts: List<RawMesh>): RawMesh {
+    val pos = FloatArray(parts.sumOf { it.pos.size })
+    val idx = IntArray(parts.sumOf { it.idx.size })
+    var po = 0
+    var io = 0
+    for (p in parts) {
+        val base = po / 3
+        System.arraycopy(p.pos, 0, pos, po, p.pos.size)
+        for (k in p.idx.indices) idx[io + k] = p.idx[k] + base
+        po += p.pos.size
+        io += p.idx.size
+    }
+    return RawMesh(pos, idx, parts.sumOf { it.sourceTris })
+}
+
+/** Dirección "abajo" del archivo: 0 −X, 1 +X, 2 −Y, 3 +Y, 4 −Z, 5 +Z. */
+internal fun detectDown(pos: FloatArray, idx: IntArray): Int {
+    val mn = FloatArray(3) { Float.MAX_VALUE }
+    val mx = FloatArray(3) { -Float.MAX_VALUE }
+    for (i in 0 until pos.size / 3) for (a in 0 until 3) {
+        val v = pos[i * 3 + a]
+        if (v < mn[a]) mn[a] = v; if (v > mx[a]) mx[a] = v
+    }
+    val ext = maxOf(mx[0] - mn[0], mx[1] - mn[1], mx[2] - mn[2]).coerceAtLeast(1e-9f)
+    val area = DoubleArray(6)
+    var totalArea = 0.0
+    var t = 0
+    while (t < idx.size) {
+        val a = idx[t] * 3; val b = idx[t + 1] * 3; val c = idx[t + 2] * 3
+        val ux = pos[b] - pos[a]; val uy = pos[b + 1] - pos[a + 1]; val uz = pos[b + 2] - pos[a + 2]
+        val wx = pos[c] - pos[a]; val wy = pos[c + 1] - pos[a + 1]; val wz = pos[c + 2] - pos[a + 2]
+        val nx = uy * wz - uz * wy; val ny = uz * wx - ux * wz; val nz = ux * wy - uy * wx
+        val l = sqrt(nx * nx + ny * ny + nz * nz)
+        t += 3
+        if (l <= 0f) continue
+        val ar = l / 2.0
+        totalArea += ar
+        val n = floatArrayOf(nx / l, ny / l, nz / l)
+        for (axis in 0 until 3) {
+            val cen = (pos[a + axis] + pos[b + axis] + pos[c + axis]) / 3f
+            // Cara plana que mira hacia afuera en el extremo del eje: la base de la peana
+            if (n[axis] < -0.95f && cen <= mn[axis] + 0.02f * ext) area[axis * 2] += ar
+            if (n[axis] > 0.95f && cen >= mx[axis] - 0.02f * ext) area[axis * 2 + 1] += ar
+        }
+    }
+    val best = area.indices.maxByOrNull { area[it] } ?: 4
+    // Sin una base clara se asume lo normal en impresión: Z hacia arriba
+    return if (area[best] < totalArea * 0.004) 4 else best
+}
+
+/** Gira de las coordenadas del archivo a las de dibujo (Y arriba) según qué lado es la base. */
+private fun orientPoint(down: Int, x: Float, y: Float, z: Float, out: FloatArray) {
+    when (down) {
+        0 -> { out[0] = y; out[1] = x; out[2] = -z }
+        1 -> { out[0] = y; out[1] = -x; out[2] = z }
+        2 -> { out[0] = x; out[1] = y; out[2] = z }
+        3 -> { out[0] = x; out[1] = -y; out[2] = -z }
+        5 -> { out[0] = x; out[1] = -z; out[2] = y }
+        else -> { out[0] = x; out[1] = z; out[2] = -y } // Z arriba, frente hacia −Y
+    }
 }
 
 /** Posiciones finales (Y arriba, centrado, lado mayor = 2), normales y concavidad. */
-private fun finish(name: String, cl: Clusterer, sourceTris: Long): MeshData {
-    val nv = cl.counts.size
+internal fun finish(name: String, raw: RawMesh, quality: String = "", sourceUri: String = ""): MeshData {
+    val nv = raw.pos.size / 3
+    val down = detectDown(raw.pos, raw.idx)
     val pos = FloatArray(nv * 3)
+    val o = FloatArray(3)
     var minX = Float.MAX_VALUE; var minY = Float.MAX_VALUE; var minZ = Float.MAX_VALUE
     var maxX = -Float.MAX_VALUE; var maxY = -Float.MAX_VALUE; var maxZ = -Float.MAX_VALUE
     for (i in 0 until nv) {
-        val c = cl.counts.data[i].coerceAtLeast(1).toFloat()
-        val x = cl.sums.data[i * 3] / c
-        val y = cl.sums.data[i * 3 + 1] / c
-        val z = cl.sums.data[i * 3 + 2] / c
-        // Las miniaturas vienen con Z hacia arriba y el frente hacia -Y: se pasa a Y arriba, frente hacia +Z
-        val px = x; val py = z; val pz = -y
+        orientPoint(down, raw.pos[i * 3], raw.pos[i * 3 + 1], raw.pos[i * 3 + 2], o)
+        val px = o[0]; val py = o[1]; val pz = o[2]
         pos[i * 3] = px; pos[i * 3 + 1] = py; pos[i * 3 + 2] = pz
         if (px < minX) minX = px; if (px > maxX) maxX = px
         if (py < minY) minY = py; if (py > maxY) maxY = py
@@ -406,9 +506,9 @@ private fun finish(name: String, cl: Clusterer, sourceTris: Long): MeshData {
         pos[i * 3 + 1] = (pos[i * 3 + 1] - cy) * s
         pos[i * 3 + 2] = (pos[i * 3 + 2] - cz) * s
     }
-    val idx = if (cl.tris.data.size == cl.tris.size) cl.tris.data else cl.tris.toArray()
-    val (nrm, cav) = normalsAndCavity(pos, idx)
-    return MeshData(name, pos, nrm, cav, idx, sourceTris)
+    // Las rotaciones usadas tienen determinante +1: el orden de los vértices (y el frente de las caras) se conserva
+    val (nrm, cav) = normalsAndCavity(pos, raw.idx)
+    return MeshData(name, pos, nrm, cav, raw.idx, raw.sourceTris, quality, sourceUri)
 }
 
 private fun normalsAndCavity(pos: FloatArray, idx: IntArray): Pair<FloatArray, FloatArray> {
@@ -490,7 +590,7 @@ fun zipPartsOf(context: Context, uri: Uri): Pair<File, List<ZipPart>>? {
     if (!isZip) return null
     val dir = File(context.cacheDir, "zip").apply { mkdirs() }
     dir.listFiles()?.forEach { it.delete() }
-    val f = File(dir, "modelo.zip")
+    val f = File(dir, name.substringBeforeLast('.').replace(Regex("[^A-Za-z0-9._ -]"), "_").take(60).ifBlank { "modelo" } + ".zip")
     context.contentResolver.openInputStream(uri)?.use { inp -> f.outputStream().use { inp.copyTo(it, 1 shl 20) } }
     val parts = ZipFile(f).use { z ->
         z.entries().asSequence().filter { !it.isDirectory && isModelName(it.name) && !it.name.contains("__MACOSX") }
@@ -504,33 +604,69 @@ fun zipPartsOf(context: Context, uri: Uri): Pair<File, List<ZipPart>>? {
 fun loadMeshFromUri(context: Context, uri: Uri, quality: MeshQuality, progress: (String, Float) -> Unit): MeshData {
     val (name, size) = displayName(context, uri)
     val src = MeshSource(name, size) { context.contentResolver.openInputStream(uri) ?: throw MeshLoadException(tr("No pude abrir el archivo.")) }
-    return loadSource(src, quality.triangles, progress)
+    return finish(name, readRaw(src, quality.triangles, progress), quality.name, uri.toString())
 }
 
-/** Carga una pieza de un ZIP ya copiado con [zipPartsOf]. */
-fun loadMeshFromZip(zip: File, part: ZipPart, quality: MeshQuality, progress: (String, Float) -> Unit): MeshData {
+/**
+ * Carga una o varias piezas de un ZIP ya copiado con [zipPartsOf] y las une. El presupuesto de
+ * triángulos se reparte según el tamaño de cada pieza.
+ */
+fun loadMeshFromZip(zip: File, parts: List<ZipPart>, quality: MeshQuality, sourceUri: String, progress: (String, Float) -> Unit): MeshData {
+    if (parts.isEmpty()) throw MeshLoadException(tr("No elegiste ninguna pieza."))
     val z = ZipFile(zip)
     try {
-        val entry = z.getEntry(part.name) ?: throw MeshLoadException(tr("No encontré la pieza en el ZIP."))
-        val src = MeshSource(part.name.substringAfterLast('/'), entry.size) { z.getInputStream(entry) }
-        return loadSource(src, quality.triangles, progress)
+        val totalSize = parts.sumOf { it.size.coerceAtLeast(1) }.toDouble()
+        val raws = parts.mapIndexed { i, part ->
+            val entry = z.getEntry(part.name) ?: throw MeshLoadException(tr("No encontré la pieza en el ZIP."))
+            val src = MeshSource(part.name.substringAfterLast('/'), entry.size) { z.getInputStream(entry) }
+            val share = (quality.triangles * part.size.coerceAtLeast(1) / totalSize).toInt().coerceAtLeast(20_000)
+            readRaw(src, share, { phase, p -> progress(if (parts.size > 1) tr("Pieza {} de {}: {}", i + 1, parts.size, phase) else phase, p) })
+        }
+        val name = if (parts.size == 1) parts[0].name.substringAfterLast('/')
+        else tr("{} ({} piezas)", zip.nameWithoutExtension.takeIf { it != "modelo" } ?: parts[0].name.substringAfterLast('/').substringBeforeLast('.'), parts.size)
+        val src = "zip:$sourceUri#" + parts.joinToString("|") { it.name }
+        return finish(name, if (raws.size == 1) raws[0] else mergeRaw(raws), quality.name, src)
     } finally {
         z.close()
     }
 }
 
+/** Vuelve a abrir el archivo original de un modelo guardado con otra calidad. */
+fun reopenMesh(context: Context, saved: SavedMesh, quality: MeshQuality, progress: (String, Float) -> Unit): MeshData {
+    val src = saved.sourceUri
+    if (src.isBlank()) throw MeshLoadException(tr("Este modelo se guardó con una versión anterior: ábrelo de nuevo desde el archivo."))
+    try {
+        if (src.startsWith("zip:")) {
+            val uri = Uri.parse(src.removePrefix("zip:").substringBefore('#'))
+            val names = src.substringAfter('#').split('|').toSet()
+            val (zip, parts) = zipPartsOf(context, uri) ?: throw MeshLoadException(tr("El archivo original ya no está disponible."))
+            return loadMeshFromZip(zip, parts.filter { it.name in names }, quality, uri.toString(), progress)
+        }
+        return loadMeshFromUri(context, Uri.parse(src), quality, progress)
+    } catch (e: SecurityException) {
+        throw MeshLoadException(tr("El archivo original ya no está disponible."))
+    } catch (e: java.io.FileNotFoundException) {
+        throw MeshLoadException(tr("El archivo original ya no está disponible."))
+    }
+}
+
 private fun meshDir(context: Context) = File(context.filesDir, "modelos").apply { mkdirs() }
 
-private const val MAGIC = 0x474D5348 // "GMSH"
+private const val MAGIC = 0x474D5348 // "GMSH": primera versión, sin calidad ni origen
+private const val MAGIC2 = 0x474D5332 // "GMS2"
+
+private fun ByteBuffer.putStr(s: String): ByteBuffer { val b = s.toByteArray(Charsets.UTF_8); putInt(b.size); put(b); return this }
+private fun ByteBuffer.getStr(): String { val b = ByteArray(int); get(b); return String(b, Charsets.UTF_8) }
 
 /** Guarda la malla preparada para abrirla al instante la próxima vez. */
 fun saveMesh(context: Context, m: MeshData): File {
     val safe = m.name.substringBeforeLast('.').replace(Regex("[^A-Za-z0-9._ -]"), "_").take(60).ifBlank { "modelo" }
     val f = File(meshDir(context), "$safe.gmesh")
-    val nameBytes = m.name.toByteArray(Charsets.UTF_8)
-    val bytes = 4 + 4 + nameBytes.size + 8 + 4 + 4 + (m.positions.size + m.normals.size + m.cavity.size) * 4 + m.indices.size * 4
+    val strs = listOf(m.name, m.quality, m.sourceUri).sumOf { 4 + it.toByteArray(Charsets.UTF_8).size }
+    val bytes = 4 + strs + 8 + 4 + 4 + (m.positions.size + m.normals.size + m.cavity.size) * 4 + m.indices.size * 4
     val bb = ByteBuffer.allocate(bytes).order(ByteOrder.LITTLE_ENDIAN)
-    bb.putInt(MAGIC).putInt(nameBytes.size).put(nameBytes).putLong(m.sourceTriangles).putInt(m.vertexCount).putInt(m.indices.size)
+    bb.putInt(MAGIC2).putStr(m.name).putStr(m.quality).putStr(m.sourceUri)
+    bb.putLong(m.sourceTriangles).putInt(m.vertexCount).putInt(m.indices.size)
     bb.asFloatBuffer().put(m.positions); bb.position(bb.position() + m.positions.size * 4)
     bb.asFloatBuffer().put(m.normals); bb.position(bb.position() + m.normals.size * 4)
     bb.asFloatBuffer().put(m.cavity); bb.position(bb.position() + m.cavity.size * 4)
@@ -540,19 +676,23 @@ fun saveMesh(context: Context, m: MeshData): File {
     return f
 }
 
+private class MeshHeader(val name: String, val quality: String, val sourceUri: String, val src: Long, val nv: Int, val ni: Int)
+
+private fun readHeader(bb: ByteBuffer): MeshHeader? = when (bb.int) {
+    MAGIC -> { val n = bb.getStr(); MeshHeader(n, "", "", bb.long, bb.int, bb.int) }
+    MAGIC2 -> { val n = bb.getStr(); val q = bb.getStr(); val u = bb.getStr(); MeshHeader(n, q, u, bb.long, bb.int, bb.int) }
+    else -> null
+}
+
 fun loadSavedMesh(f: File): MeshData {
     RandomAccessFile(f, "r").use { raf ->
         val bb = raf.channel.map(FileChannel.MapMode.READ_ONLY, 0, raf.length()).order(ByteOrder.LITTLE_ENDIAN)
-        if (bb.int != MAGIC) throw MeshLoadException(tr("Modelo guardado dañado."))
-        val nb = ByteArray(bb.int); bb.get(nb)
-        val src = bb.long
-        val nv = bb.int
-        val ni = bb.int
-        val pos = FloatArray(nv * 3); bb.asFloatBuffer().get(pos); bb.position(bb.position() + pos.size * 4)
-        val nrm = FloatArray(nv * 3); bb.asFloatBuffer().get(nrm); bb.position(bb.position() + nrm.size * 4)
-        val cav = FloatArray(nv); bb.asFloatBuffer().get(cav); bb.position(bb.position() + cav.size * 4)
-        val idx = IntArray(ni); bb.asIntBuffer().get(idx)
-        return MeshData(String(nb, Charsets.UTF_8), pos, nrm, cav, idx, src)
+        val h = readHeader(bb) ?: throw MeshLoadException(tr("Modelo guardado dañado."))
+        val pos = FloatArray(h.nv * 3); bb.asFloatBuffer().get(pos); bb.position(bb.position() + pos.size * 4)
+        val nrm = FloatArray(h.nv * 3); bb.asFloatBuffer().get(nrm); bb.position(bb.position() + nrm.size * 4)
+        val cav = FloatArray(h.nv); bb.asFloatBuffer().get(cav); bb.position(bb.position() + cav.size * 4)
+        val idx = IntArray(h.ni); bb.asIntBuffer().get(idx)
+        return MeshData(h.name, pos, nrm, cav, idx, h.src, h.quality, h.sourceUri)
     }
 }
 
@@ -561,13 +701,9 @@ fun savedMeshes(context: Context): List<SavedMesh> =
     meshDir(context).listFiles { f -> f.name.endsWith(".gmesh") }.orEmpty().sortedByDescending { it.lastModified() }.mapNotNull { f ->
         try {
             RandomAccessFile(f, "r").use { raf ->
-                val bb = raf.channel.map(FileChannel.MapMode.READ_ONLY, 0, min(raf.length(), 4096L)).order(ByteOrder.LITTLE_ENDIAN)
-                if (bb.int != MAGIC) return@mapNotNull null
-                val nb = ByteArray(bb.int); bb.get(nb)
-                val src = bb.long
-                bb.int
-                val ni = bb.int
-                SavedMesh(f, String(nb, Charsets.UTF_8), ni / 3, src)
+                val bb = raf.channel.map(FileChannel.MapMode.READ_ONLY, 0, min(raf.length(), 16384L)).order(ByteOrder.LITTLE_ENDIAN)
+                val h = readHeader(bb) ?: return@mapNotNull null
+                SavedMesh(f, h.name, h.ni / 3, h.src, h.quality, h.sourceUri)
             }
         } catch (_: Exception) {
             null
