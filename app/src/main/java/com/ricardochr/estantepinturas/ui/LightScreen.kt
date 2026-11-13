@@ -85,6 +85,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.FileProvider
 import com.ricardochr.estantepinturas.DepthModel
+import com.ricardochr.estantepinturas.DepthVariant
 import com.ricardochr.estantepinturas.LightParams
 import com.ricardochr.estantepinturas.MeshData
 import com.ricardochr.estantepinturas.MeshLoadException
@@ -230,25 +231,31 @@ fun LightScreen(onClose: () -> Unit) {
     var cut by rememberSaveable { mutableFloatStateOf(0f) }
     var relief by rememberSaveable { mutableFloatStateOf(0.8f) }
     var showOriginal by remember { mutableStateOf(false) }
-    var modelReady by remember { mutableStateOf(DepthModel.isReady(context)) }
+    var detailAmount by rememberSaveable { mutableFloatStateOf(0.7f) }
+    var variant by remember {
+        mutableStateOf(DepthVariant.entries.firstOrNull { it.name == prefs.getString("modelo", null) } ?: DepthVariant.PRECISA)
+    }
+    var modelReady by remember(variant) { mutableStateOf(DepthModel.isReady(context, variant)) }
     var downloading by remember { mutableStateOf<Float?>(null) }
     var downloadError by remember { mutableStateOf(false) }
     var rendered by remember { mutableStateOf<Bitmap?>(null) }
 
     fun process(s: PhotoSide) {
         val slot = slots[s] ?: return
-        if (!DepthModel.isReady(context)) { slot.status = tr("Falta descargar el modelo"); return }
-        slot.status = tr("Calculando el relieve…")
+        val v = variant
+        if (!DepthModel.isReady(context, v)) { slot.scene = null; slot.status = tr("Falta descargar el modelo"); return }
+        slot.scene = null
+        slot.status = if (v == DepthVariant.PRECISA) tr("Calculando el relieve con el modelo preciso (puede tardar unos segundos)…") else tr("Calculando el relieve…")
         scope.launch {
             val sc = withContext(Dispatchers.Default) {
                 try {
-                    val dm = DepthModel.estimate(context, slot.photo)
+                    val dm = DepthModel.estimate(context, v, slot.photo)
                     PhotoScene.from(slot.photo, dm).also { it.prepare(cut, relief) }
                 } catch (e: Throwable) {
                     null
                 }
             }
-            if (slots[s] !== slot) return@launch
+            if (slots[s] !== slot || variant != v) return@launch
             slot.scene = sc
             slot.status = if (sc == null) tr("No pude calcular el relieve de esta foto.") else null
         }
@@ -259,13 +266,22 @@ fun LightScreen(onClose: () -> Unit) {
         downloading = 0f
         scope.launch {
             val ok = withContext(Dispatchers.IO) {
-                DepthModel.download(context) { p -> scope.launch(Dispatchers.Main) { downloading = p } }
+                DepthModel.download(context, variant) { p -> scope.launch(Dispatchers.Main) { downloading = p } }
             }
             downloading = null
-            modelReady = ok && DepthModel.isReady(context)
+            modelReady = ok && DepthModel.isReady(context, variant)
             downloadError = !modelReady
-            if (modelReady) slots.keys.toList().forEach { if (slots[it]?.scene == null) process(it) }
+            if (modelReady) slots.keys.toList().forEach { process(it) }
         }
+    }
+
+    fun chooseVariant(v: DepthVariant) {
+        if (v == variant) return
+        variant = v
+        prefs.edit().putString("modelo", v.name).apply()
+        modelReady = DepthModel.isReady(context, v)
+        downloadError = false
+        slots.keys.toList().forEach { process(it) }
     }
 
     fun addPhoto(uri: Uri) {
@@ -293,13 +309,13 @@ fun LightScreen(onClose: () -> Unit) {
     }
 
     val currentScene = slots[side]?.scene
-    LaunchedEffect(currentScene, light, look, cut, relief, showOriginal, side) {
+    LaunchedEffect(currentScene, light, look, cut, relief, showOriginal, side, detailAmount) {
         val sc = currentScene ?: run { rendered = null; return@LaunchedEffect }
         delay(30)
         val job = coroutineContext[Job]
         val b = withContext(Dispatchers.Default) {
             sc.prepare(cut, relief)
-            if (showOriginal) sc.original() else sc.render(light, side, look) { job?.isActive == false }
+            if (showOriginal) sc.original() else sc.render(light, side, look, detailAmount) { job?.isActive == false }
         }
         if (b != null) rendered = b
     }
@@ -488,10 +504,27 @@ fun LightScreen(onClose: () -> Unit) {
                             }
                         }
                     } else {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text(tr("Relieve"), style = MaterialTheme.typography.labelMedium)
+                            DepthVariant.entries.forEach { v ->
+                                FilterChip(
+                                    selected = variant == v,
+                                    enabled = downloading == null,
+                                    onClick = { chooseVariant(v) },
+                                    label = { Text(tr("{} ({} MB)", tr(v.label), v.sizeMb)) },
+                                )
+                            }
+                        }
+                        Text(
+                            if (variant == DepthVariant.PRECISA) tr("Precisa: más detalle en el relieve; tarda más en calcular cada foto.")
+                            else tr("Rápida: modelo comprimido, calcula rápido pero pierde detalle fino."),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                         if (!modelReady) {
                             Surface(color = MaterialTheme.colorScheme.secondaryContainer, shape = MaterialTheme.shapes.small, modifier = Modifier.fillMaxWidth()) {
                                 Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                    Text(tr("Las fotos necesitan un modelo de profundidad ({} MB). Se descarga una sola vez y luego funciona sin internet.", DepthModel.SIZE_MB), style = MaterialTheme.typography.bodySmall)
+                                    Text(tr("Las fotos necesitan un modelo de profundidad ({} MB). Se descarga una sola vez y luego funciona sin internet.", variant.sizeMb), style = MaterialTheme.typography.bodySmall)
                                     val d = downloading
                                     if (d != null) {
                                         LinearProgressIndicator(progress = { d }, modifier = Modifier.fillMaxWidth())
@@ -527,6 +560,9 @@ fun LightScreen(onClose: () -> Unit) {
                             }
                             LabeledSlider(tr("Recorte"), cut, -1f..1f) { cut = it }
                             LabeledSlider(tr("Volumen"), relief, 0.2f..1.5f) { relief = it }
+                            if (look == PhotoLook.ARCILLA && !showOriginal && zones == 0) {
+                                LabeledSlider(tr("Detalle de la foto"), detailAmount, 0f..1f) { detailAmount = it }
+                            }
                         }
                         Text(
                             tr("Para mejor resultado: figura imprimada en gris o blanco, luz suave sin sombras fuertes, fondo liso y la cámara a la altura de la figura. Para los lados, deja la cámara fija y gira la figura 90° cada vez."),
