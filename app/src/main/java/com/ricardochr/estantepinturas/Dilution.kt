@@ -331,6 +331,9 @@ fun mixWarning(paints: List<Paint>): String? {
     if (paints.any { finishOf(it).finish == Finish.BRILLANTE } && paints.any { finishOf(it).finish == Finish.MATE }) {
         return tr("Mezclas una pintura brillante con una mate: el acabado queda irregular. Pasa barniz al final para igualarlo.")
     }
+    paints.firstOrNull { it.quality == "n" || it.quality == "d" || it.quality == "f" }?.let {
+        return tr("El color de {} es aproximado (no medido): el resultado de la mezcla puede variar. Corrígelo con Medir color para un cálculo exacto.", it.name)
+    }
     if (paints.map { it.brand }.toSet().size > 1 && c == Chemistry.WATER_ACRYLIC) {
         return tr("Acrílicos al agua de distintas marcas se pueden mezclar; prueba primero en poca cantidad.")
     }

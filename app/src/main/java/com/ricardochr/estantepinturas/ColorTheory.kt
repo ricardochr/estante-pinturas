@@ -126,6 +126,16 @@ fun layerOver(base: Paint, top: Paint): LayerResult {
     val transparent = typeGroup(top.type) == "transparente"
     val diff = angleDiff(bw.ryb, tw.ryb)
 
+    when (specialOf(top)) {
+        Special.FLUOR -> ex.add(tr("{} es fluorescente: sobre otro color pierde parte del brillo, y la vista previa no puede mostrar la fluorescencia.", top.name))
+        Special.METAL -> ex.add(tr("{} es metálica: el brillo depende de la luz y no aparece en la vista previa; en veladura deja un velo metálico sobre la base.", top.name))
+        Special.IRIDISCENTE -> ex.add(tr("{} es perlada o iridiscente: cambia según el ángulo; la vista previa solo muestra su color base.", top.name))
+        Special.EFECTO -> ex.add(tr("{} es de efecto o textura: el resultado real depende de cómo la apliques, la vista previa es solo orientativa.", top.name))
+        else -> {}
+    }
+    if (chemistryOf(top) != chemistryOf(base)) {
+        ex.add(tr("Tienen bases distintas ({} y {}): se pueden superponer en capas una vez seca la de abajo, pero no las mezcles húmedas.", chemistryOf(base).label.lowercase(), chemistryOf(top).label.lowercase()))
+    }
     if (!transparent && top.type != "Metálica") {
         ex.add(tr("{} es opaca: una capa normal la tapa por completo. Lo que se ve abajo es lo que pasa si la aplicas diluida como veladura o en una capa fina.", top.name))
     }

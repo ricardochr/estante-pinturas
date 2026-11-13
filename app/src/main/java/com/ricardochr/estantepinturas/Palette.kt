@@ -446,7 +446,7 @@ private fun mixToward(base: Paint, candidates: List<Paint>, target: Lab, darker:
     // transparentes, metálicas ni de efecto, y sin juntar brillante con mate
     if (!mixable(base)) return null
     for (o in candidates) {
-        if (o.id == base.id || !mixable(o) || !finishesCompatible(base, o)) continue
+        if (o.id == base.id || !mixable(o) || !finishesCompatible(base, o) || o.quality == "n" || o.quality == "d") continue
         if (darker && o.lab.l > base.lab.l - 8) continue
         if (!darker && o.lab.l < base.lab.l + 8) continue
         for ((wb, wo) in ratios) {

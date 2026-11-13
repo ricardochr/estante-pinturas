@@ -313,15 +313,23 @@ fun familySteps(f: PaletteFamily, matches: List<PaletteMatch>, zones: List<ZoneA
             tr("hacia el punto más alto. Pintura diluida 1:1 y varias capas finas antes que una gruesa.")
     )
     val top = topMembers.firstNotNullOfOrNull { paintOf(it) }
+    // ¿Las pinturas de la zona se pueden mezclar entre sí? (metálicas, fluorescentes, transparentes,
+    // brillantes con mates o de otra base química no dan la mezcla que se espera)
+    val zonePaints = f.members.mapNotNull { matches.getOrNull(it)?.best?.paint }.distinctBy { it.id }
+    val canMix = zonePaints.size < 2 || mixableTogether(zonePaints)
+    val lightPaint = lightMembers.firstNotNullOfOrNull { matches.getOrNull(it)?.best?.paint } ?: mb.highlight
     steps.add(
         if (top != null) tr("Punto de luz: {} solo en las aristas y puntos más altos, con la punta del pincel.", top)
-        else tr("Punto de luz (opcional): mezcla la luz con un poco de blanco y marca solo las aristas y puntos más altos con la punta del pincel.")
+        else if (lightPaint == null || mixable(lightPaint)) tr("Punto de luz (opcional): mezcla la luz con un poco de blanco y marca solo las aristas y puntos más altos con la punta del pincel.")
+        else tr("Punto de luz (opcional): {} no se aclara bien mezclándola con blanco; usa un tono más claro de su misma gama solo en las aristas y puntos más altos.", lightPaint.name)
     )
     // Técnicas para que no se vean escalones entre sombra, base y luz
     val big = zoneFraction >= 0.06 && baseAdvice?.role != "Detalle"
     steps.add(
-        tr("Suavizar transiciones: donde se nota el salto entre dos tonos, pinta una franja con la mezcla de ambos 1:1 ") +
-            tr("(sombra + base, o base + luz). ") +
+        (if (canMix) tr("Suavizar transiciones: donde se nota el salto entre dos tonos, pinta una franja con la mezcla de ambos 1:1 ") +
+            tr("(sombra + base, o base + luz). ")
+        else tr("Suavizar transiciones: estas pinturas no conviene mezclarlas entre sí ({}), así que funde con capas finas en lugar de mezclas. ",
+            mixWarning(zonePaints)?.substringBefore(":")?.lowercase() ?: tr("tipo o acabado distinto"))) +
             (if (big) tr("En zonas grandes funciona muy bien el fundido con dos pinceles: con uno aplicas la capa y con otro limpio y apenas húmedo arrastras el borde antes de que seque. ")
             else tr("En zonas pequeñas usa capas muy diluidas (1 de pintura por 2–3 de agua) que se superponen poco a poco. ")) +
             tr("Si aún se ve un escalón, pasa una veladura del tono intermedio justo sobre él.")

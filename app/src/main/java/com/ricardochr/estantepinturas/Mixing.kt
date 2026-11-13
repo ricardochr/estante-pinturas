@@ -77,7 +77,8 @@ fun findMixes(target: Lab, inventory: List<Paint>, limit: Int = 3): List<MixReci
     // y las gamas con diluyente propio cambian su acabado si se mezclan con otras
     // Además se descartan fluorescentes, transparentes, metálicas, perladas y de efecto: su color no se suma
     // como el de una pintura normal (ver mixable)
-    val paints = inventory.filter { mixable(it) }.distinctBy { it.id }
+    // Colores típicos del nombre o dudosos no sirven para calcular una mezcla: el resultado sería inventado
+    val paints = inventory.filter { mixable(it) && it.quality != "n" && it.quality != "d" }.distinctBy { it.id }
     if (paints.size < 2) return emptyList()
 
     // Candidatas: las más cercanas al objetivo y los neutros (sirven para aclarar u oscurecer)
