@@ -14,7 +14,8 @@ import java.util.concurrent.TimeUnit
 
 /** Segmentación de sujeto de ML Kit: confianza de figura (0–1) por píxel. null si no está disponible. */
 object SubjectCutout {
-    fun segment(bmp: Bitmap): FloatArray? = try {
+    fun segment(bmp: Bitmap): FloatArray? {
+        return try {
         val seg = SubjectSegmentation.getClient(SubjectSegmenterOptions.Builder().enableForegroundConfidenceMask().build())
         try {
             val res = Tasks.await(seg.process(InputImage.fromBitmap(bmp, 0)), 20, TimeUnit.SECONDS)
@@ -28,6 +29,7 @@ object SubjectCutout {
     } catch (e: Exception) {
         // El módulo se descarga con los servicios de Google la primera vez; mientras tanto se usa la profundidad
         null
+        }
     }
 }
 
