@@ -88,6 +88,7 @@ import com.ricardochr.estantepinturas.DepthModel
 import com.ricardochr.estantepinturas.LightParams
 import com.ricardochr.estantepinturas.MeshData
 import com.ricardochr.estantepinturas.MeshLoadException
+import com.ricardochr.estantepinturas.MeshQuality
 import com.ricardochr.estantepinturas.PhotoLook
 import com.ricardochr.estantepinturas.PhotoScene
 import com.ricardochr.estantepinturas.PhotoSide
@@ -153,7 +154,25 @@ fun LightScreen(onClose: () -> Unit) {
     var loadProgress by remember { mutableFloatStateOf(0f) }
     var meshError by remember { mutableStateOf<String?>(null) }
     var zipChoice by remember { mutableStateOf<Pair<File, List<ZipPart>>?>(null) }
+    val prefs = remember { context.getSharedPreferences("luz", android.content.Context.MODE_PRIVATE) }
+    val bigMemory = remember {
+        val am = context.getSystemService(android.content.Context.ACTIVITY_SERVICE) as android.app.ActivityManager
+        am.largeMemoryClass >= 512
+    }
+    var quality by remember {
+        mutableStateOf(
+            MeshQuality.entries.firstOrNull { it.name == prefs.getString("calidad", null) }
+                ?: if (bigMemory) MeshQuality.ALTA else MeshQuality.NORMAL,
+        )
+    }
     LaunchedEffect(Unit) { saved = withContext(Dispatchers.IO) { savedMeshes(context) } }
+    LaunchedEffect(Unit) {
+        renderer.onUploadError = {
+            scope.launch(Dispatchers.Main) {
+                meshError = tr("El modelo no cabe en la memoria de video. Ábrelo con una calidad menor.")
+            }
+        }
+    }
     LaunchedEffect(light) { renderer.light = light }
     LaunchedEffect(mesh) { renderer.mesh = mesh }
 
@@ -196,8 +215,8 @@ fun LightScreen(onClose: () -> Unit) {
             zip.onFailure { meshError = tr(it.message ?: tr("No pude abrir el archivo.")) }
             zip.onSuccess { z ->
                 when {
-                    z == null -> runLoad { p -> loadMeshFromUri(context, uri, p) }
-                    z.second.size == 1 -> runLoad { p -> loadMeshFromZip(z.first, z.second[0], p) }
+                    z == null -> runLoad { p -> loadMeshFromUri(context, uri, quality, p) }
+                    z.second.size == 1 -> runLoad { p -> loadMeshFromZip(z.first, z.second[0], quality, p) }
                     else -> zipChoice = z
                 }
             }
@@ -403,7 +422,7 @@ fun LightScreen(onClose: () -> Unit) {
                         mesh?.let { m ->
                             Text(
                                 tr("{}: {} triángulos", m.name, "%,d".format(m.triangleCount)) +
-                                    if (m.sourceTriangles > m.triangleCount) tr(" (simplificado de {})", "%,d".format(m.sourceTriangles)) else "",
+                                    if (m.sourceTriangles > m.triangleCount) tr(" (simplificado de {}; para más detalle sube la calidad y vuelve a abrir el archivo)", "%,d".format(m.sourceTriangles)) else tr(" (completo)"),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -424,6 +443,26 @@ fun LightScreen(onClose: () -> Unit) {
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text(tr("Calidad"), style = MaterialTheme.typography.labelMedium)
+                            MeshQuality.entries.forEach { q ->
+                                FilterChip(
+                                    selected = quality == q,
+                                    onClick = { quality = q; prefs.edit().putString("calidad", q.name).apply() },
+                                    label = { Text(tr(q.label)) },
+                                )
+                            }
+                        }
+                        Text(
+                            when (quality) {
+                                MeshQuality.NORMAL -> tr("Hasta 800 mil triángulos: abre rápido y se mueve fluido en cualquier teléfono.")
+                                MeshQuality.ALTA -> tr("Hasta 2 millones de triángulos: casi sin pérdida en una miniatura.")
+                                MeshQuality.MAXIMA -> tr("Hasta 4 millones: muchos archivos abren sin simplificar. Tarda más y usa mucha memoria.") +
+                                    if (!bigMemory) tr(" Tu teléfono tiene poca memoria para esto.") else ""
+                            },
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                         Button(onClick = { openModel.launch(arrayOf("*/*")) }, enabled = loadPhase == null, modifier = Modifier.fillMaxWidth()) {
                             Icon(Icons.Rounded.FolderOpen, contentDescription = null); Spacer(Modifier.width(6.dp)); Text(tr("Abrir STL, OBJ o ZIP"))
                         }
@@ -512,7 +551,7 @@ fun LightScreen(onClose: () -> Unit) {
                         Row(
                             Modifier.fillMaxWidth().clickable {
                                 zipChoice = null
-                                runLoad { pr -> loadMeshFromZip(file, p, pr) }
+                                runLoad { pr -> loadMeshFromZip(file, p, quality, pr) }
                             }.padding(vertical = 8.dp),
                         ) {
                             Text(p.name.substringAfterLast('/'), modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)

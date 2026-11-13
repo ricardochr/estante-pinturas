@@ -69,6 +69,8 @@ class RelightRenderer(private val requestRender: () -> Unit) : GLSurfaceView.Ren
     @Volatile var turnsY = 0
     @Volatile var turnsX = 0
     @Volatile var albedo = floatArrayOf(0.62f, 0.62f, 0.63f)
+    /** Se llama (desde el hilo de dibujo) si la malla no cabe en la memoria de video. */
+    @Volatile var onUploadError: (() -> Unit)? = null
 
     private var uploaded: MeshData? = null
     private var vbo = 0
@@ -157,7 +159,15 @@ class RelightRenderer(private val requestRender: () -> Unit) : GLSurfaceView.Ren
         GLES30.glClearColor(0.11f, 0.115f, 0.135f, 1f)
         GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT or GLES30.GL_DEPTH_BUFFER_BIT)
         if (m == null) return
-        if (m !== uploaded) upload(m)
+        if (m !== uploaded) {
+            try {
+                upload(m)
+            } catch (e: OutOfMemoryError) {
+                uploaded = m
+                indexCount = 0
+                onUploadError?.invoke()
+            }
+        }
         if (indexCount == 0) return
         val lp = light
 

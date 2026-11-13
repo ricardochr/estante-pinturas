@@ -51,8 +51,12 @@ data class ZipPart(val name: String, val size: Long)
 
 class MeshLoadException(message: String) : Exception(message)
 
-/** Triángulos que se dibujan como máximo. Con más, la malla se simplifica. */
-const val MESH_BUDGET = 450_000
+/** Calidad al abrir un modelo: triángulos que se dibujan como máximo. Con más, la malla se simplifica. */
+enum class MeshQuality(val label: String, val triangles: Int) {
+    NORMAL("Normal", 800_000),
+    ALTA("Alta", 2_000_000),
+    MAXIMA("Máxima", 4_000_000),
+}
 
 // ---------------------------------------------------------------- utilidades
 
@@ -140,6 +144,17 @@ private class Bounds {
     var minX = Float.MAX_VALUE; var minY = Float.MAX_VALUE; var minZ = Float.MAX_VALUE
     var maxX = -Float.MAX_VALUE; var maxY = -Float.MAX_VALUE; var maxZ = -Float.MAX_VALUE
     var triangles = 0L
+    /** Superficie total (unidades del archivo al cuadrado); 0 si no se conoce (OBJ). */
+    var area = 0.0
+    fun addTriangle(v: FloatArray) {
+        add(v[0], v[1], v[2]); add(v[3], v[4], v[5]); add(v[6], v[7], v[8])
+        val ux = (v[3] - v[0]).toDouble(); val uy = (v[4] - v[1]).toDouble(); val uz = (v[5] - v[2]).toDouble()
+        val wx = (v[6] - v[0]).toDouble(); val wy = (v[7] - v[1]).toDouble(); val wz = (v[8] - v[2]).toDouble()
+        val cx = uy * wz - uz * wy; val cy = uz * wx - ux * wz; val cz = ux * wy - uy * wx
+        val a = 0.5 * sqrt(cx * cx + cy * cy + cz * cz)
+        if (!a.isNaN()) area += a
+        triangles++
+    }
     fun add(x: Float, y: Float, z: Float) {
         if (x.isNaN() || y.isNaN() || z.isNaN()) return
         if (x < minX) minX = x; if (x > maxX) maxX = x
@@ -151,13 +166,14 @@ private class Bounds {
 }
 
 /** Agrupa vértices por celda de la cuadrícula. Con celdas diminutas solo une los vértices repetidos. */
-private class Clusterer(private val b: Bounds, cells: Long) {
+private class Clusterer(private val b: Bounds, cells: Long, expectedTris: Int) {
     private val n = cells.coerceIn(8, 1L shl 20)
     private val cell = (b.maxDim / n).coerceAtLeast(1e-9f) * 1.0001f
     private val map = LongIntMap()
-    val sums = FloatList(1 shl 16)
-    val counts = IntList(1 shl 14)
-    val tris = IntList(1 shl 16)
+    // Capacidad inicial según lo esperado: evita copias de arreglos enormes al crecer
+    val sums = FloatList(max(1 shl 16, expectedTris / 2 * 3))
+    val counts = IntList(max(1 shl 14, expectedTris / 2))
+    val tris = IntList(max(1 shl 16, expectedTris * 3))
 
     fun vertex(x: Float, y: Float, z: Float): Int {
         val ix = ((x - b.minX) / cell).toLong().coerceIn(0, n - 1)
@@ -299,7 +315,7 @@ private fun readObj(input: InputStream, onVertex: (Float, Float, Float) -> Unit,
  * Lee el modelo y lo deja listo para dibujar.
  * @param progress fase ("Midiendo", "Leyendo", "Preparando") y avance 0–1.
  */
-private fun loadSource(src: MeshSource, progress: (String, Float) -> Unit): MeshData {
+private fun loadSource(src: MeshSource, budget: Int, progress: (String, Float) -> Unit): MeshData {
     val format = detect(src)
     val total = src.size.coerceAtLeast(1)
     fun counted(phase: String): InputStream = CountingStream(src.opener()) { progress(phase, (it.toFloat() / total).coerceIn(0f, 1f)) }
@@ -309,10 +325,10 @@ private fun loadSource(src: MeshSource, progress: (String, Float) -> Unit): Mesh
     var objVertices = 0
     when (format) {
         MeshFormat.STL_BINARY -> counted(tr("Midiendo")).use { s ->
-            readStlBinary(s) { v -> b.add(v[0], v[1], v[2]); b.add(v[3], v[4], v[5]); b.add(v[6], v[7], v[8]); b.triangles++ }
+            readStlBinary(s) { v -> b.addTriangle(v) }
         }
         MeshFormat.STL_ASCII -> counted(tr("Midiendo")).use { s ->
-            readStlAscii(s) { v -> b.add(v[0], v[1], v[2]); b.add(v[3], v[4], v[5]); b.add(v[6], v[7], v[8]); b.triangles++ }
+            readStlAscii(s) { v -> b.addTriangle(v) }
         }
         MeshFormat.OBJ -> counted(tr("Midiendo")).use { s ->
             readObj(s, { x, y, z -> b.add(x, y, z); objVertices++ }, { _, _, _ -> b.triangles++ })
@@ -321,11 +337,20 @@ private fun loadSource(src: MeshSource, progress: (String, Float) -> Unit): Mesh
     if (!b.valid || b.triangles == 0L) throw MeshLoadException(tr("No encontré triángulos en el archivo."))
 
     // 2) Triángulos, simplificando si hace falta
-    var cells: Long = if (b.triangles <= MESH_BUDGET) 1L shl 20 else sqrt(MESH_BUDGET / 2.0 / 3.0).toLong()
+    // Si cabe en el presupuesto solo se unen los vértices repetidos (sin perder nada). Si no, el tamaño de
+    // celda sale de la superficie real: cada vértice nuevo cubre más o menos celda² de superficie, y hay
+    // cerca de la mitad de vértices que de triángulos.
+    val targetVerts = budget / 2.0 * 0.9
+    var cells: Long = when {
+        b.triangles <= budget -> 1L shl 20
+        b.area > 0 -> (b.maxDim / sqrt(1.6 * b.area / targetVerts)).toLong()
+        else -> sqrt(targetVerts / 3.0).toLong()
+    }
+    val expected = min(b.triangles, (budget * 1.2).toLong()).toInt()
     var cl: Clusterer
     var attempt = 0
     while (true) {
-        cl = Clusterer(b, cells)
+        cl = Clusterer(b, cells, expected)
         val c = cl
         val phase = if (attempt == 0) tr("Leyendo") else tr("Simplificando más")
         when (format) {
@@ -346,9 +371,9 @@ private fun loadSource(src: MeshSource, progress: (String, Float) -> Unit): Mesh
             }
         }
         val got = c.tris.size / 3
-        if (got <= MESH_BUDGET * 1.4 || attempt >= 3) break
+        if (got <= budget * 1.3 || attempt >= 3) break
         // Quedó más detallado de lo previsto: celdas más grandes y otra pasada
-        cells = (cells * sqrt(MESH_BUDGET.toDouble() / got) * 0.92).toLong().coerceAtLeast(16)
+        cells = (cells * sqrt(budget.toDouble() / got) * 0.95).toLong().coerceAtLeast(16)
         attempt++
     }
     if (cl.tris.size == 0) throw MeshLoadException(tr("El modelo quedó vacío al leerlo."))
@@ -381,7 +406,7 @@ private fun finish(name: String, cl: Clusterer, sourceTris: Long): MeshData {
         pos[i * 3 + 1] = (pos[i * 3 + 1] - cy) * s
         pos[i * 3 + 2] = (pos[i * 3 + 2] - cz) * s
     }
-    val idx = cl.tris.toArray()
+    val idx = if (cl.tris.data.size == cl.tris.size) cl.tris.data else cl.tris.toArray()
     val (nrm, cav) = normalsAndCavity(pos, idx)
     return MeshData(name, pos, nrm, cav, idx, sourceTris)
 }
@@ -476,19 +501,19 @@ fun zipPartsOf(context: Context, uri: Uri): Pair<File, List<ZipPart>>? {
 }
 
 /** Carga un STL u OBJ suelto. */
-fun loadMeshFromUri(context: Context, uri: Uri, progress: (String, Float) -> Unit): MeshData {
+fun loadMeshFromUri(context: Context, uri: Uri, quality: MeshQuality, progress: (String, Float) -> Unit): MeshData {
     val (name, size) = displayName(context, uri)
     val src = MeshSource(name, size) { context.contentResolver.openInputStream(uri) ?: throw MeshLoadException(tr("No pude abrir el archivo.")) }
-    return loadSource(src, progress)
+    return loadSource(src, quality.triangles, progress)
 }
 
 /** Carga una pieza de un ZIP ya copiado con [zipPartsOf]. */
-fun loadMeshFromZip(zip: File, part: ZipPart, progress: (String, Float) -> Unit): MeshData {
+fun loadMeshFromZip(zip: File, part: ZipPart, quality: MeshQuality, progress: (String, Float) -> Unit): MeshData {
     val z = ZipFile(zip)
     try {
         val entry = z.getEntry(part.name) ?: throw MeshLoadException(tr("No encontré la pieza en el ZIP."))
         val src = MeshSource(part.name.substringAfterLast('/'), entry.size) { z.getInputStream(entry) }
-        return loadSource(src, progress)
+        return loadSource(src, quality.triangles, progress)
     } finally {
         z.close()
     }
