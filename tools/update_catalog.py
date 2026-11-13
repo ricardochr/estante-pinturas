@@ -44,6 +44,40 @@ def norm(s):
     return re.sub(r"[^a-z0-9]", "", s.lower())
 
 
+_LINE_STOP = {"set", "sets", "the", "paint", "paints", "series", "range", "colors", "colours", "color", "colour", "de", "y", "and"}
+
+
+def line_tokens(s):
+    """Palabras de una línea de pinturas, sin acentos y sin palabras de relleno ("Speedpaint Set 2.0" -> {speedpaint, 2.0})."""
+    s = unicodedata.normalize("NFD", s or "")
+    s = "".join(c for c in s if unicodedata.category(c) != "Mn").lower()
+    return {t for t in re.findall(r"[a-z0-9]+(?:\.[0-9]+)?", s) if t not in _LINE_STOP}
+
+
+def line_score(a, b):
+    ta, tb = line_tokens(a), line_tokens(b)
+    if not ta or not tb:
+        return 0.0
+    return len(ta & tb) / len(ta | tb)
+
+
+def pick_by_line(cands, line):
+    """Color de la pintura con este nombre en la línea más parecida.
+
+    cands: lista de (línea, hex) de registros sin código con el mismo marca+nombre. El mismo nombre en
+    otra línea es otra pintura ("Orc Skin" de Speedpaint es verde; el de D&D Nolzur's es gris), así que
+    solo se usa una línea que comparta palabras. Si ninguna comparte, se acepta el color solo cuando todas
+    las líneas coinciden en él.
+    """
+    if not cands:
+        return None
+    scored = sorted(((line_score(l, line), h) for l, h in cands), key=lambda x: -x[0])
+    if scored[0][0] > 0:
+        return scored[0][1]
+    hexes = {h for _, h in cands}
+    return cands[0][1] if len(hexes) == 1 else None
+
+
 def code_key(s):
     return re.sub(r"[^A-Z0-9]", "", (s or "").upper())
 
@@ -742,8 +776,10 @@ def build(args):
         if kc:
             hex_by_code[kc] = r["hex"]
         else:
-            # Solo pinturas sin código: evita prestar el color de otra línea con el mismo nombre
-            hex_by_name[key_name(r)] = r["hex"]
+            # Solo pinturas sin código; se guarda la línea para no prestar el color de otra línea con el mismo nombre
+            lst = hex_by_name.setdefault(key_name(r), [])
+            lst[:] = [(l, h) for l, h in lst if line_tokens(l) != line_tokens(r.get("line", ""))]  # paintdex manda sobre el resto
+            lst.append((r.get("line", ""), r["hex"]))
 
     cache = json.load(open(CACHE)) if os.path.exists(CACHE) else {}
     rows, report_new = [], {}
@@ -758,7 +794,7 @@ def build(args):
             kc, kn = key_code(r), key_name(r)
             if (kc and kc in seen_codes) or (not kc and kn in seen_names):
                 continue
-            hx = (kc and hex_by_code.get(kc)) or hex_by_name.get(kn)
+            hx = (kc and hex_by_code.get(kc)) or pick_by_line(hex_by_name.get(kn, []), r.get("line", ""))
             if not hx:
                 new.append(r)
             r["hex"] = hx or ""

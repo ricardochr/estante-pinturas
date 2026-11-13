@@ -71,7 +71,7 @@ def index(records):
         kc = uc.key_code(r)
         if kc:
             by_code[kc].append(r["hex"])
-        by_name[uc.key_name(r)].append((uc.norm(r.get("line", "")), uc.code_key(r.get("code", "")), r["hex"]))
+        by_name[uc.key_name(r)].append((r.get("line", ""), uc.code_key(r.get("code", "")), r["hex"]))
     return by_code, by_name
 
 
@@ -82,13 +82,9 @@ def lookup(bc, bn, r):
     kc = uc.key_code(r)
     if kc and bc.get(kc):
         return bc[kc][0]
-    line, code = uc.norm(r.get("line", "")), uc.code_key(r.get("code", ""))
-    for l, c, h in bn.get(uc.key_name(r), []):
-        if (code and c and c != code):
-            continue
-        if l == line or not c or not code:
-            return h
-    return None
+    code = uc.code_key(r.get("code", ""))
+    cands = [(l, h) for l, c, h in bn.get(uc.key_name(r), []) if not (code and c and c != code)]
+    return uc.pick_by_line(cands, r.get("line", ""))
 
 
 def main():
@@ -129,6 +125,8 @@ def main():
     name_bad = []
     against_all = []   # el color del catálogo no se parece a NINGUNA fuente
     unconfirmed = set()
+    trust_keep = []    # el catálogo encaja con el nombre y la única fuente en contra no
+    trust_adopt = []   # al revés: se adopta la fuente
     for row in cat:
         brand, line, name, code, hx = row[0], row[1], row[2], row[3], row[4]
         q = row[6] if len(row) > 6 else ""
@@ -138,11 +136,33 @@ def main():
             v = lookup(bc, bn, r)
             if v:
                 found[sname] = v
+        # paintdex y miniature-paints a menudo copian el mismo dato: dos valores idénticos son UNA fuente
+        if len(found) == 2:
+            a, b2 = list(found.values())
+            if de2000(hex_to_lab(a), hex_to_lab(b2)) < 0.5:
+                found = {"paintdex+miniature-paints": a}
         if hx.upper() == "#888888":
             st = "sin_color"
         else:
             lab = hex_to_lab(hx)
             diffs = {s: de2000(lab, hex_to_lab(v)) for s, v in found.items()}
+            # Una sola fuente en contra: decide el nombre. Si el catálogo encaja con el nombre y la fuente no,
+            # se conserva el catálogo; si es al revés, se adopta la fuente.
+            if len(found) == 1 and max(diffs.values()) > 20 and expectations(name):
+                v = next(iter(found.values()))
+                if plausible(hx, name) and not plausible(v, name):
+                    trust_keep.append((row, v))
+                    diffs = {}
+                    found = {}
+                elif plausible(v, name) and not plausible(hx, name) and args.write_flags:
+                    row[4] = v
+                    while len(row) < 7:
+                        row.append("")
+                    row[6] = ""
+                    trust_adopt.append((row, hx))
+                    hx = v
+                    lab = hex_to_lab(hx)
+                    diffs = {s: de2000(lab, hex_to_lab(x)) for s, x in found.items()}
             # Una fuente que es la misma de la que salió el color no confirma nada: hace falta una segunda
             independent = [d for d in diffs.values()]
             if len(found) == 0 or (len(found) == 1 and min(independent) < 0.5):
@@ -197,7 +217,14 @@ def main():
         lines.append(f"| {labels[k]} | {status[k]} |")
     lines += ["", f"Color que contradice el nombre: {len(name_bad)}",
               f"No se parece a ninguna fuente: {len(against_all)}", f"Marcadas como dudosas en la app: {flagged}",
-              f"Estimaciones reemplazadas por una medición de los datos abiertos: {adopted}", "",
+              f"Estimaciones reemplazadas por una medición de los datos abiertos: {adopted}",
+              f"Conservadas porque encajan con su nombre y la única fuente en contra no: {len(trust_keep)}",
+              f"Corregidas con la fuente porque el catálogo no encaja con el nombre y la fuente sí: {len(trust_adopt)}", "",
+              "## Reglas de confianza", "",
+              "- paintdex y miniature-paints comparten muchos datos: si dan exactamente el mismo valor cuentan como una sola fuente.",
+              "- El nombre de una pintura solo se usa para buscarla en la misma línea (o una que comparta palabras): el mismo nombre en otra línea es otra pintura.",
+              "- Un color medido nunca se reemplaza por el típico del nombre; con una sola fuente en contra, el nombre desempata.",
+              "- Se marca \"Color por confirmar\" lo que no se parece a ninguna fuente, o contradice su nombre sin que otra fuente lo confirme.", "",
               "## Por marca", "", "| Marca | Coincide | Moderada | Contradice | Sin 2.ª fuente | Sin color |", "|---|---:|---:|---:|---:|---:|"]
     for b in sorted(by_brand):
         c = by_brand[b]
