@@ -64,7 +64,7 @@ class PhotoGlRenderer(private val requestRender: () -> Unit) : GLSurfaceView.Ren
         }
         fun bytes(a: ByteArray) = ByteBuffer.allocateDirect(a.size).order(ByteOrder.nativeOrder()).put(a).also { it.position(0) }
         setup(tex[0], true)
-        GLES30.glTexImage2D(GLES30.GL_TEXTURE_2D, 0, GLES30.GL_RGBA8, d.W, d.H, 0, GLES30.GL_RGBA, GLES30.GL_UNSIGNED_BYTE, bytes(d.photoRgba))
+        GLES30.glTexImage2D(GLES30.GL_TEXTURE_2D, 0, GLES30.GL_RGBA8, d.photoW, d.photoH, 0, GLES30.GL_RGBA, GLES30.GL_UNSIGNED_BYTE, bytes(d.photoRgba))
         setup(tex[1], true)
         GLES30.glTexImage2D(GLES30.GL_TEXTURE_2D, 0, GLES30.GL_RGBA8, d.w, d.h, 0, GLES30.GL_RGBA, GLES30.GL_UNSIGNED_BYTE, bytes(d.normalAo))
         setup(tex[2], false)
@@ -73,7 +73,7 @@ class PhotoGlRenderer(private val requestRender: () -> Unit) : GLSurfaceView.Ren
         hb.position(0)
         GLES30.glTexImage2D(GLES30.GL_TEXTURE_2D, 0, GLES30.GL_R32F, d.w, d.h, 0, GLES30.GL_RED, GLES30.GL_FLOAT, hb)
         setup(tex[3], true)
-        GLES30.glTexImage2D(GLES30.GL_TEXTURE_2D, 0, GLES30.GL_R8, d.W, d.H, 0, GLES30.GL_RED, GLES30.GL_UNSIGNED_BYTE, bytes(d.detail))
+        GLES30.glTexImage2D(GLES30.GL_TEXTURE_2D, 0, GLES30.GL_R8, d.photoW, d.photoH, 0, GLES30.GL_RED, GLES30.GL_UNSIGNED_BYTE, bytes(d.detail))
         uploaded = d
     }
 
@@ -87,7 +87,7 @@ class PhotoGlRenderer(private val requestRender: () -> Unit) : GLSurfaceView.Ren
         GLES30.glUseProgram(prog)
         fun u(n: String) = GLES30.glGetUniformLocation(prog, n)
         // Encajar la foto en la vista conservando su proporción
-        val ia = d.W.toFloat() / d.H
+        val ia = d.photoW.toFloat() / d.photoH
         val va = width.toFloat() / height
         if (ia > va) GLES30.glUniform2f(u("uScale"), 1f, va / ia) else GLES30.glUniform2f(u("uScale"), ia / va, 1f)
         // Luz en el sistema de la cámara de esta foto

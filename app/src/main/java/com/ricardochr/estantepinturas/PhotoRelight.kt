@@ -148,7 +148,7 @@ class DepthMap(val w: Int, val h: Int, val d: FloatArray)
 
 /** Lo que la GPU necesita para iluminar una foto. */
 class PhotoGpuData(
-    val w: Int, val h: Int, val W: Int, val H: Int,
+    val w: Int, val h: Int, val photoW: Int, val photoH: Int,
     /** RGBA por píxel del relieve: normal codificada en RGB y huecos en A. */
     val normalAo: ByteArray,
     /** Alto del relieve (en píxeles del relieve); muy negativo fuera de la figura. */
