@@ -1,6 +1,6 @@
 # Catálogo de pinturas
 
-Total: **8924** pinturas · generado 2026-11-11
+Total: **8924** pinturas · generado 2026-11-13
 
 | Marca | Pinturas | Fuente |
 |---|---:|---|
@@ -144,7 +144,7 @@ Total: **8924** pinturas · generado 2026-11-11
 - Óleos: 24
 - Soil Works: 8
 - FX Fluor: 6
-- Pinturas con color estimado de la foto: 213
+- Pinturas con color estimado de la foto: 221
 
 ## The Army Painter
 
@@ -173,7 +173,7 @@ Total: **8924** pinturas · generado 2026-11-11
 - Speedpaint Set: 1
 - Warpaints Effects: 1
 - Warpaints Wash: 1
-- Pinturas con color estimado de la foto: 88
+- Pinturas con color estimado de la foto: 91
 
 ## Vallejo
 
@@ -207,6 +207,6 @@ Total: **8924** pinturas · generado 2026-11-11
 
 ## Calidad del color
 
-- Medido (datos abiertos o muestra oficial): 7146
-- Estimado de la foto del producto: 1623
+- Medido (datos abiertos o muestra oficial): 7135
+- Estimado de la foto del producto: 1634
 - Típico según el nombre (aproximado): 155
