@@ -30,6 +30,15 @@ class MeshSimplifyTest {
     private fun load(bytes: ByteArray, budget: Int, qem: Boolean): RawMesh =
         readRaw(MeshSource("prueba.stl", bytes.size.toLong()) { ByteArrayInputStream(bytes) }, budget, { _, _ -> }, qem)
 
+    /** Cuadrícula con al menos [tris] triángulos, para comparar con la misma cantidad. */
+    private fun gridAtLeast(bytes: ByteArray, tris: Int): RawMesh {
+        var b = tris
+        var m = load(bytes, b, false)
+        var guard = 0
+        while (m.idx.size / 3 < tris && guard++ < 12) { b = (b * 1.15).toInt(); m = load(bytes, b, false) }
+        return m
+    }
+
     /** Caja de 20×20×20 (mm) con cada cara dividida en n×n cuadros. */
     private fun box(n: Int): Tris {
         val t = Tris()
@@ -97,8 +106,8 @@ class MeshSimplifyTest {
     @Test fun cajaConservaAristas() {
         val bytes = stl(box(60))
         val budget = 6_000
-        val grid = load(bytes, budget, qem = false)
         val q = load(bytes, budget, qem = true)
+        val grid = gridAtLeast(bytes, q.idx.size / 3)
         val eg = boxError(grid); val eq = boxError(q)
         println("Caja 43,200 → ~$budget triángulos | cuadrícula: ${grid.idx.size / 3} tri, error medio ${"%.4f".format(eg)} mm | cuádrico: ${q.idx.size / 3} tri, error medio ${"%.4f".format(eq)} mm")
         assertTrue(q.idx.size / 3 <= budget)
@@ -108,8 +117,8 @@ class MeshSimplifyTest {
     @Test fun relieveSeConservaMejor() {
         val bytes = stl(bumpy(180))
         val budget = 8_000
-        val grid = load(bytes, budget, qem = false)
         val q = load(bytes, budget, qem = true)
+        val grid = gridAtLeast(bytes, q.idx.size / 3)
         val eg = bumpyError(grid); val eq = bumpyError(q)
         println("Esfera con relieve ${bumpy(180).v.size} → ~$budget triángulos | cuadrícula: ${grid.idx.size / 3} tri, error medio ${"%.4f".format(eg)} mm | cuádrico: ${q.idx.size / 3} tri, error medio ${"%.4f".format(eq)} mm")
         assertTrue("cuádrico $eq vs cuadrícula $eg", eq < eg)

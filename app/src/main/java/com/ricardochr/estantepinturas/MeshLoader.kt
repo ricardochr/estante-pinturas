@@ -358,7 +358,9 @@ internal fun readRaw(src: MeshSource, budget: Int, progress: (String, Float) -> 
     // 2) Triángulos. Si caben solo se unen los vértices repetidos (sin perder nada). Si no, el tamaño de
     // celda sale de la superficie real: cada vértice nuevo cubre más o menos celda² de superficie, y hay
     // cerca de la mitad de vértices que de triángulos.
-    val inter = min(b.triangles, min(budget * 2L, QEM_MAX_INPUT.toLong())).toInt()
+    // Entrada de la simplificación cuádrica: el archivo completo si cabe (hasta 1.5 millones o el doble del
+    // presupuesto), si no una cuadrícula fina intermedia
+    val inter = minOf(b.triangles, max(budget * 2L, 1_500_000L), QEM_MAX_INPUT.toLong()).toInt()
     val useQem = qem && b.triangles > budget && inter > budget * 1.1
     val gridBudget = if (useQem) inter else budget
     val targetVerts = gridBudget / 2.0 * 0.9
