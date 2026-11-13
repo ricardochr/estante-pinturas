@@ -238,13 +238,39 @@ data class MeasureTake(
     val outOfRange: Boolean,
     /** Avisos no bloqueantes de las zonas (reflejos, muestra dispareja). */
     val warnings: List<String>,
+    /** Se usó el papel blanco para el balance de blancos. */
+    val paperUsed: Boolean = false,
 ) {
     val meanError: Double get() = if (refErrors.isEmpty()) 99.0 else refErrors.values.average()
     val maxError: Double get() = refErrors.values.maxOrNull() ?: 99.0
 }
 
-/** Calcula el color de la muestra a partir de las referencias. Devuelve null si no hay datos suficientes. */
-fun measureTake(target: SampleReading, refs: List<Pair<Paint, SampleReading>>): MeasureTake? {
+/**
+ * Ganancias por canal que vuelven neutro (gris) al papel blanco sin cambiar su luminancia. Se aplican
+ * antes de la corrección con referencias: así el balance de blancos queda anclado al papel y las
+ * referencias solo tienen que corregir exposición y respuesta de color. null si el papel no sirve.
+ */
+fun paperGains(paper: SampleReading?): DoubleArray? {
+    if (paper == null || !paper.usable) return null
+    val y = paper.y
+    if (paper.r < 1e-4 || paper.g < 1e-4 || paper.b < 1e-4 || y < 0.05) return null
+    val g = doubleArrayOf(y / paper.r, y / paper.g, y / paper.b)
+    // Un "blanco" con un canal 3 veces más débil no es papel blanco: mejor no usarlo
+    if (g.max() / g.min() > 3.0) return null
+    return g
+}
+
+private fun SampleReading.scaled(g: DoubleArray?): SampleReading =
+    if (g == null) this else SampleReading(r * g[0], g[1] * this.g, b * g[2], issues)
+
+/**
+ * Calcula el color de la muestra a partir de las referencias. Devuelve null si no hay datos suficientes.
+ * @param paper lectura opcional del papel blanco, para anclar el balance de blancos.
+ */
+fun measureTake(target0: SampleReading, refs0: List<Pair<Paint, SampleReading>>, paper: SampleReading? = null): MeasureTake? {
+    val gains = paperGains(paper)
+    val target = target0.scaled(gains)
+    val refs = refs0.map { it.first to it.second.scaled(gains) }
     val usable = refs.filter { it.second.usable }
     if (!target.usable || usable.size < 3) return null
     val measured = usable.map { doubleArrayOf(it.second.r, it.second.g, it.second.b) }
@@ -276,8 +302,9 @@ fun measureTake(target: SampleReading, refs: List<Pair<Paint, SampleReading>>): 
     val outOfRange = target.y > ys.max() * 1.2 || target.y < ys.min() * 0.8
     val warnings = (listOf(target) + usable.map { it.second })
         .flatMap { it.issues }.filter { !it.blocking }.distinct().map { it.label }
+        .let { if (paper != null && gains == null) it + tr("El papel no se pudo usar para el balance de blancos (quemado, oscuro o no es blanco).") else it }
     val byId = usable.indices.associate { usable[it].first.id to errs[it] }
-    return MeasureTake(hex, byId, model, outOfRange, warnings)
+    return MeasureTake(hex, byId, model, outOfRange, warnings, paperUsed = gains != null)
 }
 
 /** Nivel de confianza. [label] se traduce al mostrarse. */

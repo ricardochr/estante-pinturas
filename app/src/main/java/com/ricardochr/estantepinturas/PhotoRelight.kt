@@ -520,7 +520,7 @@ class PhotoScene(
         val out = IntArray(W * H)
         val zones = light.zones
         val th = zoneThresholds(if (zones == 3) 3 else 5)
-        val zc = zoneColors(if (zones == 3) 3 else 5)
+        val zc = light.zoneColorsFor()
         val bgColor = 0xFF1C1D22.toInt()
         val det = if (detailAmount > 0.01f && look == PhotoLook.ARCILLA) detail else null
         for (y in 0 until H) {

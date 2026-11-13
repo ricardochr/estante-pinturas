@@ -57,6 +57,10 @@ android {
         compose = true
         buildConfig = true
     }
+    testOptions {
+        // Las pruebas de cálculos no usan Android; si algo lo toca por accidente, devuelve valores neutros
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 dependencies {
@@ -83,4 +87,6 @@ dependencies {
     implementation("androidx.exifinterface:exifinterface:1.3.7")
     // Modelo de profundidad para "Luz y sombra" con fotos (el modelo se descarga aparte)
     implementation("com.microsoft.onnxruntime:onnxruntime-android:1.20.0")
+
+    testImplementation("junit:junit:4.13.2")
 }

@@ -33,7 +33,7 @@ jobs:
       - name: Compilar
         run: |
           chmod +x gradlew
-          ./gradlew assembleRelease --no-daemon --stacktrace -PbuildNumber=${{ github.run_number }}
+          ./gradlew testReleaseUnitTest assembleRelease --no-daemon --stacktrace -PbuildNumber=${{ github.run_number }}
           mkdir -p dist
           cp app/build/outputs/apk/release/app-release.apk dist/Gotario-${{ github.run_number }}.apk
 

@@ -199,7 +199,14 @@ fun DilutionSection(paint: Paint) {
 
 /** Elegir el color correcto de una pintura con tono, saturación y brillo, o escribiendo el código #RRGGBB. */
 @Composable
-fun ColorFixDialog(initial: String, onDismiss: () -> Unit, onSave: (String) -> Unit, onMeasure: (() -> Unit)? = null) {
+fun ColorFixDialog(
+    initial: String,
+    onDismiss: () -> Unit,
+    onSave: (String) -> Unit,
+    onMeasure: (() -> Unit)? = null,
+    /** Equivalentes de otras marcas con color medido: (nombre, #RRGGBB). */
+    equivalents: List<Pair<String, String>> = emptyList(),
+) {
     val hsv = remember {
         FloatArray(3).also { android.graphics.Color.colorToHSV(parseHex(initial).toInt(), it) }
     }
@@ -223,6 +230,31 @@ fun ColorFixDialog(initial: String, onDismiss: () -> Unit, onSave: (String) -> U
                     Text(
                         tr("Lo más preciso: compara una muestra pintada con pinturas tuyas de color conocido. O ajústalo a mano:"),
                         style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                if (equivalents.isNotEmpty()) {
+                    Text(tr("O elige el equivalente más parecido a tu bote"), style = MaterialTheme.typography.labelMedium)
+                    androidx.compose.foundation.lazy.LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(equivalents.size) { i ->
+                            val (name, hx) = equivalents[i]
+                            Column(
+                                Modifier.width(72.dp).clickable {
+                                    val out = FloatArray(3)
+                                    android.graphics.Color.colorToHSV(parseHex(hx).toInt(), out)
+                                    h = out[0]; sat = out[1]; v = out[2]
+                                    text = validHex(hx)
+                                },
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                            ) {
+                                ColorSquare(parseHex(hx).toInt(), 40.dp)
+                                Text(name, style = MaterialTheme.typography.labelSmall, maxLines = 2, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                            }
+                        }
+                    }
+                    Text(
+                        tr("Depende de tu pantalla: compáralos con el bote bajo buena luz."),
+                        style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }

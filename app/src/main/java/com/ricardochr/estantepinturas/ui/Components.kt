@@ -423,6 +423,9 @@ fun EntrySheet(
                     onDismiss = { fixingColor = false },
                     onSave = { fixingColor = false; onFixColor(it) },
                     onMeasure = { fixingColor = false; measuring = true },
+                    equivalents = equivalents.orEmpty()
+                        .filter { it.paint.quality == "" && it.paint.hasColor }
+                        .map { "${it.paint.name} (${it.paint.brand})" to it.paint.hex },
                 )
             }
             if (measuring) {

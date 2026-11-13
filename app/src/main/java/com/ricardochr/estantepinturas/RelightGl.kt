@@ -25,7 +25,11 @@ data class LightParams(
     val color: FloatArray = floatArrayOf(1f, 1f, 1f),
     /** 0 = iluminada; 3 o 5 = mapa de zonas con esa cantidad de tonos. */
     val zones: Int = 0,
+    /** Colores de las zonas (de oscuro a claro) tomados de las pinturas de un esquema; null = grises. */
+    val zonePalette: IntArray? = null,
 ) {
+    fun zoneColorsFor(): IntArray = zonePalette?.takeIf { it.size == (if (zones == 3) 3 else 5) } ?: zoneColors(if (zones == 3) 3 else 5)
+
     /** Dirección hacia la luz en el sistema de la figura (X derecha, Y arriba, Z hacia quien mira de frente). */
     fun direction(): FloatArray {
         val az = Math.toRadians(azimuth.toDouble())
@@ -35,9 +39,10 @@ data class LightParams(
 
     override fun equals(other: Any?): Boolean =
         other is LightParams && azimuth == other.azimuth && elevation == other.elevation && ambient == other.ambient &&
-            cavity == other.cavity && color.contentEquals(other.color) && zones == other.zones
+            cavity == other.cavity && color.contentEquals(other.color) && zones == other.zones &&
+            (zonePalette?.contentEquals(other.zonePalette) ?: (other.zonePalette == null))
 
-    override fun hashCode(): Int = arrayOf<Any>(azimuth, elevation, ambient, cavity, color.contentHashCode(), zones).contentHashCode()
+    override fun hashCode(): Int = arrayOf<Any>(azimuth, elevation, ambient, cavity, color.contentHashCode(), zones, zonePalette?.contentHashCode() ?: 0).contentHashCode()
 }
 
 /** Límites de cada zona (intensidad de luz 0–1) y su tono para el mapa de zonas. */
@@ -230,7 +235,7 @@ class RelightRenderer(private val requestRender: () -> Unit) : GLSurfaceView.Ren
         GLES30.glUniform1i(u("uZones"), lp.zones)
         val th = zoneThresholds(if (lp.zones == 3) 3 else 5)
         GLES30.glUniform4f(u("uThresh"), th[0], th[1], th.getOrElse(2) { 2f }, th.getOrElse(3) { 2f })
-        val zc = zoneColors(if (lp.zones == 3) 3 else 5)
+        val zc = lp.zoneColorsFor()
         val zf = FloatArray(15)
         for (i in 0 until 5) {
             val c = zc.getOrElse(i) { zc.last() }

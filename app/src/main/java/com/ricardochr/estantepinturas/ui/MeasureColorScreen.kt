@@ -124,7 +124,7 @@ private fun MeasureColorScreen(target: Paint, owned: List<Paint>, onClose: () ->
     var photo by remember { mutableStateOf<MeasurePhoto?>(null) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
-    // Zonas marcadas: índice 0 = la muestra a medir; 1.. = referencias en el orden de [refs]
+    // Zonas marcadas: 0 = la muestra a medir; 1 = papel blanco (opcional); 2.. = referencias en el orden de [refs]
     val spots = remember { mutableStateListOf<MeasureSpot?>() }
     var current by remember { mutableIntStateOf(0) }
     var radius by remember { mutableStateOf(0.035f) }
@@ -134,7 +134,7 @@ private fun MeasureColorScreen(target: Paint, owned: List<Paint>, onClose: () ->
     fun resetSpots(keep: Boolean) {
         val old = spots.toList()
         spots.clear()
-        repeat(refs.size + 1) { spots.add(if (keep) old.getOrNull(it) else null) }
+        repeat(refs.size + 2) { spots.add(if (keep) old.getOrNull(it) else null) }
         current = spots.indexOfFirst { it == null }.coerceAtLeast(0)
     }
 
@@ -158,18 +158,9 @@ private fun MeasureColorScreen(target: Paint, owned: List<Paint>, onClose: () ->
     }
 
     val gallery = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri -> if (uri != null) load(uri) }
-    var captureUri by remember { mutableStateOf<Uri?>(null) }
-    val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { ok ->
-        val u = captureUri
-        if (ok && u != null) load(u)
-    }
-    fun takePhoto() {
-        val dir = File(context.cacheDir, "captures").apply { mkdirs() }
-        val f = File(dir, "muestra-${System.currentTimeMillis()}.jpg")
-        val uri = FileProvider.getUriForFile(context, context.packageName + ".files", f)
-        captureUri = uri
-        camera.launch(uri)
-    }
+    // Cámara propia con exposición y balance de blancos bloqueados (la del sistema no permite bloquearlos)
+    var capturing by remember { mutableStateOf(false) }
+    fun takePhoto() { capturing = true }
     fun pickGallery() = gallery.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
 
     fun back() {
@@ -229,7 +220,8 @@ private fun MeasureColorScreen(target: Paint, owned: List<Paint>, onClose: () ->
                                 if (next != null) current = next
                             },
                             onCalculate = { readings ->
-                                val tk = measureTake(readings[0], refs.indices.map { refs[it] to readings[it + 1] })
+                                val paper = readings[1].takeIf { spots[1] != null }
+                                val tk = measureTake(readings[0], refs.indices.map { refs[it] to readings[it + 2] }, paper)
                                 if (tk == null) {
                                     error = tr("Hacen falta la muestra y al menos 3 referencias sin problemas.")
                                 } else {
@@ -254,6 +246,15 @@ private fun MeasureColorScreen(target: Paint, owned: List<Paint>, onClose: () ->
                     )
                 }
             }
+        }
+    }
+
+    if (capturing) {
+        Dialog(onDismissRequest = { capturing = false }, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+            LockedCaptureScreen(
+                onCaptured = { uri -> capturing = false; load(uri) },
+                onCancel = { capturing = false },
+            )
         }
     }
 
@@ -295,7 +296,7 @@ private fun PrepareStage(
             Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(tr("Cómo preparar la muestra"), style = MaterialTheme.typography.titleSmall)
                 listOf(
-                    tr("Pinta en un papel blanco una franja de {} y una de cada referencia, de unos 2 cm, con 2 capas para que cubran.", target.name),
+                    tr("Pinta en un papel blanco una franja de {} y una de cada referencia, de unos 2 cm, con 2 capas para que cubran. Deja papel sin pintar visible: sirve para el balance de blancos.", target.name),
                     tr("Déjalas secar bien: mojadas se ven más oscuras y brillantes."),
                     tr("Usa luz de día indirecta o una lámpara blanca, sin flash y sin sombras sobre el papel."),
                     tr("Toma la foto de frente y de cerca, con todas las muestras en la misma foto."),
@@ -371,7 +372,7 @@ private fun MarkStage(
     val h = photo.bmp.height
     val readings: List<SampleReading?> = spots.map { s -> s?.let { readSample(photo.pixels, w, h, it) } }
     val image = remember(photo) { photo.bmp.asImageBitmap() }
-    val names = listOf(tr("Muestra: {}", target.name)) + refs.map { it.name }
+    val names = listOf(tr("Muestra: {}", target.name), tr("Papel blanco (opcional)")) + refs.map { it.name }
     Column(Modifier.fillMaxSize()) {
         BoxWithConstraints(Modifier.fillMaxWidth().weight(1f).background(Color.Black)) {
             val density = LocalDensity.current
@@ -434,10 +435,11 @@ private fun MarkStage(
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     Box(Modifier.size(14.dp).clip(CircleShape).background(SPOT_COLORS[i % SPOT_COLORS.size]))
-                    if (i > 0) Swatch(refs[i - 1].hex, size = 22.dp)
+                    if (i > 1) Swatch(refs[i - 2].hex, size = 22.dp)
                     Column(Modifier.weight(1f)) {
                         Text(n, style = MaterialTheme.typography.bodyMedium, maxLines = 1, fontWeight = if (i == 0) FontWeight.Bold else null)
                         val status = when {
+                            r == null && i == 1 -> tr("Opcional: márcalo para anclar el balance de blancos")
                             r == null -> tr("Sin marcar")
                             r.issues.isEmpty() -> tr("Bien")
                             else -> r.issues.joinToString(" · ") { tr(it.label) }
@@ -456,7 +458,7 @@ private fun MarkStage(
                 }
             }
             error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
-            val okRefs = readings.drop(1).count { it?.usable == true }
+            val okRefs = readings.drop(2).count { it?.usable == true }
             val ready = readings.firstOrNull()?.usable == true && okRefs >= 3
             Button(onClick = { onCalculate(readings.map { it ?: SampleReading(0.0, 0.0, 0.0, listOf(com.ricardochr.estantepinturas.SampleIssue.VACIA)) }) }, enabled = ready, modifier = Modifier.fillMaxWidth()) {
                 Text(tr("Calcular color"))
@@ -561,6 +563,7 @@ private fun ResultStage(
         }
 
         val notes = buildList {
+            if (last.paperUsed) add(tr("Balance de blancos anclado al papel blanco."))
             if (res.takes == 1) add(tr("Con una sola foto no se puede comprobar que el resultado se repite. Toma otra (puedes mover un poco la luz o el papel) para subir la confianza."))
             else add(tr("{} fotos; diferencia entre ellas {}.", res.takes, "%.1f".format(res.spread)) + if (res.spread > 4) tr(" No coinciden bien: revisa la luz y los reflejos.") else "")
             if (res.outOfRange) add(tr("La muestra es más clara o más oscura que todas tus referencias: agrega una referencia más parecida en claridad."))

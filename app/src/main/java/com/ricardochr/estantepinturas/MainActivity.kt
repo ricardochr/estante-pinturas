@@ -459,7 +459,7 @@ private fun App(vm: MainViewModel = viewModel()) {
     }
 
     if (showLight) {
-        com.ricardochr.estantepinturas.ui.LightScreen(onClose = { showLight = false })
+        com.ricardochr.estantepinturas.ui.LightScreen(projects = vm.projects, byId = vm.byId, onClose = { showLight = false })
     }
 
     if (showCompare) {

@@ -134,7 +134,11 @@ private enum class LightTemp(val label: String, val rgb: FloatArray) {
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LightScreen(onClose: () -> Unit) {
+fun LightScreen(
+    projects: List<com.ricardochr.estantepinturas.Project> = emptyList(),
+    byId: Map<String, com.ricardochr.estantepinturas.Paint> = emptyMap(),
+    onClose: () -> Unit,
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var tab by rememberSaveable { mutableIntStateOf(0) }
@@ -144,7 +148,15 @@ fun LightScreen(onClose: () -> Unit) {
     var cavity by rememberSaveable { mutableFloatStateOf(0.6f) }
     var zones by rememberSaveable { mutableIntStateOf(0) }
     var temp by rememberSaveable { mutableStateOf(LightTemp.NEUTRA) }
-    val light = LightParams(azimuth, elevation, ambient, cavity, temp.rgb, zones)
+    // Esquema: colores de las zonas tomados de las pinturas de un proyecto
+    val schemeProjects = remember(projects, byId) {
+        projects.mapNotNull { p -> com.ricardochr.estantepinturas.schemeZones(p, byId).takeIf { it.isNotEmpty() }?.let { p to it } }
+    }
+    var schemeProjectId by rememberSaveable { mutableStateOf<String?>(null) }
+    var schemeIndex by rememberSaveable { mutableIntStateOf(0) }
+    val schemeZonesList = schemeProjects.firstOrNull { it.first.id == schemeProjectId }?.second
+    val schemeZone = schemeZonesList?.getOrNull(schemeIndex)
+    val light = LightParams(azimuth, elevation, ambient, cavity, temp.rgb, zones, if (zones > 0) schemeZone?.palette(zones) else null)
 
     // ---- 3D
     val glHolder = remember { arrayOfNulls<GLSurfaceView>(1) }
@@ -401,7 +413,7 @@ fun LightScreen(onClose: () -> Unit) {
                             img != null -> Image(img.asImageBitmap(), contentDescription = null, contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize())
                         }
                     }
-                    if (zones > 0) ZoneLegend(zones, Modifier.align(Alignment.TopStart).padding(8.dp))
+                    if (zones > 0) ZoneLegend(zones, light.zoneColorsFor(), schemeZone?.names(zones), Modifier.align(Alignment.TopStart).padding(8.dp))
                 }
                 // Controles
                 Column(
@@ -434,6 +446,43 @@ fun LightScreen(onClose: () -> Unit) {
                         FilterChip(selected = zones == 0, onClick = { zones = 0 }, label = { Text(tr("Iluminada")) })
                         FilterChip(selected = zones == 3, onClick = { zones = 3 }, label = { Text(tr("3 zonas")) })
                         FilterChip(selected = zones == 5, onClick = { zones = 5 }, label = { Text(tr("5 zonas")) })
+                    }
+                    if (zones > 0) {
+                        if (schemeProjects.isEmpty()) {
+                            Text(
+                                tr("Con un proyecto que tenga pinturas asignadas, aquí verás qué pintura va en cada zona."),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        } else {
+                            Text(tr("Colores de las zonas"), style = MaterialTheme.typography.labelMedium)
+                            androidx.compose.foundation.lazy.LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                item {
+                                    FilterChip(selected = schemeProjectId == null, onClick = { schemeProjectId = null }, label = { Text(tr("Grises")) })
+                                }
+                                items(schemeProjects.size) { i ->
+                                    val pr = schemeProjects[i].first
+                                    FilterChip(
+                                        selected = schemeProjectId == pr.id,
+                                        onClick = { schemeProjectId = pr.id; schemeIndex = 0 },
+                                        label = { Text(pr.name, maxLines = 1) },
+                                    )
+                                }
+                            }
+                            schemeZonesList?.let { zl ->
+                                androidx.compose.foundation.lazy.LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    items(zl.size) { i ->
+                                        val z = zl[i]
+                                        FilterChip(
+                                            selected = schemeIndex == i,
+                                            onClick = { schemeIndex = i },
+                                            leadingIcon = { (z.base ?: z.shadow ?: z.light)?.let { Swatch(it.hex, size = 16.dp) } },
+                                            label = { Text(z.name.ifBlank { tr("Zona {}", i + 1) }, maxLines = 1) },
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         LightTemp.entries.forEach { t ->
@@ -685,14 +734,19 @@ private fun EmptyHint(text: String?) {
 }
 
 @Composable
-private fun ZoneLegend(zones: Int, modifier: Modifier) {
-    val colors = zoneColors(zones)
+private fun ZoneLegend(zones: Int, colors: IntArray, paintNames: List<String?>?, modifier: Modifier) {
     val names = zoneNames(zones)
     Column(modifier.clip(RoundedCornerShape(8.dp)).background(Color.Black.copy(alpha = 0.55f)).padding(8.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
         names.indices.reversed().forEach { i ->
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Box(Modifier.size(12.dp).clip(RoundedCornerShape(3.dp)).background(Color(colors[i])).border(1.dp, Color.White.copy(alpha = 0.3f), RoundedCornerShape(3.dp)))
-                Text(tr(names[i]), style = MaterialTheme.typography.labelSmall, color = Color.White)
+                val pn = paintNames?.getOrNull(i)
+                val label = when {
+                    paintNames == null -> tr(names[i])
+                    pn != null -> tr(names[i]) + ": " + pn
+                    else -> tr(names[i]) + ": " + if (i == 0) tr("oscurece la sombra") else tr("aclara la luz")
+                }
+                Text(label, style = MaterialTheme.typography.labelSmall, color = Color.White)
             }
         }
     }
