@@ -233,17 +233,26 @@ fun LightScreen(onClose: () -> Unit) {
     var showOriginal by remember { mutableStateOf(false) }
     var detailAmount by rememberSaveable { mutableFloatStateOf(0.7f) }
     var variant by remember {
-        mutableStateOf(DepthVariant.entries.firstOrNull { it.name == prefs.getString("modelo", null) } ?: DepthVariant.PRECISA)
+        // La elegida antes; si nunca se eligió, la que ya esté descargada (sin obligar a bajar otra)
+        mutableStateOf(
+            DepthVariant.entries.firstOrNull { it.name == prefs.getString("modelo", null) }
+                ?: DepthVariant.entries.firstOrNull { DepthModel.isReady(context, it) }
+                ?: DepthVariant.PRECISA,
+        )
     }
     var modelReady by remember(variant) { mutableStateOf(DepthModel.isReady(context, variant)) }
     var downloading by remember { mutableStateOf<Float?>(null) }
-    var downloadError by remember { mutableStateOf(false) }
+    var downloadError by remember { mutableStateOf<String?>(null) }
     var rendered by remember { mutableStateOf<Bitmap?>(null) }
 
     fun process(s: PhotoSide) {
         val slot = slots[s] ?: return
         val v = variant
-        if (!DepthModel.isReady(context, v)) { slot.scene = null; slot.status = tr("Falta descargar el modelo"); return }
+        if (!DepthModel.isReady(context, v)) {
+            slot.scene = null
+            slot.status = tr("Para calcular el relieve, toca \"Descargar modelo\" abajo o elige el otro modelo de relieve.")
+            return
+        }
         slot.scene = null
         slot.status = if (v == DepthVariant.PRECISA) tr("Calculando el relieve con el modelo preciso (puede tardar unos segundos)…") else tr("Calculando el relieve…")
         scope.launch {
@@ -262,15 +271,15 @@ fun LightScreen(onClose: () -> Unit) {
     }
 
     fun startDownload() {
-        downloadError = false
+        downloadError = null
         downloading = 0f
         scope.launch {
-            val ok = withContext(Dispatchers.IO) {
+            val err = withContext(Dispatchers.IO) {
                 DepthModel.download(context, variant) { p -> scope.launch(Dispatchers.Main) { downloading = p } }
             }
             downloading = null
-            modelReady = ok && DepthModel.isReady(context, variant)
-            downloadError = !modelReady
+            modelReady = err == null && DepthModel.isReady(context, variant)
+            downloadError = if (modelReady) null else (err ?: tr("el archivo quedó incompleto"))
             if (modelReady) slots.keys.toList().forEach { process(it) }
         }
     }
@@ -280,7 +289,7 @@ fun LightScreen(onClose: () -> Unit) {
         variant = v
         prefs.edit().putString("modelo", v.name).apply()
         modelReady = DepthModel.isReady(context, v)
-        downloadError = false
+        downloadError = null
         slots.keys.toList().forEach { process(it) }
     }
 
@@ -531,7 +540,9 @@ fun LightScreen(onClose: () -> Unit) {
                                     } else {
                                         FilledTonalButton(onClick = ::startDownload) { Text(tr("Descargar modelo")) }
                                     }
-                                    if (downloadError) Text(tr("No se pudo descargar. Revisa la conexión e intenta de nuevo."), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelSmall)
+                                    downloadError?.let { e ->
+                                        Text(tr("No se pudo descargar ({}). Revisa la conexión e intenta de nuevo.", e), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelSmall)
+                                    }
                                 }
                             }
                         }

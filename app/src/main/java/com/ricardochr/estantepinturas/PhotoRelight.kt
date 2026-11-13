@@ -38,8 +38,8 @@ object DepthModel {
 
     fun isReady(context: Context, v: DepthVariant): Boolean = file(context, v).let { it.exists() && it.length() > v.minBytes }
 
-    /** Descarga el modelo una sola vez. Devuelve false si falla. */
-    fun download(context: Context, v: DepthVariant, progress: (Float) -> Unit): Boolean {
+    /** Descarga el modelo una sola vez. Devuelve null si salió bien, o el motivo del fallo. */
+    fun download(context: Context, v: DepthVariant, progress: (Float) -> Unit): String? {
         val dest = file(context, v)
         val part = File(dest.parentFile, dest.name + ".part")
         return try {
@@ -60,7 +60,7 @@ object DepthModel {
                     hops++
                     continue
                 }
-                if (code != 200) { conn.disconnect(); return false }
+                if (code != 200) { conn.disconnect(); return tr("HTTP {}", code) }
                 break
             }
             val total = conn.contentLengthLong.takeIf { it > 0 } ?: (v.sizeMb * 1_000_000L)
@@ -78,11 +78,12 @@ object DepthModel {
                 }
             }
             conn.disconnect()
-            if (part.length() < v.minBytes) { part.delete(); return false }
-            part.renameTo(dest)
+            if (part.length() < v.minBytes) { part.delete(); return tr("descarga incompleta") }
+            if (!part.renameTo(dest)) return tr("no se pudo guardar")
+            null
         } catch (e: Exception) {
             part.delete()
-            false
+            e.message ?: e.javaClass.simpleName
         }
     }
 
