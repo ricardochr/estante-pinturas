@@ -185,7 +185,10 @@ def main():
     if args.write_flags:
         # Dudosas: el color no se parece a ninguna fuente, o contradice el nombre y nadie más lo confirma
         bad = {(r[0], r[1], r[2], r[3]) for r in against_all}
-        bad |= {(r[0], r[1], r[2], r[3]) for r in name_bad if (r[0], r[1], r[2], r[3]) in unconfirmed}
+        # Por el nombre solo se marca una contradicción grave (un "Blue" amarillo); diferencias leves de
+        # claridad o saturación son normales en nombres comerciales ("Screamer Pink" es un magenta oscuro)
+        bad |= {(r[0], r[1], r[2], r[3]) for r in name_bad
+                if (r[0], r[1], r[2], r[3]) in unconfirmed and uc.severe_mismatch(r[4], r[2])}
         renamed = 0
         for row in cat:
             if (row[0], row[1], row[2], row[3]) in bad:
