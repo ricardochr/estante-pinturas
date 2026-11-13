@@ -12,7 +12,7 @@ Pinturas: 8924. Comparadas con paintdex y miniature-paints (ΔE2000).
 
 Color que contradice el nombre: 936
 No se parece a ninguna fuente: 0
-Marcadas como dudosas en la app: 822
+Marcadas como dudosas en la app: 0
 Estimaciones reemplazadas por una medición de los datos abiertos: 4
 Conservadas porque encajan con su nombre y la única fuente en contra no: 0
 Corregidas con la fuente porque el catálogo no encaja con el nombre y la fuente sí: 0
