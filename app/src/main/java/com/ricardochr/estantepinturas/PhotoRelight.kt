@@ -201,8 +201,8 @@ class PhotoScene(
     val h: Int,
     private val photoLo: IntArray,
     private val depth: FloatArray,
-    val W: Int,
-    val H: Int,
+    private val W: Int,
+    private val H: Int,
     private val photoHi: IntArray,
 ) {
     var mask = BooleanArray(w * h); private set
