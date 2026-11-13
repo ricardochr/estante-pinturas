@@ -177,6 +177,11 @@ fun LightScreen(
     var cavity by rememberSaveable { mutableFloatStateOf(0.6f) }
     var zones by rememberSaveable { mutableIntStateOf(0) }
     var temp by rememberSaveable { mutableStateOf(LightTemp.NEUTRA) }
+    var light2On by rememberSaveable { mutableStateOf(false) }
+    var az2 by rememberSaveable { mutableFloatStateOf(200f) }
+    var el2 by rememberSaveable { mutableFloatStateOf(15f) }
+    var int2 by rememberSaveable { mutableFloatStateOf(0.6f) }
+    var color2 by rememberSaveable { mutableIntStateOf(0) }
     // Esquema: colores de las zonas tomados de las pinturas de un proyecto
     val schemeProjects = remember(projects, byId) {
         projects.mapNotNull { p -> com.ricardochr.estantepinturas.schemeZones(p, byId).takeIf { it.isNotEmpty() }?.let { p to it } }
@@ -201,11 +206,6 @@ fun LightScreen(
     var zipChoice by remember { mutableStateOf<Triple<File, List<ZipPart>, Uri>?>(null) }
     // Archivo del modelo abierto: si la pantalla se recrea (giro, memoria) se vuelve a abrir solo
     var openFile by rememberSaveable { mutableStateOf<String?>(null) }
-    var light2On by rememberSaveable { mutableStateOf(false) }
-    var az2 by rememberSaveable { mutableFloatStateOf(200f) }
-    var el2 by rememberSaveable { mutableFloatStateOf(15f) }
-    var int2 by rememberSaveable { mutableFloatStateOf(0.6f) }
-    var color2 by rememberSaveable { mutableIntStateOf(0) }
     var exportMsg by remember { mutableStateOf<String?>(null) }
     var projectMenu by remember { mutableStateOf(false) }
     val prefs = remember { context.getSharedPreferences("luz", android.content.Context.MODE_PRIVATE) }
@@ -229,10 +229,6 @@ fun LightScreen(
     }
     LaunchedEffect(light) { renderer.light = light }
     LaunchedEffect(mesh) { renderer.mesh = mesh }
-    LaunchedEffect(Unit) {
-        val f = openFile
-        if (mesh == null && f != null && File(f).exists()) runLoad(save = false) { _ -> loadSavedMesh(File(f)) }
-    }
 
     fun runLoad(save: Boolean = true, block: ((String, Float) -> Unit) -> MeshData) {
         meshError = null
@@ -260,6 +256,11 @@ fun LightScreen(
                 saved = withContext(Dispatchers.IO) { savedMeshes(context) }
             }.onFailure { meshError = tr(it.message ?: tr("No pude leer el modelo.")) }
         }
+    }
+
+    LaunchedEffect(Unit) {
+        val f = openFile
+        if (mesh == null && f != null && File(f).exists()) runLoad(save = false) { _ -> loadSavedMesh(File(f)) }
     }
 
     val openModel = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
