@@ -32,6 +32,17 @@ jobs:
           path = hf_hub_download(repo, "onnx/model_quantized.onnx")
           os.makedirs("dist", exist_ok=True)
           shutil.copy(path, "dist/depth-v2-small-q8.onnx")
+          full = hf_hub_download(repo, "onnx/model.onnx")
+          shutil.copy(full, "dist/depth-v2-small-fp32.onnx")
+          print("preciso MB", os.path.getsize(full) / 1e6)
+          # Diferencia entre el modelo rápido y el preciso con una imagen suave (gradiente + formas)
+          yy, xx = np.mgrid[0:518, 0:518] / 518.0
+          img = np.stack([xx, yy, (xx * yy) ** 0.5]).astype(np.float32)[None]
+          sf = ort.InferenceSession(full, providers=["CPUExecutionProvider"])
+          sq = ort.InferenceSession(path, providers=["CPUExecutionProvider"])
+          a = sf.run(None, {"pixel_values": img})[0].ravel()
+          b = sq.run(None, {"pixel_values": img})[0].ravel()
+          print("correlación rápido/preciso", float(np.corrcoef(a, b)[0, 1]))
           print("tamaño MB", os.path.getsize(path) / 1e6)
           s = ort.InferenceSession(path, providers=["CPUExecutionProvider"])
           for i in s.get_inputs(): print("IN", i.name, i.shape, i.type)
@@ -48,5 +59,7 @@ jobs:
           tag_name: model-depth-v1
           name: Modelo de profundidad v1
           body: Depth Anything V2 Small (Apache-2.0), ONNX cuantizado de onnx-community. Lo descarga la app al usar Luz y sombra con fotos.
-          files: dist/depth-v2-small-q8.onnx
+          files: |
+            dist/depth-v2-small-q8.onnx
+            dist/depth-v2-small-fp32.onnx
           make_latest: "false"
