@@ -55,6 +55,21 @@ private fun lineFinish(brand: String, line: String): Finish? {
         else -> null
     }
 }
+
+/**
+ * Tamiya TS (laca en aerosol): acabado de cada color según el nombre oficial del producto en
+ * tamiya.de ("TS-8 Italian Red Gloss", "TS-48 Gunship Grey Flat", "TS-38 Gun Metal Semi Gloss").
+ * Los que la tienda no nombra con su acabado quedan "Sin dato".
+ */
+private val TAMIYA_TS: Map<Int, Finish> = buildMap {
+    listOf(7, 8, 9, 11, 12, 13, 14, 16, 17, 21, 26, 30, 34, 41, 43, 44, 45, 47, 49, 64, 65, 71, 76, 84, 95, 98, 101)
+        .forEach { put(it, Finish.BRILLANTE) }
+    listOf(29, 38, 42, 79, 100).forEach { put(it, Finish.SATINADO) }
+    listOf(2, 3, 4, 6, 27, 28, 32, 33, 46, 48, 61, 62, 63, 66, 77, 80).forEach { put(it, Finish.MATE) }
+}
+
+private val TS_RX = Regex("^TS-?(\\d+)$", RegexOption.IGNORE_CASE)
+private fun tamiyaTs(code: String): Finish? = TS_RX.find(code.trim())?.groupValues?.get(1)?.toIntOrNull()?.let { TAMIYA_TS[it] }
 // i18n:on
 
 private val finishCache = java.util.concurrent.ConcurrentHashMap<String, FinishInfo>()
@@ -72,6 +87,7 @@ fun finishOf(p: Paint): FinishInfo = finishCache.getOrPut(p.id) {
         // Tamiya: X = brillante, XF = mate (acrílicos y esmaltes)
         brand.contains("tamiya") && Regex("^XF-?\\d", RegexOption.IGNORE_CASE).containsMatchIn(p.code) -> FinishInfo(Finish.MATE, true)
         brand.contains("tamiya") && Regex("^X-?\\d", RegexOption.IGNORE_CASE).containsMatchIn(p.code) -> FinishInfo(Finish.BRILLANTE, true)
+        brand.contains("tamiya") && tamiyaTs(p.code) != null -> FinishInfo(tamiyaTs(p.code)!!, true)
         else -> lineFinish(brand, line)?.let { FinishInfo(it, false) } ?: FinishInfo(Finish.DESCONOCIDO, false)
     }
 }

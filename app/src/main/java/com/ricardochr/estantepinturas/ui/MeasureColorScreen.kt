@@ -107,7 +107,7 @@ private class MeasurePhoto(val bmp: Bitmap, val pixels: IntArray)
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MeasureColorDialog(target: Paint, owned: List<Paint>, onDismiss: () -> Unit, onSave: (String) -> Unit) {
+fun MeasureColorDialog(target: Paint, owned: List<Paint>, onDismiss: () -> Unit, onSave: (com.ricardochr.estantepinturas.MeasureResult) -> Unit) {
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         MeasureColorScreen(target, owned, onDismiss, onSave)
     }
@@ -115,7 +115,7 @@ fun MeasureColorDialog(target: Paint, owned: List<Paint>, onDismiss: () -> Unit,
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun MeasureColorScreen(target: Paint, owned: List<Paint>, onClose: () -> Unit, onSave: (String) -> Unit) {
+private fun MeasureColorScreen(target: Paint, owned: List<Paint>, onClose: () -> Unit, onSave: (com.ricardochr.estantepinturas.MeasureResult) -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val candidates = remember(target.id, owned) { referenceCandidates(target, owned).sortedBy { it.name.lowercase() } }
@@ -484,7 +484,7 @@ private fun ResultStage(
     onGallery: () -> Unit,
     onRemark: () -> Unit,
     onRestart: () -> Unit,
-    onSave: (String) -> Unit,
+    onSave: (com.ricardochr.estantepinturas.MeasureResult) -> Unit,
 ) {
     val res = combineTakes(takes) ?: return
     val last = takes.last()
@@ -586,7 +586,7 @@ private fun ResultStage(
             TextButton(onClick = onRestart, modifier = Modifier.weight(1f)) { Text(tr("Empezar de nuevo")) }
         }
         Button(
-            onClick = { onSave(res.hex) },
+            onClick = { onSave(res) },
             enabled = res.confidence.accept,
             modifier = Modifier.fillMaxWidth(),
         ) { Text(tr("Guardar este color")) }

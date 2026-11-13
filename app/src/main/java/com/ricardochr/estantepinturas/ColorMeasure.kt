@@ -396,3 +396,41 @@ fun suggestReferences(target: Paint, owned: List<Paint>, count: Int = 4): List<P
     }
     return picked.toList()
 }
+
+// ---------------------------------------------------------------- registro de mediciones
+
+/**
+ * Mediciones hechas con la cámara, para poder compartirlas y corregir el catálogo para todos
+ * (tools/color-overrides.json usa la clave "Marca|código o nombre").
+ */
+object MeasurementLog {
+    data class Entry(val key: String, val paintId: String, val name: String, val hex: String, val confidence: String, val takes: Int, val meanError: Double, val at: Long)
+
+    private fun prefs(context: android.content.Context) = context.getSharedPreferences("mediciones", android.content.Context.MODE_PRIVATE)
+
+    fun overrideKey(p: Paint): String = "${p.brand}|${p.code.ifBlank { p.name }}"
+
+    fun record(context: android.content.Context, p: Paint, r: MeasureResult) {
+        val o = org.json.JSONObject()
+            .put("key", overrideKey(p)).put("paintId", p.id).put("name", p.name).put("hex", r.hex)
+            .put("confidence", r.confidence.name).put("takes", r.takes).put("meanError", r.meanError).put("at", System.currentTimeMillis())
+        prefs(context).edit().putString(p.id, o.toString()).apply()
+    }
+
+    fun all(context: android.content.Context): List<Entry> = prefs(context).all.values.mapNotNull { v ->
+        try {
+            val o = org.json.JSONObject(v as String)
+            Entry(o.getString("key"), o.getString("paintId"), o.optString("name"), o.getString("hex"), o.getString("confidence"),
+                o.optInt("takes", 1), o.optDouble("meanError", 99.0), o.optLong("at"))
+        } catch (_: Exception) {
+            null
+        }
+    }.sortedBy { it.key }
+
+    /** Solo las de confianza Alta, en el formato de tools/color-overrides.json. */
+    fun exportJson(context: android.content.Context): String {
+        val o = org.json.JSONObject()
+        all(context).filter { it.confidence == MeasureConfidence.ALTA.name }.forEach { o.put(it.key, it.hex) }
+        return o.toString(2)
+    }
+}

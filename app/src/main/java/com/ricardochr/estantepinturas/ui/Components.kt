@@ -370,6 +370,7 @@ fun EntrySheet(
     var thin by remember { mutableStateOf(entry?.thin ?: "") }
     var fixingColor by remember { mutableStateOf(false) }
     var measuring by remember { mutableStateOf(false) }
+    val context = androidx.compose.ui.platform.LocalContext.current
     val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var qty by remember { mutableIntStateOf(entry?.qty ?: 1) }
     var notes by remember { mutableStateOf(entry?.notes ?: "") }
@@ -433,7 +434,11 @@ fun EntrySheet(
                     target = paint,
                     owned = inventory,
                     onDismiss = { measuring = false },
-                    onSave = { measuring = false; onFixColor(it) },
+                    onSave = { r ->
+                        measuring = false
+                        com.ricardochr.estantepinturas.MeasurementLog.record(context, paint, r)
+                        onFixColor(r.hex)
+                    },
                 )
             }
             if (entry != null && entry.qty > 0) {

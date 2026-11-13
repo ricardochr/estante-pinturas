@@ -125,6 +125,34 @@ fun SettingsScreen(vm: MainViewModel, onClose: () -> Unit, onAction: (HubAction)
                             ActionRow(Icons.Rounded.DeleteSweep, Pigment.Crimson, tr("Quitar pinturas importadas"), tr("{} pinturas que importaste", vm.extra.size)) { onAction(HubAction.ClearImported) }
                         }
                     }
+                    SettingsCard(tr("Colores medidos"), Pigment.Gold) {
+                        val ctx = androidx.compose.ui.platform.LocalContext.current
+                        val entries = androidx.compose.runtime.remember { com.ricardochr.estantepinturas.MeasurementLog.all(ctx) }
+                        val high = entries.count { it.confidence == com.ricardochr.estantepinturas.MeasureConfidence.ALTA.name }
+                        Hint(tr("{} medidos con la cámara; {} con confianza alta. Comparte los de confianza alta para corregir el catálogo de la app.", entries.size, high))
+                        val saver = androidx.activity.compose.rememberLauncherForActivityResult(
+                            androidx.activity.result.contract.ActivityResultContracts.CreateDocument("application/json"),
+                        ) { uri ->
+                            if (uri != null) try {
+                                ctx.contentResolver.openOutputStream(uri)?.use { it.write(com.ricardochr.estantepinturas.MeasurementLog.exportJson(ctx).toByteArray()) }
+                            } catch (_: Exception) {
+                            }
+                        }
+                        if (high > 0) {
+                            ActionRow(Icons.Rounded.FileUpload, Pigment.Gold, tr("Exportar colores medidos"), tr("Archivo para tools/color-overrides.json")) {
+                                saver.launch("color-overrides-medidos.json")
+                            }
+                            ActionRow(Icons.Rounded.Info, Pigment.Gold, tr("Enviar al repositorio"), tr("Abre un issue en GitHub con los colores")) {
+                                val intro = tr("Colores medidos con la cámara (confianza alta). Agregar a tools/color-overrides.json:")
+                                // i18n:off
+                                val body = intro + "\n\n```json\n" + com.ricardochr.estantepinturas.MeasurementLog.exportJson(ctx) + "\n```"
+                                // i18n:on
+                                val url = "https://github.com/ricardochr/estante-pinturas/issues/new?title=" +
+                                    android.net.Uri.encode(tr("Colores medidos ({})", high)) + "&body=" + android.net.Uri.encode(body)
+                                try { ctx.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))) } catch (_: Exception) { }
+                            }
+                        }
+                    }
                     SettingsCard(tr("Tus datos"), Pigment.Magenta) {
                         ActionRow(Icons.Rounded.Backup, Pigment.Emerald, tr("Respaldo"), tr("Copia de tu inventario y proyectos")) { onAction(HubAction.Backup) }
                         ActionRow(Icons.Rounded.FileUpload, Pigment.Teal, tr("Exportar inventario"), tr("Archivo CSV")) { onAction(HubAction.ExportInventory) }
