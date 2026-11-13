@@ -92,6 +92,9 @@ import com.ricardochr.estantepinturas.MeshLoadException
 import com.ricardochr.estantepinturas.MeshQuality
 import com.ricardochr.estantepinturas.PhotoLook
 import com.ricardochr.estantepinturas.PhotoScene
+import com.ricardochr.estantepinturas.PhotoGlRenderer
+import com.ricardochr.estantepinturas.LightPhotoStore
+import com.ricardochr.estantepinturas.SubjectCutout
 import com.ricardochr.estantepinturas.PhotoSide
 import com.ricardochr.estantepinturas.RelightRenderer
 import com.ricardochr.estantepinturas.SavedMesh
@@ -117,9 +120,11 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 
 /** Estado de una foto de "Luz y sombra". */
-private class PhotoSlot(val photo: Bitmap) {
+private class PhotoSlot(val photo: Bitmap, var depth: com.ricardochr.estantepinturas.DepthMap? = null, var savedMask: BooleanArray? = null) {
     var scene by mutableStateOf<PhotoScene?>(null)
     var status by mutableStateOf<String?>(null)
+    /** Sube cada vez que cambia el recorte (pincel), para volver a preparar el relieve. */
+    var version by mutableIntStateOf(0)
 }
 
 /** Colores de la segunda luz: relleno blanco o luces de color para practicar OSL. */
@@ -304,32 +309,59 @@ fun LightScreen(
     var modelReady by remember(variant) { mutableStateOf(DepthModel.isReady(context, variant)) }
     var downloading by remember { mutableStateOf<Float?>(null) }
     var downloadError by remember { mutableStateOf<String?>(null) }
-    var rendered by remember { mutableStateOf<Bitmap?>(null) }
+
+    // Dónde se guardan las fotos y su relieve: "general" o el id de un proyecto
+    var storeKey by rememberSaveable { mutableStateOf("general") }
+    var useAi by rememberSaveable { mutableStateOf(prefs.getBoolean("recorteIa", true)) }
+    var brush by remember { mutableIntStateOf(0) } // 0 apagado, 1 agregar, 2 quitar
+    var brushSize by rememberSaveable { mutableFloatStateOf(0.03f) }
+    val photoHolder = remember { arrayOfNulls<GLSurfaceView>(1) }
+    val photoRenderer = remember { PhotoGlRenderer { photoHolder[0]?.requestRender() } }
 
     fun process(s: PhotoSide) {
         val slot = slots[s] ?: return
         val v = variant
-        if (!DepthModel.isReady(context, v)) {
+        if (slot.depth == null && !DepthModel.isReady(context, v)) {
             slot.scene = null
             slot.status = tr("Para calcular el relieve, toca \"Descargar modelo\" abajo o elige el otro modelo de relieve.")
             return
         }
         slot.scene = null
-        slot.status = if (v == DepthVariant.PRECISA) tr("Calculando el relieve con el modelo preciso (puede tardar unos segundos)…") else tr("Calculando el relieve…")
+        slot.status = if (slot.depth != null) tr("Abriendo…")
+        else if (v == DepthVariant.PRECISA) tr("Calculando el relieve con el modelo preciso (puede tardar unos segundos)…") else tr("Calculando el relieve…")
+        val key = storeKey
+        val ai = useAi
         scope.launch {
             val sc = withContext(Dispatchers.Default) {
                 try {
-                    val dm = DepthModel.estimate(context, v, slot.photo)
-                    PhotoScene.from(slot.photo, dm).also { it.prepare(cut, relief) }
+                    val fresh = slot.depth == null
+                    val dm = slot.depth ?: DepthModel.estimate(context, v, slot.photo).also { slot.depth = it }
+                    val scene = PhotoScene.from(slot.photo, dm)
+                    if (ai) scene.segmentation = SubjectCutout.segment(slot.photo)
+                    slot.savedMask?.let { scene.userMask = it }
+                    scene.prepare(cut, relief)
+                    if (fresh) try { LightPhotoStore.save(context, key, s, slot.photo, dm, slot.savedMask) } catch (_: Exception) { }
+                    scene
                 } catch (e: Throwable) {
                     null
                 }
             }
-            if (slots[s] !== slot || variant != v) return@launch
+            if (slots[s] !== slot) return@launch
             slot.scene = sc
             slot.status = if (sc == null) tr("No pude calcular el relieve de esta foto.") else null
         }
     }
+
+    fun loadStore(key: String) {
+        slots.clear()
+        scope.launch {
+            val saved = withContext(Dispatchers.IO) { LightPhotoStore.load(context, key) }
+            if (storeKey != key) return@launch
+            saved.forEach { (sd, sv) -> slots[sd] = PhotoSlot(sv.photo, sv.depth, sv.userMask) }
+            saved.keys.forEach { process(it) }
+        }
+    }
+    LaunchedEffect(Unit) { if (slots.isEmpty()) loadStore(storeKey) }
 
     fun startDownload() {
         downloadError = null
@@ -351,6 +383,8 @@ fun LightScreen(
         prefs.edit().putString("modelo", v.name).apply()
         modelReady = DepthModel.isReady(context, v)
         downloadError = null
+        // Otro modelo: hay que recalcular la profundidad de todas las fotos
+        slots.values.forEach { it.depth = null }
         slots.keys.toList().forEach { process(it) }
     }
 
@@ -358,7 +392,7 @@ fun LightScreen(
         val target = side
         scope.launch {
             val bmp = withContext(Dispatchers.IO) { try { loadBitmapForAnalysis(context, uri, 1280) } catch (_: Exception) { null } }
-            if (bmp == null) return@launch
+            if (bmp == null) { downloadError = null; slots.remove(target); return@launch }
             slots[target] = PhotoSlot(bmp)
             process(target)
         }
@@ -378,16 +412,49 @@ fun LightScreen(
         camera.launch(uri)
     }
 
-    val currentScene = slots[side]?.scene
-    LaunchedEffect(currentScene, light, look, cut, relief, showOriginal, side, detailAmount) {
-        val sc = currentScene ?: run { rendered = null; return@LaunchedEffect }
-        delay(30)
-        val job = coroutineContext[Job]
-        val b = withContext(Dispatchers.Default) {
-            sc.prepare(cut, relief)
-            if (showOriginal) sc.original() else sc.render(light, side, look, detailAmount) { job?.isActive == false }
+    val currentSlot = slots[side]
+    val currentScene = currentSlot?.scene
+    val sceneVersion = currentSlot?.version ?: 0
+    // Relieve listo para la GPU: se rehace solo al cambiar foto, recorte o volumen (mover la luz es instantáneo)
+    LaunchedEffect(currentScene, cut, relief, sceneVersion) {
+        val sc = currentScene ?: run { photoRenderer.data = null; return@LaunchedEffect }
+        delay(40)
+        photoRenderer.data = withContext(Dispatchers.Default) { sc.prepare(cut, relief); sc.gpu() }
+    }
+    LaunchedEffect(light, side, look, detailAmount, showOriginal) {
+        photoRenderer.side = side
+        photoRenderer.look = look
+        photoRenderer.detailAmount = detailAmount
+        photoRenderer.showOriginal = showOriginal
+        photoRenderer.light = light
+    }
+
+    // Avisos de las vistas: siluetas que no corresponden y luz desde un lado que esta foto no ve
+    val viewWarnings = remember(slots.values.map { it.scene }, side, azimuth, elevation, sceneVersion) {
+        val out = ArrayList<String>()
+        fun pair(a: PhotoSide, b: PhotoSide) {
+            val sa = slots[a]?.scene ?: return
+            val sb = slots[b]?.scene ?: return
+            if (com.ricardochr.estantepinturas.silhouetteIoU(sa.silhouette(false), sb.silhouette(true)) < 0.55f) {
+                out.add(tr("Las siluetas de {} y {} no coinciden: puede ser otra figura, otro encuadre o la figura no giró 180°.", tr(a.label), tr(b.label)))
+            }
         }
-        if (b != null) rendered = b
+        pair(PhotoSide.FRENTE, PhotoSide.ESPALDA)
+        pair(PhotoSide.DERECHA, PhotoSide.IZQUIERDA)
+        val l = LightParams(azimuth, elevation).direction()
+        val phi = Math.toRadians(side.yaw.toDouble())
+        val lz = l[0] * kotlin.math.sin(phi).toFloat() + l[2] * kotlin.math.cos(phi).toFloat()
+        if (lz < -0.25f) {
+            val opposite = PhotoSide.entries.minByOrNull { o ->
+                val p2 = Math.toRadians(o.yaw.toDouble())
+                -(l[0] * kotlin.math.sin(p2).toFloat() + l[2] * kotlin.math.cos(p2).toFloat())
+            }
+            out.add(
+                tr("La luz viene de detrás de esta vista: las sombras que proyectan las partes que esta foto no ve no aparecen.") +
+                    (opposite?.takeIf { it != side && slots[it]?.scene != null }?.let { tr(" Mira la vista {}.", tr(it.label)) } ?: ""),
+            )
+        }
+        out
     }
 
     Box(Modifier.fillMaxSize()) {
@@ -456,11 +523,47 @@ fun LightScreen(
                         }
                     } else {
                         val slot = slots[side]
-                        val img = rendered
+                        val sc = slot?.scene
                         when {
                             slot == null -> EmptyHint(tr("Agrega la foto de este lado con la cámara o desde la galería."))
-                            slot.scene == null -> EmptyHint(slot.status ?: tr("Calculando el relieve…"))
-                            img != null -> Image(img.asImageBitmap(), contentDescription = null, contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize())
+                            sc == null -> EmptyHint(slot.status ?: tr("Calculando el relieve…"))
+                            else -> {
+                                AndroidView(
+                                    factory = { ctx ->
+                                        GLSurfaceView(ctx).apply {
+                                            setEGLContextClientVersion(3)
+                                            preserveEGLContextOnPause = true
+                                            setRenderer(photoRenderer)
+                                            renderMode = GLSurfaceView.RENDERMODE_WHEN_DIRTY
+                                            photoHolder[0] = this
+                                        }
+                                    },
+                                    modifier = Modifier.fillMaxSize(),
+                                )
+                                if (brush != 0) {
+                                    BrushOverlay(sc.photoWidth, sc.photoHeight, brushSize, brush == 1) { strokes ->
+                                        // Aplica el trazo al recorte a resolución de la foto
+                                        val W = sc.photoWidth; val H = sc.photoHeight
+                                        val m = sc.userMask?.copyOf() ?: sc.currentMaskHi()
+                                        val r = (brushSize * minOf(W, H)).toInt().coerceAtLeast(2)
+                                        val value = brush == 1
+                                        for ((fx, fy) in strokes) {
+                                            val cx = (fx * W).toInt(); val cy = (fy * H).toInt()
+                                            for (yy in (cy - r).coerceAtLeast(0)..(cy + r).coerceAtMost(H - 1)) {
+                                                for (xx in (cx - r).coerceAtLeast(0)..(cx + r).coerceAtMost(W - 1)) {
+                                                    val dx = xx - cx; val dy = yy - cy
+                                                    if (dx * dx + dy * dy <= r * r) m[yy * W + xx] = value
+                                                }
+                                            }
+                                        }
+                                        sc.userMask = m
+                                        slot.savedMask = m
+                                        slot.version++
+                                        val key = storeKey; val sd = side
+                                        scope.launch(Dispatchers.IO) { try { LightPhotoStore.saveMask(context, key, sd, m) } catch (_: Exception) { } }
+                                    }
+                                }
+                            }
                         }
                     }
                     if (zones > 0) ZoneLegend(zones, light.zoneColorsFor(), schemeZone?.names(zones), Modifier.align(Alignment.TopStart).padding(8.dp))
@@ -582,10 +685,12 @@ fun LightScreen(
                                 renderer.captureNext = { b -> scope.launch(Dispatchers.Main) { use(b) } }
                                 glHolder[0]?.requestRender()
                             } else {
-                                rendered?.let(use)
+                                if (currentScene == null) return
+                                photoRenderer.captureNext = { b -> scope.launch(Dispatchers.Main) { use(b) } }
+                                photoHolder[0]?.requestRender()
                             }
                         }
-                        val canExport = if (tab == 0) mesh != null else rendered != null
+                        val canExport = if (tab == 0) mesh != null else currentScene != null
                         OutlinedButton(onClick = {
                             withImage { b ->
                                 scope.launch {
@@ -727,6 +832,16 @@ fun LightScreen(
                                 }
                             }
                         }
+                        Text(tr("Guardar fotos en"), style = MaterialTheme.typography.labelMedium)
+                        androidx.compose.foundation.lazy.LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            item {
+                                FilterChip(selected = storeKey == "general", onClick = { if (storeKey != "general") { storeKey = "general"; loadStore("general") } }, label = { Text(tr("General")) })
+                            }
+                            items(projects.size) { i ->
+                                val pr = projects[i]
+                                FilterChip(selected = storeKey == pr.id, onClick = { if (storeKey != pr.id) { storeKey = pr.id; loadStore(pr.id) } }, label = { Text(pr.name, maxLines = 1) })
+                            }
+                        }
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             PhotoSide.entries.forEach { s ->
                                 SideSlot(s, slots[s], selected = side == s, modifier = Modifier.weight(1f)) { side = s }
@@ -740,7 +855,11 @@ fun LightScreen(
                                 Icon(Icons.Rounded.PhotoLibrary, contentDescription = null); Spacer(Modifier.width(4.dp)); Text(tr("Galería"))
                             }
                             if (slots[side] != null) {
-                                IconButton(onClick = { slots.remove(side) }) { Icon(Icons.Rounded.Delete, contentDescription = tr("Quitar foto")) }
+                                IconButton(onClick = {
+                                    val key = storeKey; val sd = side
+                                    slots.remove(sd)
+                                    scope.launch(Dispatchers.IO) { LightPhotoStore.remove(context, key, sd) }
+                                }) { Icon(Icons.Rounded.Delete, contentDescription = tr("Quitar foto")) }
                             }
                         }
                         if (slots[side]?.scene != null) {
@@ -750,11 +869,52 @@ fun LightScreen(
                                 }
                                 FilterChip(selected = showOriginal, onClick = { showOriginal = !showOriginal }, label = { Text(tr("Original")) })
                             }
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Column(Modifier.weight(1f)) {
+                                    Text(tr("Recorte con IA de Google"), style = MaterialTheme.typography.labelMedium)
+                                    Text(
+                                        tr("Separa la figura del fondo mejor que la profundidad sola. La primera vez se descarga con los servicios de Google."),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                                androidx.compose.material3.Switch(checked = useAi, onCheckedChange = {
+                                    useAi = it
+                                    prefs.edit().putBoolean("recorteIa", it).apply()
+                                    slots.keys.toList().forEach { k -> process(k) }
+                                })
+                            }
+                            if (useAi && currentScene != null && currentScene.segmentation == null && currentScene.userMask == null) {
+                                Text(
+                                    tr("La IA de recorte todavía no está disponible en este teléfono; se usó la profundidad. Vuelve a intentarlo en unos minutos."),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.tertiary,
+                                )
+                            }
                             LabeledSlider(tr("Recorte"), cut, -1f..1f) { cut = it }
+                            Text(tr("Pincel de recorte"), style = MaterialTheme.typography.labelMedium)
+                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                                FilterChip(selected = brush == 0, onClick = { brush = 0 }, label = { Text(tr("Mover luz")) })
+                                FilterChip(selected = brush == 1, onClick = { brush = 1 }, label = { Text(tr("Agregar")) })
+                                FilterChip(selected = brush == 2, onClick = { brush = 2 }, label = { Text(tr("Quitar")) })
+                                if (currentScene?.userMask != null) {
+                                    TextButton(onClick = {
+                                        currentScene.userMask = null
+                                        currentSlot.savedMask = null
+                                        currentSlot.version++
+                                        val key = storeKey; val sd = side
+                                        scope.launch(Dispatchers.IO) { LightPhotoStore.saveMask(context, key, sd, null) }
+                                    }) { Text(tr("Deshacer")) }
+                                }
+                            }
+                            if (brush != 0) LabeledSlider(tr("Grosor"), brushSize, 0.008f..0.08f) { brushSize = it }
                             LabeledSlider(tr("Volumen"), relief, 0.2f..1.5f) { relief = it }
                             if (look == PhotoLook.ARCILLA && !showOriginal && zones == 0) {
                                 LabeledSlider(tr("Detalle de la foto"), detailAmount, 0f..1f) { detailAmount = it }
                             }
+                        }
+                        viewWarnings.forEach { w ->
+                            Text("⚠ $w", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.tertiary)
                         }
                         Text(
                             tr("Para mejor resultado: figura imprimada en gris o blanco, luz suave sin sombras fuertes, fondo liso y la cámara a la altura de la figura. Para los lados, deja la cámara fija y gira la figura 90° cada vez."),
@@ -772,8 +932,11 @@ fun LightScreen(
     DisposableEffect(lifecycleOwner) {
         val obs = androidx.lifecycle.LifecycleEventObserver { _, e ->
             when (e) {
-                androidx.lifecycle.Lifecycle.Event.ON_PAUSE -> glHolder[0]?.onPause()
-                androidx.lifecycle.Lifecycle.Event.ON_RESUME -> { glHolder[0]?.onResume(); glHolder[0]?.requestRender() }
+                androidx.lifecycle.Lifecycle.Event.ON_PAUSE -> { glHolder[0]?.onPause(); photoHolder[0]?.onPause() }
+                androidx.lifecycle.Lifecycle.Event.ON_RESUME -> {
+                    glHolder[0]?.onResume(); glHolder[0]?.requestRender()
+                    photoHolder[0]?.onResume(); photoHolder[0]?.requestRender()
+                }
                 else -> {}
             }
         }
@@ -782,6 +945,10 @@ fun LightScreen(
             lifecycleOwner.lifecycle.removeObserver(obs)
             glHolder[0]?.onPause()
             glHolder[0] = null
+            photoHolder[0]?.onPause()
+            photoHolder[0] = null
+            // Fotos temporales de la cámara: ya quedaron copiadas en el almacén de Luz y sombra
+            File(context.cacheDir, "captures").listFiles()?.forEach { if (it.name.startsWith("figura-")) it.delete() }
         }
     }
 
@@ -875,6 +1042,38 @@ private fun LightPad(azimuth: Float, elevation: Float, modifier: Modifier, onCha
         drawLine(accent.copy(alpha = 0.6f), c, p, strokeWidth = 2.dp.toPx())
         drawCircle(Color.Black.copy(alpha = 0.4f), 12.dp.toPx(), p)
         drawCircle(accent, 10.dp.toPx(), p)
+    }
+}
+
+/** Capa para pintar el recorte sobre la foto (encajada en la vista). Entrega los puntos del trazo (0–1). */
+@Composable
+private fun BrushOverlay(photoW: Int, photoH: Int, size: Float, adding: Boolean, onStroke: (List<Pair<Float, Float>>) -> Unit) {
+    val points = remember { androidx.compose.runtime.mutableStateListOf<Offset>() }
+    androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxSize()) {
+        val density = androidx.compose.ui.platform.LocalDensity.current
+        val bw = with(density) { maxWidth.toPx() }
+        val bh = with(density) { maxHeight.toPx() }
+        val scale = minOf(bw / photoW, bh / photoH)
+        val dw = photoW * scale; val dh = photoH * scale
+        val ox = (bw - dw) / 2; val oy = (bh - dh) / 2
+        val rPx = size * minOf(photoW, photoH) * scale
+        Canvas(
+            Modifier.fillMaxSize().pointerInput(photoW, photoH, adding, size) {
+                detectDragGestures(
+                    onDragStart = { points.clear(); points.add(it) },
+                    onDrag = { change, _ -> points.add(change.position) },
+                    onDragEnd = {
+                        val pts = points.map { ((it.x - ox) / dw) to ((it.y - oy) / dh) }.filter { (x, y) -> x in -0.05f..1.05f && y in -0.05f..1.05f }
+                        points.clear()
+                        if (pts.isNotEmpty()) onStroke(pts)
+                    },
+                    onDragCancel = { points.clear() },
+                )
+            },
+        ) {
+            val col = if (adding) Color(0x8844DD88) else Color(0x88FF4444)
+            points.forEach { drawCircle(col, rPx, it) }
+        }
     }
 }
 

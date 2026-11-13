@@ -10,6 +10,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import kotlin.math.ln
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
@@ -145,6 +146,27 @@ object DepthModel {
 
 class DepthMap(val w: Int, val h: Int, val d: FloatArray)
 
+/** Lo que la GPU necesita para iluminar una foto. */
+class PhotoGpuData(
+    val w: Int, val h: Int, val W: Int, val H: Int,
+    /** RGBA por píxel del relieve: normal codificada en RGB y huecos en A. */
+    val normalAo: ByteArray,
+    /** Alto del relieve (en píxeles del relieve); muy negativo fuera de la figura. */
+    val heights: FloatArray,
+    /** Foto en RGBA con el recorte en A. */
+    val photoRgba: ByteArray,
+    /** Detalle fino codificado (log2 de −1.2 a 0.85 en 0–255). */
+    val detail: ByteArray,
+    val hMax: Float,
+)
+
+/** Parecido entre dos siluetas de [PhotoScene.silhouette] (intersección / unión). */
+fun silhouetteIoU(a: BooleanArray, b: BooleanArray): Float {
+    var inter = 0; var uni = 0
+    for (i in a.indices) { if (a[i] && b[i]) inter++; if (a[i] || b[i]) uni++ }
+    return if (uni == 0) 1f else inter.toFloat() / uni
+}
+
 private val LIN = FloatArray(256) {
     val s = it / 255f
     if (s <= 0.04045f) s / 12.92f else ((s + 0.055f) / 1.055f).pow(2.4f)
@@ -213,7 +235,20 @@ class PhotoScene(
     private var nz = FloatArray(w * h)
     private var ao = FloatArray(w * h)
     private var hMax = 0f
-    private var prepared: Pair<Float, Float>? = null
+    private var prepared: Triple<Float, Float, Int>? = null
+
+    /** Confianza de figura (0–1) por píxel de la foto, de la segmentación de ML Kit; null = no hay. */
+    var segmentation: FloatArray? = null
+        set(v) { field = v; maskVersion++ }
+    /** Recorte hecho a mano con el pincel (resolución de la foto); tiene prioridad sobre todo lo demás. */
+    var userMask: BooleanArray? = null
+        set(v) { field = v; maskVersion++ }
+    private var maskVersion = 0
+
+    /** Recorte actual a resolución de la foto (para empezar a pintar con el pincel). */
+    fun currentMaskHi(): BooleanArray = maskHi.copyOf()
+    val photoWidth: Int get() = W
+    val photoHeight: Int get() = H
 
     private val up = Upsampler(w, h, W, H)
     private var maskHi = BooleanArray(W * H)
@@ -249,7 +284,7 @@ class PhotoScene(
      * @param relief volumen del relieve (0.2–1.5).
      */
     fun prepare(cut: Float, relief: Float) {
-        if (prepared == cut to relief) return
+        if (prepared == Triple(cut, relief, maskVersion)) return
         val n = w * h
         // Profundidad normalizada con percentiles para ignorar valores extremos
         val sorted = depth.copyOf().also { it.sort() }
@@ -310,7 +345,21 @@ class PhotoScene(
             if (y > 0) visit(i - w)
             if (y < h - 1) visit(i + w)
         }
-        val fg = BooleanArray(n) { dn[it] >= thr && !bg[it] }
+        // Recorte externo: el pincel o la segmentación de ML Kit (con el ajuste de Recorte como umbral)
+        val seg = segmentation
+        val extHi: BooleanArray? = userMask ?: seg?.let { sg ->
+            val t = (0.5f + cut * 0.3f).coerceIn(0.1f, 0.9f)
+            BooleanArray(W * H) { sg[it] >= t }
+        }
+        val extLo: BooleanArray? = extHi?.let { e ->
+            BooleanArray(n) { i ->
+                val x = i % w; val y = i / w
+                val hx = (((x + 0.5f) * W / w).toInt()).coerceIn(0, W - 1)
+                val hy = (((y + 0.5f) * H / h).toInt()).coerceIn(0, H - 1)
+                e[hy * W + hx]
+            }
+        }
+        val fg = extLo ?: BooleanArray(n) { dn[it] >= thr && !bg[it] }
 
         // Solo las partes grandes (la figura y su peana), sin manchas sueltas
         val label = IntArray(n) { -1 }
@@ -335,12 +384,18 @@ class PhotoScene(
             sizes.add(cnt)
         }
         val biggest = sizes.maxOrNull() ?: 0
-        val m = BooleanArray(n) { label[it] >= 0 && sizes[label[it]] >= biggest * 0.15 }
+        // Lo que pintaste a mano se respeta tal cual; lo automático se limpia de manchas sueltas
+        val m = if (userMask != null && extLo != null) extLo else BooleanArray(n) { label[it] >= 0 && sizes[label[it]] >= biggest * 0.15 }
         mask = m
 
+        // Con un recorte externo, la referencia de profundidad es lo más lejano de la figura (no el fondo)
+        val thrRel = if (extLo != null) {
+            val inside = (0 until n).filter { m[it] }.map { dn[it] }.sorted()
+            if (inside.isEmpty()) thr else inside[(inside.size * 0.05).toInt()]
+        } else thr
         // Medidas de la figura
         var minX = w; var maxX = 0; var minY = h; var maxY = 0
-        var dMax = thr
+        var dMax = thrRel
         for (i in 0 until n) if (m[i]) {
             val x = i % w; val y = i / w
             if (x < minX) minX = x; if (x > maxX) maxX = x
@@ -383,7 +438,7 @@ class PhotoScene(
             val d = dist[i] / 3f
             val dd = min(d, rim)
             val inflate = sqrt((2 * rim * dd - dd * dd).coerceAtLeast(0f))
-            hgt[i] = ((dn[i] - thr) / (dMax - thr).coerceAtLeast(1e-3f)).coerceIn(0f, 1f) * depthScale + inflate * 0.8f
+            hgt[i] = ((dn[i] - thrRel) / (dMax - thrRel).coerceAtLeast(1e-3f)).coerceIn(0f, 1f) * depthScale + inflate * 0.8f
         }
         val hs = boxBlur(hgt, m, 1)
         height = hs
@@ -429,8 +484,8 @@ class PhotoScene(
         // Recorte a resolución completa: lo claramente dentro o fuera sale de la máscara ampliada; en el
         // borde decide el color de la foto (fondo o no) junto con la profundidad
         val mf = FloatArray(n) { if (m[it]) 1f else 0f }
-        val hiMask = BooleanArray(W * H)
-        for (y in 0 until H) for (x in 0 until W) {
+        val hiMask = extHi?.copyOf() ?: BooleanArray(W * H)
+        if (extHi == null) for (y in 0 until H) for (x in 0 until W) {
             val v = up.sample(mf, x, y)
             val i = y * W + x
             hiMask[i] = when {
@@ -440,7 +495,59 @@ class PhotoScene(
             }
         }
         maskHi = hiMask
-        prepared = cut to relief
+        prepared = Triple(cut, relief, maskVersion)
+        gpuCache = null
+    }
+
+    private var gpuCache: PhotoGpuData? = null
+
+    /** Datos para dibujar en la GPU (después de [prepare]). */
+    fun gpu(): PhotoGpuData {
+        gpuCache?.let { return it }
+        val n = w * h
+        val nrm = ByteArray(n * 4)
+        val hts = FloatArray(n)
+        for (i in 0 until n) {
+            nrm[i * 4] = ((nx[i] * 0.5f + 0.5f) * 255f).toInt().coerceIn(0, 255).toByte()
+            nrm[i * 4 + 1] = ((ny[i] * 0.5f + 0.5f) * 255f).toInt().coerceIn(0, 255).toByte()
+            nrm[i * 4 + 2] = ((nz[i] * 0.5f + 0.5f) * 255f).toInt().coerceIn(0, 255).toByte()
+            nrm[i * 4 + 3] = (ao[i] * 255f).toInt().coerceIn(0, 255).toByte()
+            // Fuera de la figura nada tapa la luz
+            hts[i] = if (mask[i]) height[i] else -1e6f
+        }
+        val photo = ByteArray(W * H * 4)
+        val det = ByteArray(W * H)
+        val d = detail
+        for (i in 0 until W * H) {
+            val c = photoHi[i]
+            photo[i * 4] = (c shr 16).toByte(); photo[i * 4 + 1] = (c shr 8).toByte(); photo[i * 4 + 2] = c.toByte()
+            photo[i * 4 + 3] = if (maskHi[i]) 255.toByte() else 0
+            // log2 del detalle en −1.2…0.85, a 0–255
+            val lg = (ln(d[i].coerceIn(0.45f, 1.8f).toDouble()) / ln(2.0)).toFloat()
+            det[i] = (((lg + 1.2f) / 2.05f) * 255f).toInt().coerceIn(0, 255).toByte()
+        }
+        return PhotoGpuData(w, h, W, H, nrm, hts, photo, det, hMax).also { gpuCache = it }
+    }
+
+    /** Silueta normalizada (64×64, encajada por alto) para comparar vistas; [mirror] la refleja. */
+    fun silhouette(mirror: Boolean): BooleanArray {
+        var minX = w; var maxX = -1; var minY = h; var maxY = -1
+        for (i in 0 until w * h) if (mask[i]) {
+            val x = i % w; val y = i / w
+            if (x < minX) minX = x; if (x > maxX) maxX = x
+            if (y < minY) minY = y; if (y > maxY) maxY = y
+        }
+        val out = BooleanArray(64 * 64)
+        if (maxX < 0) return out
+        val bh = (maxY - minY + 1).toFloat()
+        val cx = (minX + maxX) / 2f
+        for (gy in 0 until 64) for (gx in 0 until 64) {
+            val fx = (gx - 31.5f) / 64f * bh
+            val sx = (cx + (if (mirror) -fx else fx)).toInt()
+            val sy = (minY + (gy + 0.5f) / 64f * bh).toInt()
+            out[gy * 64 + gx] = sx in 0 until w && sy in 0 until h && mask[sy * w + sx]
+        }
+        return out
     }
 
     /** Desenfoque de caja separable solo dentro de la figura. */

@@ -40,6 +40,6 @@
         <!-- Modelos de ML Kit incluidos en el APK: funcionan sin internet -->
         <meta-data
             android:name="com.google.mlkit.vision.DEPENDENCIES"
-            android:value="barcode,ocr" />
+            android:value="barcode,ocr,subject_segment" />
     </application>
 </manifest>

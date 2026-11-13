@@ -85,6 +85,8 @@ dependencies {
 
     implementation("com.google.mlkit:barcode-scanning:17.3.0")
     implementation("com.google.mlkit:text-recognition:16.0.1")
+    // Recorte de la figura en "Luz y sombra" (el modelo lo descargan los servicios de Google)
+    implementation("com.google.android.gms:play-services-mlkit-subject-segmentation:16.0.0-beta1")
     implementation("androidx.exifinterface:exifinterface:1.3.7")
     // Modelo de profundidad para "Luz y sombra" con fotos (el modelo se descarga aparte)
     implementation("com.microsoft.onnxruntime:onnxruntime-android:1.20.0")
