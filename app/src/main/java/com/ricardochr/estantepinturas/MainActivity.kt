@@ -125,6 +125,7 @@ import java.util.Locale
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        CrashLog.install(this)
         Prefs.init(this)
         I18n.load(this)
         enableEdgeToEdge()
@@ -187,6 +188,33 @@ private fun App(vm: MainViewModel = viewModel()) {
         if (uri != null) vm.exportCatalogCsv(uri) { say(it) }
     }
     val csvTypes = arrayOf("text/*", "application/csv", "application/vnd.ms-excel", "application/octet-stream")
+
+    // Si la app se cerró por un error la vez anterior, se muestra el detalle para poder enviarlo
+    val crashCtx = androidx.compose.ui.platform.LocalContext.current
+    var lastCrash by remember { mutableStateOf(CrashLog.take(crashCtx)) }
+    lastCrash?.let { text ->
+        val clipboard = androidx.compose.ui.platform.LocalClipboardManager.current
+        AlertDialog(
+            onDismissRequest = { lastCrash = null },
+            title = { Text(tr("La app se cerró por un error")) },
+            text = {
+                Column(Modifier.verticalScroll(rememberScrollState())) {
+                    Text(tr("Copia este detalle y envíaselo a quien te ayuda con la app:"), style = MaterialTheme.typography.bodySmall)
+                    // i18n:off
+                    Text(text.take(4000), style = MaterialTheme.typography.labelSmall, fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace)
+                    // i18n:on
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    clipboard.setText(androidx.compose.ui.text.AnnotatedString(text))
+                    lastCrash = null
+                    say(tr("Detalle copiado"))
+                }) { Text(tr("Copiar")) }
+            },
+            dismissButton = { TextButton(onClick = { lastCrash = null }) { Text(tr("Cerrar")) } },
+        )
+    }
 
     androidx.compose.runtime.LaunchedEffect(vm.adoptedCount) {
         if (vm.adoptedCount > 0) say(tr("{} pinturas que agregaste a mano ya están en el catálogo y se unieron a él", vm.adoptedCount))
