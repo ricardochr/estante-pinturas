@@ -2,6 +2,8 @@
 
 package com.ricardochr.estantepinturas.ui
 
+import com.ricardochr.estantepinturas.*
+
 import com.ricardochr.estantepinturas.tr
 
 import android.content.Intent

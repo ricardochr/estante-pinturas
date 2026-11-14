@@ -1,5 +1,7 @@
 package com.ricardochr.estantepinturas.ui
 
+import com.ricardochr.estantepinturas.*
+
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap

@@ -27,30 +27,30 @@ data class ScanResult(val hits: List<ScanHit>, val unknownBarcodes: List<String>
 
 class MainViewModel(app: Application) : AndroidViewModel(app) {
 
-    private val store = Store(app)
-    private val projectStore = ProjectStore(app)
-    private val prefs = app.getSharedPreferences("gotario", Context.MODE_PRIVATE)
+    internal val store = Store(app)
+    internal val projectStore = ProjectStore(app)
+    internal val prefs = app.getSharedPreferences("gotario", Context.MODE_PRIVATE)
 
     var loading by mutableStateOf(true)
-        private set
+        internal set
     var catalog by mutableStateOf<List<Paint>>(emptyList())
-        private set
+        internal set
     var custom by mutableStateOf<List<Paint>>(emptyList())
-        private set
+        internal set
     /** Pinturas importadas al catálogo desde un CSV. */
     var extra by mutableStateOf<List<Paint>>(emptyList())
-        private set
+        internal set
     var owned by mutableStateOf<Map<String, OwnedEntry>>(emptyMap())
-        private set
+        internal set
     var barcodes by mutableStateOf<Map<String, String>>(emptyMap())
-        private set
+        internal set
 
     /** Catálogo + pinturas propias, indexado por id. */
     var byId by mutableStateOf<Map<String, Paint>>(emptyMap())
-        private set
+        internal set
 
-    private var codeIndex: Map<String, List<Paint>> = emptyMap()
-    private var nameIndex: Map<String, List<Paint>> = emptyMap()
+    internal var codeIndex: Map<String, List<Paint>> = emptyMap()
+    internal var nameIndex: Map<String, List<Paint>> = emptyMap()
 
     val allPaints: List<Paint> get() = custom + extra + catalog
 
@@ -95,7 +95,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
      * cambia. Aquí se reasigna el inventario (y los códigos de barras) a la pintura equivalente
      * del catálogo nuevo; si no existe, se conserva como pintura propia para no perder nada.
      */
-    private fun migrateOrphans() {
+    internal fun migrateOrphans() {
         val orphanIds = (owned.keys + barcodes.values).filter { !byId.containsKey(it) }.toSet()
         if (orphanIds.isEmpty()) return
         val remap = HashMap<String, String>()
@@ -139,7 +139,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
      * o los metálicos de Kaleido), se pasa a la del catálogo: botes, notas, códigos de barras,
      * lista de compras, ubicación y proyectos. Si le habías puesto color, se conserva como corrección.
      */
-    private fun adoptCatalogMatches() {
+    internal fun adoptCatalogMatches() {
         if (custom.isEmpty()) return
         val pool = extra + catalog
         val byCode = pool.filter { codeKey(it.code).length >= 3 }.groupBy { brandKey(it.brand) + "|" + codeKey(it.code) }
@@ -195,7 +195,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     /** Cuántas pinturas tuyas se pasaron al catálogo en este arranque (para avisarte). */
     var adoptedCount by mutableStateOf(0)
 
-    private fun rebuildIndexes() {
+    internal fun rebuildIndexes() {
         val all = custom + extra + catalog
         byId = all.associateBy { it.id }
         val codes = HashMap<String, MutableList<Paint>>()
@@ -210,7 +210,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         nameIndex = names
     }
 
-    private fun persist() {
+    internal fun persist() {
         val snapshot = SavedState(owned, custom, barcodes, spots, locations, colorFixes, shopping, gear, customSets)
         viewModelScope.launch(Dispatchers.IO) { store.saveState(snapshot) }
         scheduleAutoBackup()
@@ -343,7 +343,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     // ---------- corregir colores ----------
 
     var colorFixes by mutableStateOf<Map<String, String>>(emptyMap())
-        private set
+        internal set
 
     /** Cambia el color de una pintura (se guarda y se aplica también tras actualizar el catálogo). */
     fun fixColor(paintId: String, hex: String) {
@@ -389,131 +389,17 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Variantes de color: color nuevo para algunos colores de la imagen (por índice). */
     var paletteOverrides by mutableStateOf<Map<Int, Lab>>(emptyMap())
-        private set
-
-    /**
-     * Prueba otro color en una zona: [base] pasa a ser [target] y los demás tonos de la zona
-     * (sombras y luces) conservan su diferencia de claridad respecto a la base.
-     */
-    fun recolorZone(members: List<Int>, base: Int, target: Lab) {
-        val clusters = palette?.palette?.clusters ?: return
-        val b = clusters.getOrNull(base) ?: return
-        val bc = kotlin.math.sqrt(b.a * b.a + b.b * b.b).coerceAtLeast(4.0)
-        val next = HashMap(paletteOverrides)
-        for (m in members) {
-            val c = clusters.getOrNull(m) ?: continue
-            // Sombras y luces: misma diferencia de claridad y la misma proporción de saturación que tenían
-            val ratio = (kotlin.math.sqrt(c.a * c.a + c.b * c.b) / bc).coerceIn(0.45, 1.4)
-            next[m] = Lab((target.l + (c.l - b.l)).coerceIn(3.0, 97.0), target.a * ratio, target.b * ratio)
-        }
-        paletteOverrides = next
-        refreshPaletteMatches()
-    }
-
-    fun resetZoneColor(members: List<Int>) {
-        if (members.none { it in paletteOverrides }) return
-        paletteOverrides = paletteOverrides - members.toSet()
-        refreshPaletteMatches()
-    }
-
-    fun clearRecolors() {
-        if (paletteOverrides.isEmpty()) return
-        paletteOverrides = emptyMap()
-        refreshPaletteMatches()
-    }
+        internal set
 
     var palette by mutableStateOf<PaletteView?>(null)
-        private set
+        internal set
     var paletteBusy by mutableStateOf(false)
-        private set
+        internal set
     var paletteError by mutableStateOf<String?>(null)
-        private set
+        internal set
     /** Corregir automáticamente las fotos oscuras antes de elegir pinturas. */
     var paletteBrighten by mutableStateOf(true)
-        private set
-
-    private fun inventoryPaints(): List<Paint> =
-        owned.values.filter { it.qty > 0 }.mapNotNull { byId[it.paintId] }
-
-    private fun buildPaletteView(uri: Uri, detail: Int, bmp: Bitmap, original: ImagePalette, inv: List<Paint>, cat: List<Paint>): PaletteView {
-        val fixed = brightenedPalette(original)
-        val base = if (paletteBrighten && fixed != null) fixed else original
-        val over = paletteOverrides.filterKeys { it in base.clusters.indices }
-        fun build(ip: ImagePalette): Triple<List<PaletteMatch>, PaletteAdvice, Bitmap> {
-            val raw = matchPalette(ip, inv, cat)
-            val advice = buildAdvice(ip, raw, inv, gearKit)
-            val matches = refineZones(raw, advice.families, inv, cat)
-            return Triple(matches, advice, renderPreview(ip, matches, bmp))
-        }
-        if (over.isEmpty()) {
-            val (matches, advice, preview) = build(base)
-            return PaletteView(uri, detail, bmp, base, matches, preview, advice, original, fixed != null, base !== original)
-        }
-        // Con variantes: mismos píxeles, pero los colores cambiados se sustituyen antes de elegir pinturas
-        val varied = ImagePalette(
-            base.width, base.height, base.labels,
-            base.clusters.mapIndexed { i, c -> over[i]?.let { ColorCluster(it.l, it.a, it.b, c.fraction) } ?: c },
-            base.backgroundFound, base.zones,
-        )
-        val basePreview = build(base).third
-        val (matches, advice, preview) = build(varied)
-        return PaletteView(uri, detail, bmp, varied, matches, preview, advice, original, fixed != null, base !== original, over.keys, basePreview)
-    }
-
-    /** Analiza la imagen y sugiere pinturas del inventario. [detail]: cuántos colores buscar. */
-    fun analyzePalette(uri: Uri, detail: Int) {
-        if (paletteBusy) return
-        paletteBusy = true
-        paletteError = null
-        // Los colores se numeran de nuevo en cada análisis: las variantes anteriores ya no aplican
-        paletteOverrides = emptyMap()
-        val inv = inventoryPaints()
-        val cat = extra + catalog
-        val reuse = palette?.takeIf { it.uri == uri }?.source
-        viewModelScope.launch {
-            var error: String? = null
-            val result = withContext(Dispatchers.Default) {
-                val bmp = try {
-                    reuse ?: loadBitmapForAnalysis(getApplication(), uri)
-                } catch (e: Throwable) {
-                    null
-                }
-                if (bmp == null) {
-                    error = tr("No pude abrir esa imagen. Prueba con otra (JPG o PNG).")
-                    null
-                } else {
-                    try {
-                        buildPaletteView(uri, detail, bmp, analyzeImage(bmp, detail), inv, cat)
-                    } catch (e: Throwable) {
-                        error = tr("Abrí la imagen pero falló el análisis ({}: {}). Envíame este mensaje.", e.javaClass.simpleName, e.message)
-                        null
-                    }
-                }
-            }
-            if (result == null) paletteError = error ?: tr("No pude analizar la imagen.")
-            else palette = result
-            paletteBusy = false
-        }
-    }
-
-    /** Recalcula las sugerencias (cambió el inventario o la corrección de luz), sin volver a analizar la imagen. */
-    fun refreshPaletteMatches() {
-        val current = palette ?: return
-        val inv = inventoryPaints()
-        val cat = extra + catalog
-        viewModelScope.launch {
-            val updated = withContext(Dispatchers.Default) {
-                buildPaletteView(current.uri, current.detail, current.source, current.original, inv, cat)
-            }
-            if (palette === current) palette = updated
-        }
-    }
-
-    fun changePaletteBrighten(on: Boolean) {
-        if (paletteBrighten == on) return
-        paletteBrighten = on
-        refreshPaletteMatches()
-    }
+        internal set
 
     /** Color de un punto de la foto y las pinturas tuyas que más se le parecen. */
     class PointPick(
@@ -526,523 +412,34 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val toBuy: Paint?,
         val toBuyDistance: Double,
     )
-
-    /**
-     * Lee el color en el punto ([x], [y] de 0 a 1) promediando un cuadrito de la foto, aplica la
-     * misma corrección de luz que la paleta y busca tus pinturas más parecidas.
-     */
-    fun pickPoint(x: Float, y: Float): PointPick? {
-        val view = palette ?: return null
-        val src = view.source
-        val px = (x * src.width).toInt().coerceIn(0, src.width - 1)
-        val py = (y * src.height).toInt().coerceIn(0, src.height - 1)
-        val r = maxOf(1, minOf(src.width, src.height) / 200)
-        var sr = 0L; var sg = 0L; var sb = 0L; var n = 0
-        for (yy in (py - r)..(py + r)) for (xx in (px - r)..(px + r)) {
-            if (xx < 0 || yy < 0 || xx >= src.width || yy >= src.height) continue
-            val c = src.getPixel(xx, yy)
-            sr += (c shr 16) and 0xFF; sg += (c shr 8) and 0xFF; sb += c and 0xFF; n++
-        }
-        if (n == 0) return null
-        val argb = (0xFF shl 24) or ((sr / n).toInt() shl 16) or ((sg / n).toInt() shl 8) or (sb / n).toInt()
-        var lab = hexToLab(String.format("#%06X", argb and 0xFFFFFF))
-        val ip = view.palette
-        val lx = (x * ip.width).toInt().coerceIn(0, ip.width - 1)
-        val ly = (y * ip.height).toInt().coerceIn(0, ip.height - 1)
-        val label = ip.labels[ly * ip.width + lx]
-        // Misma corrección de luz que se aplicó a la paleta (si la foto era oscura)
-        if (view.brightened && label >= 0 && label !in view.recolored) {
-            val o = view.original.clusters.getOrNull(label)
-            val a = ip.clusters.getOrNull(label)
-            if (o != null && a != null && o.l > 1) {
-                val chromaO = kotlin.math.sqrt(o.a * o.a + o.b * o.b).coerceAtLeast(1.0)
-                val chromaA = kotlin.math.sqrt(a.a * a.a + a.b * a.b)
-                val k = (chromaA / chromaO).coerceIn(0.5, 2.0)
-                lab = Lab((lab.l * a.l / o.l).coerceIn(0.0, 100.0), lab.a * k, lab.b * k)
-            }
-        }
-        val inv = inventoryPaints().filter { it.hasColor && typeGroup(it.type) != "auxiliar" && typeGroup(it.type) != "metal" && it.type != "Imprimación" }
-        val ranked = inv.map { it to deltaE2000(lab, it.lab) }.sortedBy { it.second + if (typeGroup(it.first.type) == "opaca") 0.0 else 3.0 }.take(4)
-        val matches = ranked.map { SimilarPaint(it.first, it.second, typeGroup(it.first.type) == "opaca") }
-        var buy: Paint? = null
-        var buyD = Double.MAX_VALUE
-        if ((matches.firstOrNull()?.distance ?: 99.0) > 8) {
-            val ownedIds = owned.keys
-            for (p in extra + catalog) {
-                if (!p.hasColor || p.type != "Opaca" || p.quality == "n" || p.id in ownedIds) continue
-                val d = deltaE2000(lab, p.lab)
-                if (d < buyD) { buyD = d; buy = p }
-            }
-        }
-        return PointPick(x, y, argb, lab, label, matches, buy, buyD)
-    }
-
-    fun clearPalette() {
-        palette = null
-        paletteError = null
-    }
-
     // ---------- escaneo ----------
-
-    /**
-     * Interpreta lo que vio la cámara: códigos de barras y líneas de texto (agrupadas por bloque).
-     * Busca códigos de producto ("70.955", "MPA-040", "WP1401") y nombres exactos ("Flat Flesh").
-     */
-    fun interpret(barcodeValues: List<String>, blocks: List<List<String>>): ScanResult {
-        val hits = LinkedHashMap<String, ScanHit>()
-        val unknown = ArrayList<String>()
-
-        for (raw in barcodeValues) {
-            val code = raw.trim()
-            val linked = barcodes[code]?.let { byId[it] }
-            if (linked != null) {
-                hits[linked.id] = ScanHit(linked, "código de barras")
-                continue
-            }
-            // Vallejo: EAN 8429551 + referencia de 5 dígitos (70.955 -> 8429551709552)
-            if (code.length == 13 && code.startsWith("8429551")) {
-                val ref = code.substring(7, 12)
-                val found = codeIndex[ref].orEmpty().filter { it.brand == "Vallejo" }
-                if (found.isNotEmpty()) {
-                    found.forEach { hits[it.id] = ScanHit(it, "código de barras") }
-                    continue
-                }
-            }
-            if (code.length >= 8) unknown.add(code)
-        }
-
-        for (lines in blocks) {
-            for (h in matchBlock(lines)) if (!hits.containsKey(h.paint.id)) hits[h.paint.id] = h
-        }
-        return ScanResult(hits.values.toList(), unknown)
-    }
-
-    /** Pinturas que coinciden con un bloque de texto (código impreso o nombre). */
-    fun matchBlock(lines: List<String>): List<ScanHit> {
-        val hits = LinkedHashMap<String, ScanHit>()
-        val candidates = LinkedHashSet<String>()
-        lines.forEachIndexed { i, line ->
-            val tokens = line.split(Regex("\\s+")).filter { it.isNotBlank() }
-            tokens.forEachIndexed { j, t ->
-                candidates.add("C:" + codeKey(t))
-                if (j + 1 < tokens.size) candidates.add("C:" + codeKey(t + tokens[j + 1]))
-            }
-            candidates.add("C:" + codeKey(line))
-            candidates.add("N:" + nameKey(line))
-            if (i + 1 < lines.size) candidates.add("N:" + nameKey(line + " " + lines[i + 1]))
-        }
-        for (c in candidates) {
-            val key = c.substring(2)
-            if (c.startsWith("C:")) {
-                if (key.length < 4 || key.length > 10) continue
-                if (key.all { it.isDigit() } && key.length < 5) continue
-                codeIndex[key]?.forEach { if (!hits.containsKey(it.id)) hits[it.id] = ScanHit(it, tr("código {}", it.code)) }
-            } else {
-                if (key.length < 5) continue
-                nameIndex[key]?.forEach { if (!hits.containsKey(it.id)) hits[it.id] = ScanHit(it, "nombre") }
-            }
-        }
-        return hits.values.toList()
-    }
-
     // ---------- dónde guardas tus pinturas ----------
 
     var spots by mutableStateOf<List<StorageSpot>>(emptyList())
-        private set
+        internal set
     var locations by mutableStateOf<Map<String, PaintLocation>>(emptyMap())
-        private set
-
-    fun spotFile(s: StorageSpot): File = File(File(getApplication<Application>().filesDir, "spots"), s.photo)
-
-    fun spotOf(paintId: String): StorageSpot? = locations[paintId]?.let { l -> spots.firstOrNull { it.id == l.spotId } }
-
-    /** Guarda una foto de una gaveta o estante (reducida a 2400 px) como nuevo lugar. */
-    fun addSpot(uri: Uri, name: String, onDone: (StorageSpot?) -> Unit) {
-        viewModelScope.launch {
-            val spot = withContext(Dispatchers.IO) {
-                try {
-                    val bmp = loadBitmapForAnalysis(getApplication(), uri, 2400) ?: return@withContext null
-                    val id = UUID.randomUUID().toString()
-                    val dir = File(getApplication<Application>().filesDir, "spots").apply { mkdirs() }
-                    val file = "$id.jpg"
-                    File(dir, file).outputStream().use { bmp.compress(Bitmap.CompressFormat.JPEG, 88, it) }
-                    StorageSpot(id, name.ifBlank { tr("Gaveta {}", spots.size + 1) }, file)
-                } catch (e: Exception) {
-                    null
-                }
-            }
-            if (spot != null) {
-                spots = spots + spot
-                persist()
-            }
-            onDone(spot)
-        }
-    }
-
-    fun renameSpot(id: String, name: String) {
-        spots = spots.map { if (it.id == id) it.copy(name = name.trim().ifBlank { it.name }) else it }
-        persist()
-    }
-
-    fun deleteSpot(id: String) {
-        ocrCache.remove(id)
-        val s = spots.firstOrNull { it.id == id } ?: return
-        spots = spots - s
-        locations = locations.filterValues { it.spotId != id }
-        persist()
-        viewModelScope.launch(Dispatchers.IO) { spotFile(s).delete() }
-    }
-
-    fun setLocation(paintId: String, spotId: String, x: Float, y: Float) {
-        locations = locations + (paintId to PaintLocation(paintId, spotId, x.coerceIn(0f, 1f), y.coerceIn(0f, 1f)))
-        persist()
-    }
-
-    fun clearLocation(paintId: String) {
-        locations = locations - paintId
-        persist()
-    }
-
-    /**
-     * Lee las etiquetas visibles en la foto (texto en cualquier orientación) y devuelve qué
-     * pinturas reconoce y dónde. Las de tu inventario se aceptan por nombre o código; las que no
-     * tienes, solo por código (para evitar falsos positivos con nombres comunes como "Black").
-     */
-    suspend fun detectInSpot(spot: StorageSpot): List<DetectedPaint> {
-        val file = spotFile(spot)
-        val ownedIds = owned.filterValues { it.qty > 0 }.keys
-        return withContext(Dispatchers.Default) {
-            val bmp = android.graphics.BitmapFactory.decodeFile(file.absolutePath) ?: return@withContext emptyList()
-            val blocks = readTextBlocks(bmp)
-            ocrCache[spot.id] = blocks.map { TextBlockAt(it.lines, it.x / bmp.width, it.y / bmp.height) }
-            val found = LinkedHashMap<String, DetectedPaint>()
-            for (b in blocks) {
-                val hits = matchBlock(b.lines)
-                if (hits.isEmpty()) continue
-                val ownedHits = hits.filter { it.paint.id in ownedIds }
-                val chosen = when {
-                    ownedHits.size == 1 -> ownedHits
-                    ownedHits.size > 1 -> ownedHits.filter { it.via.startsWith("código") }.take(1)
-                    else -> hits.filter { it.via.startsWith("código") }.take(1)
-                }
-                for (h in chosen) {
-                    if (!found.containsKey(h.paint.id)) {
-                        found[h.paint.id] = DetectedPaint(h.paint, b.x / bmp.width, b.y / bmp.height, h.paint.id in ownedIds)
-                    }
-                }
-            }
-            found.values.toList()
-        }
-    }
-
+        internal set
     // ---------- localizar una pintura ----------
 
     /** Texto leído por foto (posiciones relativas 0–1), para no repetir el OCR en cada búsqueda. */
-    private val ocrCache = HashMap<String, List<TextBlockAt>>()
-
-    private fun loadSpotBitmap(spot: StorageSpot): android.graphics.Bitmap? =
-        android.graphics.BitmapFactory.decodeFile(spotFile(spot).absolutePath)
-
-    fun isSpotRead(spot: StorageSpot) = ocrCache.containsKey(spot.id)
-
-    /**
-     * Dónde podría estar [paint] en tus fotos, de más a menos probable:
-     * 1. la ubicación que confirmaste antes;
-     * 2. su etiqueta leída en la foto;
-     * 3. zonas del color de la pintura, con más peso si están cerca de otras pinturas de la misma marca.
-     */
-    suspend fun locatePaint(paint: Paint): List<LocateHit> {
-        val saved = locations[paint.id]
-        val allSpots = spots
-        val sameBrand = locations.values.filter { l -> l.paintId != paint.id && byId[l.paintId]?.brand == paint.brand }
-        return withContext(Dispatchers.Default) {
-            val hits = ArrayList<LocateHit>()
-            for (spot in allSpots) {
-                if (saved != null && saved.spotId == spot.id) {
-                    hits.add(LocateHit(spot, saved.x, saved.y, LocateKind.SAVED, 1f))
-                }
-                val bmp = loadSpotBitmap(spot) ?: continue
-                val blocks = ocrCache.getOrPut(spot.id) {
-                    readTextBlocks(bmp).map { TextBlockAt(it.lines, it.x / bmp.width, it.y / bmp.height) }
-                }
-                for (b in blocks) {
-                    if (matchBlock(b.lines).any { it.paint.id == paint.id }) {
-                        hits.add(LocateHit(spot, b.x, b.y, LocateKind.LABEL, 0.95f))
-                    }
-                }
-                val brandHere = sameBrand.filter { it.spotId == spot.id }
-                for (c in findColorCandidates(bmp, paint.lab)) {
-                    var conf = 0.25f + 0.45f * c.score * (1f - c.distance / 30f).coerceIn(0f, 1f)
-                    if (brandHere.any { (it.x - c.x) * (it.x - c.x) + (it.y - c.y) * (it.y - c.y) < 0.12f * 0.12f }) conf += 0.15f
-                    hits.add(LocateHit(spot, c.x, c.y, LocateKind.COLOR, conf.coerceAtMost(0.89f)))
-                }
-                bmp.recycle()
-            }
-            // Un solo marcador por bote: quitar los que caen sobre uno mejor
-            val out = ArrayList<LocateHit>()
-            for (h in hits.sortedByDescending { it.confidence }) {
-                if (out.none { o -> o.spot.id == h.spot.id && (o.x - h.x) * (o.x - h.x) + (o.y - h.y) * (o.y - h.y) < 0.03f * 0.03f }) out.add(h)
-            }
-            out.take(8)
-        }
-    }
-
-    /** Guarda las ubicaciones detectadas; las pinturas que no tenías se agregan con 1 bote. */
-    fun applyDetections(spotId: String, list: List<DetectedPaint>) {
-        var newOwned = owned
-        var newLoc = locations
-        val now = System.currentTimeMillis()
-        for (d in list) {
-            if ((newOwned[d.paint.id]?.qty ?: 0) == 0) newOwned = newOwned + (d.paint.id to OwnedEntry(d.paint.id, 1, "", now))
-            newLoc = newLoc + (d.paint.id to PaintLocation(d.paint.id, spotId, d.x, d.y))
-        }
-        owned = newOwned
-        locations = newLoc
-        persist()
-    }
-
+    internal val ocrCache = HashMap<String, List<TextBlockAt>>()
     // ---------- catálogo importado ----------
-
-    private fun readCsv(uri: Uri): List<List<String>>? = try {
-        getApplication<Application>().contentResolver.openInputStream(uri)?.use {
-            Csv.parse(it.readBytes().toString(Charsets.UTF_8))
-        }
-    } catch (e: Exception) {
-        null
-    }
-
-    /**
-     * Agrega pinturas al catálogo desde un CSV. Columnas reconocidas (en español o inglés):
-     * Marca/Brand, Línea/Line/Set/Gama, Nombre/Name, Código/Code, Color/Hex (o R,G,B), Tipo/Type.
-     * Las que ya están en el catálogo incluido se saltan; volver a importar actualiza las importadas.
-     */
-    fun importCatalogCsv(uri: Uri, onDone: (String) -> Unit) {
-        viewModelScope.launch {
-            val rows = withContext(Dispatchers.IO) { readCsv(uri) }
-            if (rows == null || rows.size < 2) {
-                onDone(tr("No se pudo leer el archivo o está vacío"))
-                return@launch
-            }
-            val header = rows[0].map { nameKey(it) }
-            fun col(vararg names: String): Int = header.indexOfFirst { h -> names.any { h == it } }
-            val iBrand = col("marca", "brand", "fabricante", "manufacturer")
-            val iLine = col("linea", "line", "set", "gama", "range", "serie", "series")
-            val iName = col("nombre", "name", "colorname", "paint")
-            val iCode = col("codigo", "code", "ref", "referencia", "sku", "id")
-            val iHex = col("color", "hex", "colour", "rgb", "hexcode")
-            val iR = col("r", "red", "rojo")
-            val iG = col("g", "green", "verde")
-            val iB = col("b", "blue", "azul")
-            val iType = col("tipo", "type")
-            if (iName < 0) {
-                onDone(tr("El archivo necesita al menos una columna Nombre (o Name)"))
-                return@launch
-            }
-
-            val base = custom + catalog
-            val baseCodes = base.filter { codeKey(it.code).isNotEmpty() }.map { brandKey(it.brand) + "|" + codeKey(it.code) }.toHashSet()
-            val baseNames = base.map { brandKey(it.brand) + "|" + nameKey(it.name) }.toHashSet()
-            fun primaryKey(p: Paint): String {
-                val ck = codeKey(p.code)
-                return if (ck.isNotEmpty()) brandKey(p.brand) + "|c|" + ck else brandKey(p.brand) + "|n|" + nameKey(p.line) + "|" + nameKey(p.name)
-            }
-            val merged = LinkedHashMap<String, Paint>()
-            extra.forEach { merged[primaryKey(it)] = it }
-
-            var added = 0
-            var updated = 0
-            var skipped = 0
-            var invalid = 0
-            for (r in rows.drop(1)) {
-                fun v(i: Int) = if (i >= 0 && i < r.size) r[i].trim() else ""
-                val name = v(iName)
-                if (name.isEmpty()) { invalid++; continue }
-                val brand = v(iBrand).ifBlank { tr("Sin marca") }
-                val line = v(iLine)
-                val code = v(iCode).takeUnless { it.equals("null", true) || it == "-" } ?: ""
-                val hex = parseColorCell(v(iHex))
-                    ?: (if (iR >= 0 && iG >= 0 && iB >= 0) parseColorCell("${v(iR)},${v(iG)},${v(iB)}") else null)
-                    ?: "#888888"
-                val typeCell = v(iType)
-                val type = PAINT_TYPES.firstOrNull { norm(it) == norm(typeCell) } ?: guessType(name, line)
-                val p = Paint(id = "x|$brand|$line|$name|$code", brand = brand, line = line, name = name, code = code, hex = hex, type = type)
-
-                val bk = brandKey(brand)
-                val inBase = if (codeKey(code).isNotEmpty()) (bk + "|" + codeKey(code)) in baseCodes else (bk + "|" + nameKey(name)) in baseNames
-                if (inBase) { skipped++; continue }
-                val k = primaryKey(p)
-                val prev = merged[k]
-                if (prev != null) {
-                    merged[k] = p.copy(id = prev.id)
-                    updated++
-                } else {
-                    merged[k] = p
-                    added++
-                }
-            }
-            val list = merged.values.toList()
-            extra = list
-            rebuildIndexes()
-            withContext(Dispatchers.IO) { store.saveExtraCatalog(list) }
-            val parts = mutableListOf(tr("{} nuevas", added))
-            if (updated > 0) parts.add(tr("{} actualizadas", updated))
-            if (skipped > 0) parts.add(tr("{} ya estaban", skipped))
-            if (invalid > 0) parts.add(tr("{} filas sin nombre", invalid))
-            onDone(tr("Catálogo: ") + parts.joinToString(", "))
-        }
-    }
-
-    /** Quita las pinturas importadas al catálogo. Las que estén en tu inventario se conservan como pinturas propias. */
-    fun clearExtraCatalog(onDone: (String) -> Unit) {
-        val ownedExtra = extra.filter { owned.containsKey(it.id) }.map { it.copy(custom = true) }
-        val removed = extra.size - ownedExtra.size
-        custom = custom + ownedExtra
-        extra = emptyList()
-        rebuildIndexes()
-        persist()
-        viewModelScope.launch(Dispatchers.IO) { store.saveExtraCatalog(emptyList()) }
-        onDone(tr("Quitadas {} pinturas importadas", removed) + if (ownedExtra.isNotEmpty()) tr(" ({} de tu inventario se conservaron)", ownedExtra.size) else "")
-    }
-
-    fun exportCatalogCsv(uri: Uri, onDone: (String) -> Unit) {
-        val rows = (extra + catalog).map { p -> listOf(p.brand, p.line, p.name, p.code, p.type, p.hex) }
-        viewModelScope.launch {
-            val msg = withContext(Dispatchers.IO) {
-                try {
-                    getApplication<Application>().contentResolver.openOutputStream(uri, "wt")?.use {
-                        it.write(Csv.write(rows, Csv.CATALOG_HEADER).toByteArray(Charsets.UTF_8))
-                    }
-                    tr("Catálogo exportado: {} pinturas", rows.size)
-                } catch (e: Exception) {
-                    tr("No se pudo guardar el archivo: {}", e.message)
-                }
-            }
-            onDone(msg)
-        }
-    }
-
     // ---------- CSV ----------
-
-    fun exportCsv(uri: Uri, onDone: (String) -> Unit) {
-        val rows = owned.values.mapNotNull { e ->
-            val p = byId[e.paintId] ?: return@mapNotNull null
-            listOf(p.brand, p.line, p.name, p.code, p.type, p.hex, e.qty.toString(), e.notes)
-        }.sortedWith(compareBy({ it[0] }, { it[1] }, { it[2] }))
-        viewModelScope.launch {
-            val msg = withContext(Dispatchers.IO) {
-                try {
-                    getApplication<Application>().contentResolver.openOutputStream(uri, "wt")?.use {
-                        it.write(Csv.write(rows).toByteArray(Charsets.UTF_8))
-                    }
-                    tr("Exportadas {} pinturas", rows.size)
-                } catch (e: Exception) {
-                    tr("No se pudo guardar el archivo: {}", e.message)
-                }
-            }
-            onDone(msg)
-        }
-    }
-
-    fun importCsv(uri: Uri, onDone: (String) -> Unit) {
-        viewModelScope.launch {
-            val rows = withContext(Dispatchers.IO) { readCsv(uri) }
-            if (rows == null || rows.size < 2) {
-                onDone(tr("No se pudo leer el archivo o está vacío"))
-                return@launch
-            }
-            val header = rows[0].map { nameKey(it) }
-            fun col(vararg names: String): Int = header.indexOfFirst { h -> names.any { h == it } }
-            val iBrand = col("marca", "brand")
-            val iLine = col("linea", "line", "gama")
-            val iName = col("nombre", "name")
-            val iCode = col("codigo", "code")
-            val iType = col("tipo", "type")
-            val iHex = col("color", "hex")
-            val iQty = col("botes", "cantidad", "qty")
-            val iNotes = col("notas", "notes")
-            if (iName < 0 && iCode < 0) {
-                onDone(tr("El archivo no tiene columnas Nombre o Código"))
-                return@launch
-            }
-            var matched = 0
-            var created = 0
-            for (r in rows.drop(1)) {
-                fun v(i: Int) = if (i >= 0 && i < r.size) r[i].trim() else ""
-                val name = v(iName)
-                val code = v(iCode)
-                if (name.isEmpty() && code.isEmpty()) continue
-                val qty = v(iQty).toIntOrNull() ?: 1
-                val notes = v(iNotes)
-                val found = findPaint(v(iBrand), v(iLine), name, code)
-                if (found != null) {
-                    val cur = owned[found.id]
-                    val mergedNotes = listOf(cur?.notes ?: "", notes).filter { it.isNotBlank() }.distinct().joinToString(" · ")
-                    update(found.id, (cur?.qty ?: 0) + qty, mergedNotes)
-                    matched++
-                } else {
-                    val type = v(iType).takeIf { it in PAINT_TYPES } ?: "Opaca"
-                    val id = addCustom(v(iBrand), v(iLine), name.ifEmpty { code }, code, v(iHex), type, qty)
-                    if (notes.isNotBlank()) update(id, qtyOf(id), notes)
-                    created++
-                }
-            }
-            onDone(tr("Importadas {}: {} del catálogo, {} nuevas", matched + created, matched, created))
-        }
-    }
-
     // ---------- sets de pinturas ----------
 
     var sets by mutableStateOf<List<PaintSet>>(emptyList())
-        private set
+        internal set
 
     // ---------- actualizar catálogo desde internet ----------
 
     var catalogUpdating by mutableStateOf(false)
-        private set
+        internal set
     var catalogDownloadedAt by mutableStateOf(0L)
-        private set
-
-    /**
-     * Descarga el catálogo y los sets más recientes (los que el proceso automático publica cada
-     * semana a partir de las tiendas) y los aplica sin reinstalar la app. Mantiene tu inventario,
-     * colores corregidos y pinturas propias; las que llegaron nuevas al catálogo se unen solas.
-     */
-    fun refreshCatalog(quiet: Boolean = false, onDone: (String) -> Unit) {
-        if (catalogUpdating) return
-        catalogUpdating = true
-        viewModelScope.launch {
-            val oldIds = (extra + catalog).map { it.id }.toHashSet()
-            val oldSets = sets.map { it.key }.toHashSet()
-            val err = withContext(Dispatchers.IO) { store.downloadCatalog() }
-            if (err != null) {
-                catalogUpdating = false
-                if (!quiet) onDone(tr("No se pudo actualizar: {}", err))
-                return@launch
-            }
-            val (cat, newSets) = withContext(Dispatchers.IO) { store.loadCatalog() to store.loadSets() }
-            val fixed = if (colorFixes.isEmpty()) cat else cat.map { p -> colorFixes[p.id]?.let { p.copy(hex = it, quality = "u") } ?: p }
-            withContext(Dispatchers.Default) { fixed.forEach { it.searchText; it.lab } }
-            catalog = fixed
-            sets = newSets
-            wheelCache = null
-            rebuildIndexes()
-            migrateOrphans()
-            adoptCatalogMatches()
-            catalogDownloadedAt = store.catalogDownloadedAt()
-            catalogUpdating = false
-            val newPaints = fixed.count { it.id !in oldIds }
-            val addedSets = newSets.count { it.key !in oldSets }
-            if (quiet && newPaints == 0 && addedSets == 0) return@launch
-            onDone(
-                if (newPaints == 0 && addedSets == 0) tr("Ya tenías el catálogo más reciente ({} pinturas, {} sets)", fixed.size, newSets.size)
-                else tr("Catálogo actualizado: {} pinturas nuevas y {} sets nuevos", newPaints, addedSets)
-            )
-        }
-    }
+        internal set
 
     /** Sets que creaste o editaste. */
     var customSets by mutableStateOf<List<PaintSet>>(emptyList())
-        private set
+        internal set
 
     /** Tus sets primero, y los de las tiendas que no editaste. */
     val allSets: List<PaintSet>
@@ -1050,134 +447,16 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             val replaced = customSets.mapNotNull { it.replaces }.toHashSet()
             return customSets + sets.filter { it.key !in replaced }
         }
-
-    fun createSet(name: String, brand: String): PaintSet {
-        val s = PaintSet(brand.trim(), name.trim().ifBlank { tr("Mi set") }, "", emptyList(), custom = true, id = UUID.randomUUID().toString())
-        customSets = listOf(s) + customSets
-        persist()
-        return s
-    }
-
-    /** Un set editable: si es de la tienda, crea tu copia (que lo reemplaza en la lista). */
-    private fun editable(set: PaintSet): PaintSet {
-        if (set.custom) return customSets.firstOrNull { it.id == set.id } ?: set
-        val copy = set.copy(custom = true, id = UUID.randomUUID().toString(), replaces = set.key)
-        customSets = listOf(copy) + customSets
-        return copy
-    }
-
-    private fun saveSet(updated: PaintSet): PaintSet {
-        customSets = customSets.map { if (it.id == updated.id) updated else it }
-        persist()
-        return updated
-    }
-
-    fun addPaintToSet(set: PaintSet, paintId: String): PaintSet {
-        val s = editable(set)
-        return if (paintId in s.paintIds) s else saveSet(s.copy(paintIds = s.paintIds + paintId))
-    }
-
-    fun removePaintFromSet(set: PaintSet, paintId: String): PaintSet {
-        val s = editable(set)
-        return saveSet(s.copy(paintIds = s.paintIds - paintId))
-    }
-
-    fun renameSet(set: PaintSet, name: String, brand: String): PaintSet {
-        val s = editable(set)
-        return saveSet(s.copy(name = name.trim().ifBlank { s.name }, brand = brand.trim()))
-    }
-
-    /** Borra un set tuyo; si era tu versión de un set de la tienda, vuelve el original. */
-    fun deleteSet(set: PaintSet) {
-        if (!set.custom) return
-        customSets = customSets.filterNot { it.id == set.id }
-        persist()
-    }
-
-    /** Línea principal del set (la de la mayoría de sus pinturas), p. ej. "Squidmar Color" o "Game Color". */
-    fun lineOf(set: PaintSet): String =
-        paintsOf(set).groupingBy { it.line }.eachCount().maxByOrNull { it.value }?.key ?: ""
-
-    /** Pinturas del set que están en el catálogo (con su color), en el orden del set. */
-    fun paintsOf(set: PaintSet): List<Paint> = set.paintIds.mapNotNull { byId[it] }
-
-    /** Agrega a la lista de compras las pinturas del set que no tienes. Devuelve cuántas agregó. */
-    fun addMissingToShopping(set: PaintSet): Int {
-        val missing = paintsOf(set).filter { qtyOf(it.id) == 0 && !inShopping(it.id) }
-        if (missing.isEmpty()) return 0
-        val now = System.currentTimeMillis()
-        shopping = shopping + missing.map { ShopItem(it.id, tr("Del set {}", set.name), now) }
-        persist()
-        return missing.size
-    }
-
-    /** Compraste el set: suma un bote de cada pintura al inventario y las quita de la lista de compras. */
-    fun boughtSet(set: PaintSet): Int {
-        val ps = paintsOf(set)
-        val now = System.currentTimeMillis()
-        var o = owned
-        for (p in ps) {
-            val cur = o[p.id]
-            o = o + (p.id to OwnedEntry(p.id, (cur?.qty ?: 0) + 1, cur?.notes ?: "", now, low = false, thin = cur?.thin ?: ""))
-        }
-        owned = o
-        val ids = ps.map { it.id }.toHashSet()
-        shopping = shopping.filterNot { it.paintId in ids }
-        persist()
-        return ps.size
-    }
-
     // ---------- equipo (aerógrafos y compresor) ----------
 
     var gear by mutableStateOf<List<Gear>>(emptyList())
-        private set
+        internal set
 
     val gearKit: GearKit get() = GearKit.of(gear)
-
-    fun addGear(kind: String, name: String, nozzle: Double, tank: Boolean) {
-        gear = gear + Gear(UUID.randomUUID().toString(), kind, name.trim(), nozzle, tank)
-        persist()
-        refreshPaletteMatches()
-    }
-
-    fun removeGear(id: String) {
-        gear = gear.filterNot { it.id == id }
-        persist()
-        refreshPaletteMatches()
-    }
-
     // ---------- lista de compras ----------
 
     var shopping by mutableStateOf<List<ShopItem>>(emptyList())
-        private set
-
-    fun inShopping(paintId: String): Boolean = shopping.any { it.paintId == paintId }
-
-    fun addToShopping(paintId: String, reason: String) {
-        if (inShopping(paintId)) return
-        shopping = shopping + ShopItem(paintId, reason, System.currentTimeMillis())
-        persist()
-    }
-
-    fun removeFromShopping(paintId: String) {
-        shopping = shopping.filterNot { it.paintId == paintId }
-        persist()
-    }
-
-    /** Marca una pintura que tienes como "se está acabando" (o lo quita). */
-    fun setLow(paintId: String, low: Boolean) {
-        val cur = owned[paintId] ?: return
-        owned = owned + (paintId to cur.copy(low = low, updatedAt = System.currentTimeMillis()))
-        persist()
-    }
-
-    /** La compraste: suma un bote al inventario y la quita de la lista. */
-    fun bought(paintId: String) {
-        val cur = owned[paintId]
-        owned = owned + (paintId to OwnedEntry(paintId, (cur?.qty ?: 0) + 1, cur?.notes ?: "", System.currentTimeMillis(), low = false, thin = cur?.thin ?: ""))
-        shopping = shopping.filterNot { it.paintId == paintId }
-        persist()
-    }
+        internal set
 
     /** Pinturas que tienes marcadas como "se está acabando". */
     val lowPaints: List<Paint>
@@ -1185,386 +464,23 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     val shoppingCount: Int get() = shopping.size + owned.values.count { it.low && it.qty > 0 }
 
-    /** La lista como texto para compartir (WhatsApp, notas, correo). */
-    fun shoppingText(): String {
-        val lines = ArrayList<String>()
-        val items = shopping.mapNotNull { byId[it.paintId] } + lowPaints.filter { lp -> shopping.none { it.paintId == lp.id } }
-        items.groupBy { it.brand }.toSortedMap().forEach { (brand, list) ->
-            lines.add(brand.uppercase())
-            list.sortedBy { it.name }.forEach { p ->
-                lines.add("• " + listOf(p.code, p.name).filter { it.isNotBlank() }.joinToString(" ") + (if (p.line.isNotBlank()) " (${p.line})" else ""))
-            }
-            lines.add("")
-        }
-        return tr("Lista de compras · Gotario\n\n") + lines.joinToString("\n").trim()
-    }
-
     /**
      * Pinturas del catálogo para cubrir un tono que no tienes: opacas, con color medido y bien
      * saturadas; primero las de marcas que ya usas.
      */
-    private var wheelCache: Pair<List<Paint>, List<Pair<Paint, WheelPos>>>? = null
-
-    fun suggestForHue(ryb: Float, limit: Int = 3): List<Paint> {
-        val myBrands = owned.values.filter { it.qty > 0 }.mapNotNull { byId[it.paintId]?.let { p -> brandKey(p.brand) } }
-            .groupingBy { it }.eachCount()
-        val base = catalog
-        val cached = wheelCache
-        val positions = if (cached != null && cached.first === base) cached.second else {
-            val list = (extra + base).filter { it.hasColor && it.type == "Opaca" && it.quality != "n" }
-                .map { it to wheelPosOf(it) }
-                .filter { (_, w) -> !w.neutral && w.radius >= 0.55f }
-            wheelCache = base to list
-            list
-        }
-        return positions.asSequence()
-            .filter { (p, w) -> (owned[p.id]?.qty ?: 0) == 0 && angleDiff(w.ryb, ryb) <= 10f }
-            .sortedWith(compareBy({ -(myBrands[brandKey(it.first.brand)] ?: 0) }, { angleDiff(it.second.ryb, ryb) + (1f - it.second.radius) * 20f }))
-            .map { it.first }
-            .distinctBy { brandKey(it.brand) }
-            .take(limit)
-            .toList()
-    }
-
-    /** Pinturas que te recomiendo comprar para tener sombras, luces, lavados y básicos. */
-    suspend fun recommendations(): List<Recommendation> {
-        val inv = inventoryPaints()
-        val cat = extra + catalog
-        return withContext(Dispatchers.Default) { recommendPaints(inv, cat) }
-    }
-
+    internal var wheelCache: Pair<List<Paint>, List<Pair<Paint, WheelPos>>>? = null
     // ---------- proyectos ----------
 
     var projects by mutableStateOf<List<Project>>(emptyList())
-        private set
-
-    fun projectFile(projectId: String, name: String): File = File(projectStore.dir(projectId), name)
-
-    private fun saveProjects() {
-        val snapshot = projects
-        viewModelScope.launch(Dispatchers.IO) { projectStore.save(snapshot) }
-        scheduleAutoBackup()
-    }
-
-    /** Copia una imagen al proyecto, reducida a 1600 px en JPG. Devuelve el nombre del archivo. */
-    private fun importImage(projectId: String, uri: Uri, prefix: String): String? {
-        val ctx = getApplication<Application>()
-        return try {
-            val bmp = loadBitmapScaled(ctx, uri, 1600) ?: return null
-            val name = prefix + "-" + System.currentTimeMillis() + ".jpg"
-            File(projectStore.dir(projectId), name).outputStream().use { bmp.compress(Bitmap.CompressFormat.JPEG, 88, it) }
-            bmp.recycle()
-            name
-        } catch (e: Throwable) {
-            null
-        }
-    }
-
-    private fun loadBitmapScaled(ctx: Context, uri: Uri, maxSide: Int): Bitmap? {
-        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        ctx.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds) }
-        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
-        var sample = 1
-        while (maxOf(bounds.outWidth, bounds.outHeight) / (sample * 2) >= maxSide) sample *= 2
-        val raw = ctx.contentResolver.openInputStream(uri)?.use {
-            BitmapFactory.decodeStream(it, null, BitmapFactory.Options().apply { inSampleSize = sample })
-        } ?: return null
-        // Respeta la orientación de la foto
-        val rotation = try {
-            ctx.contentResolver.openInputStream(uri)?.use {
-                when (androidx.exifinterface.media.ExifInterface(it).getAttributeInt(
-                    androidx.exifinterface.media.ExifInterface.TAG_ORIENTATION,
-                    androidx.exifinterface.media.ExifInterface.ORIENTATION_NORMAL,
-                )) {
-                    androidx.exifinterface.media.ExifInterface.ORIENTATION_ROTATE_90 -> 90f
-                    androidx.exifinterface.media.ExifInterface.ORIENTATION_ROTATE_180 -> 180f
-                    androidx.exifinterface.media.ExifInterface.ORIENTATION_ROTATE_270 -> 270f
-                    else -> 0f
-                }
-            } ?: 0f
-        } catch (e: Exception) {
-            0f
-        }
-        val scale = minOf(1f, maxSide.toFloat() / maxOf(raw.width, raw.height))
-        if (rotation == 0f && scale >= 1f) return raw
-        val m = android.graphics.Matrix().apply { postScale(scale, scale); postRotate(rotation) }
-        val out = Bitmap.createBitmap(raw, 0, 0, raw.width, raw.height, m, true)
-        if (out !== raw) raw.recycle()
-        return out
-    }
-
-    fun createProject(name: String, reference: Uri?, paints: List<ProjectPaint>, notes: String, onDone: (Project) -> Unit) {
-        val id = UUID.randomUUID().toString()
-        viewModelScope.launch {
-            val ref = if (reference != null) withContext(Dispatchers.IO) { importImage(id, reference, "ref") } else null
-            val p = Project(
-                id = id, name = name.trim().ifBlank { "Proyecto" }, createdAt = System.currentTimeMillis(),
-                status = "En progreso", notes = notes, reference = ref,
-                paints = paints.distinctBy { it.paintId }, photos = emptyList(),
-            )
-            projects = listOf(p) + projects
-            saveProjects()
-            onDone(p)
-        }
-    }
-
-    /** Crea un proyecto con la imagen, las pinturas sugeridas en Paleta y su plan de pintura paso a paso. */
-    fun projectFromPalette(name: String, onDone: (Project) -> Unit) {
-        val pv = palette ?: return
-        val paints = pv.matches.mapIndexedNotNull { i, m ->
-            val p = m.best?.paint ?: return@mapIndexedNotNull null
-            val z = pv.advice.zones.getOrNull(i)
-            ProjectPaint(p.id, listOfNotNull(z?.role, z?.group).joinToString(" · "))
-        }
-        val notes = pv.advice.plan.joinToString("\n") { "• $it" }
-        val plan = planFromPalette(pv)
-        createProject(name, pv.uri, paints, notes) { p ->
-            setProjectPlan(p.id, plan)
-            onDone(p)
-        }
-    }
-
-    /** Los pasos de cada zona de la Paleta (con las variantes de color que estés probando), como lista para marcar. */
-    private fun planFromPalette(pv: PaletteView): List<PlanStep> {
-        val families = pv.advice.families.ifEmpty {
-            pv.matches.indices.map { PaletteFamily("color", listOf(it), it, mapOf(it to "Base")) }
-        }
-        val out = ArrayList<PlanStep>()
-        families.forEachIndexed { zi, f ->
-            val zone = tr("Zona {}", zi + 1) + " · " + f.name.replaceFirstChar { it.uppercase() }
-            familySteps(f, pv.matches, pv.advice.zones, gearKit).forEach { out.add(PlanStep(UUID.randomUUID().toString(), zone, it)) }
-        }
-        return out
-    }
-
-    fun setProjectPlan(id: String, plan: List<PlanStep>) = updateProject(id) { it.copy(plan = plan) }
-
-    /** Reemplaza el plan del proyecto por el de la Paleta abierta. Devuelve false si no hay paleta. */
-    fun planFromCurrentPalette(id: String): Boolean {
-        val pv = palette ?: return false
-        setProjectPlan(id, planFromPalette(pv))
-        return true
-    }
-
-    fun togglePlanStep(id: String, stepId: String) =
-        updateProject(id) { p -> p.copy(plan = p.plan.map { if (it.id == stepId) it.copy(done = !it.done) else it }) }
-
-    fun addPlanStep(id: String, zone: String, text: String) =
-        updateProject(id) { p -> p.copy(plan = p.plan + PlanStep(UUID.randomUUID().toString(), zone.trim(), text.trim())) }
-
-    fun removePlanStep(id: String, stepId: String) =
-        updateProject(id) { p -> p.copy(plan = p.plan.filterNot { it.id == stepId }) }
-
-    fun addRecipe(id: String, name: String, parts: List<MixIngredient>, hex: String, note: String) =
-        updateProject(id) { p -> p.copy(recipes = p.recipes + SavedMix(UUID.randomUUID().toString(), name.trim(), parts, hex, note.trim())) }
-
-    fun removeRecipe(id: String, recipeId: String) =
-        updateProject(id) { p -> p.copy(recipes = p.recipes.filterNot { it.id == recipeId }) }
-
-    /** Guarda tu nota de dilución de una pintura. */
-    fun setThinNote(paintId: String, note: String) {
-        val cur = owned[paintId] ?: return
-        owned = owned + (paintId to cur.copy(thin = note.trim(), updatedAt = System.currentTimeMillis()))
-        persist()
-    }
-
-    /** Guarda una imagen (por ejemplo la comparación con la referencia) como foto de avance. */
-    fun addProgressBitmap(id: String, bmp: Bitmap, caption: String, onDone: (Boolean) -> Unit = {}) {
-        viewModelScope.launch {
-            val name = withContext(Dispatchers.IO) {
-                try {
-                    val n = "avance-" + System.currentTimeMillis() + ".jpg"
-                    File(projectStore.dir(id), n).outputStream().use { bmp.compress(Bitmap.CompressFormat.JPEG, 90, it) }
-                    n
-                } catch (e: Throwable) {
-                    null
-                }
-            }
-            if (name != null) updateProject(id) { p -> p.copy(photos = p.photos + ProgressPhoto(name, System.currentTimeMillis(), caption)) }
-            onDone(name != null)
-        }
-    }
-
-    private fun updateProject(id: String, f: (Project) -> Project) {
-        projects = projects.map { if (it.id == id) f(it) else it }
-        saveProjects()
-    }
-
-    fun renameProject(id: String, name: String) = updateProject(id) { it.copy(name = name.trim().ifBlank { it.name }) }
-    fun setProjectNotes(id: String, notes: String) = updateProject(id) { it.copy(notes = notes) }
-    fun setProjectStatus(id: String, status: String) = updateProject(id) { it.copy(status = status) }
-
-    fun addPaintToProject(id: String, paintId: String, use: String = "") =
-        updateProject(id) { p -> if (p.paints.any { it.paintId == paintId }) p else p.copy(paints = p.paints + ProjectPaint(paintId, use)) }
-
-    fun setPaintUse(id: String, paintId: String, use: String) =
-        updateProject(id) { p -> p.copy(paints = p.paints.map { if (it.paintId == paintId) it.copy(use = use) else it }) }
-
-    fun removePaintFromProject(id: String, paintId: String) =
-        updateProject(id) { p -> p.copy(paints = p.paints.filterNot { it.paintId == paintId }) }
-
-    fun setProjectReference(id: String, uri: Uri) {
-        viewModelScope.launch {
-            val name = withContext(Dispatchers.IO) { importImage(id, uri, "ref") } ?: return@launch
-            val old = projects.firstOrNull { it.id == id }?.reference
-            updateProject(id) { it.copy(reference = name) }
-            if (old != null && old != name) withContext(Dispatchers.IO) { projectFile(id, old).delete() }
-        }
-    }
-
-    fun addProgressPhoto(id: String, uri: Uri, caption: String, onDone: (Boolean) -> Unit = {}) {
-        viewModelScope.launch {
-            val name = withContext(Dispatchers.IO) { importImage(id, uri, "avance") }
-            if (name != null) updateProject(id) { it.copy(photos = it.photos + ProgressPhoto(name, System.currentTimeMillis(), caption.trim())) }
-            onDone(name != null)
-        }
-    }
-
-    fun setPhotoCaption(id: String, file: String, caption: String) =
-        updateProject(id) { p -> p.copy(photos = p.photos.map { if (it.file == file) it.copy(caption = caption.trim()) else it }) }
-
-    fun removeProgressPhoto(id: String, file: String) {
-        updateProject(id) { p -> p.copy(photos = p.photos.filterNot { it.file == file }) }
-        viewModelScope.launch(Dispatchers.IO) { projectFile(id, file).delete() }
-    }
-
-    fun deleteProject(id: String) {
-        projects = projects.filterNot { it.id == id }
-        saveProjects()
-        viewModelScope.launch(Dispatchers.IO) { projectStore.dir(id).deleteRecursively() }
-    }
-
+        internal set
     // ---------- respaldo ----------
 
     /** Archivo elegido para el respaldo automático (puede estar en Google Drive). */
     var autoBackupUri by mutableStateOf(prefs.getString("backup_uri", null)?.let { Uri.parse(it) })
-        private set
+        internal set
     var lastBackupAt by mutableStateOf(prefs.getLong("backup_at", 0L))
-        private set
+        internal set
     var backupError by mutableStateOf<String?>(null)
-        private set
-    private var backupJob: Job? = null
-
-    private fun projectsRoot(): File = File(getApplication<Application>().filesDir, "projects")
-
-    private fun currentState() = SavedState(owned, custom, barcodes, spots, locations, colorFixes, shopping, gear, customSets)
-
-    private fun writeBackup(uri: Uri): String? = try {
-        val out = getApplication<Application>().contentResolver.openOutputStream(uri, "wt")
-            ?: getApplication<Application>().contentResolver.openOutputStream(uri, "w")
-        if (out == null) tr("No se pudo abrir el archivo")
-        else {
-            out.use { Backup.write(it, currentState(), projects, projectsRoot()) }
-            null
-        }
-    } catch (e: Exception) {
-        e.message ?: e.javaClass.simpleName
-    }
-
-    private fun scheduleAutoBackup() {
-        val uri = autoBackupUri ?: return
-        if (loading) return
-        backupJob?.cancel()
-        backupJob = viewModelScope.launch {
-            delay(4000)
-            val err = withContext(Dispatchers.IO) { writeBackup(uri) }
-            if (err == null) {
-                lastBackupAt = System.currentTimeMillis()
-                prefs.edit().putLong("backup_at", lastBackupAt).apply()
-                backupError = null
-            } else {
-                backupError = tr("El respaldo automático falló: {}. Vuelve a elegir el archivo.", err)
-            }
-        }
-    }
-
-    /** Activa el respaldo automático en el archivo elegido y escribe el primer respaldo. */
-    fun enableAutoBackup(uri: Uri, onDone: (String) -> Unit) {
-        val ctx = getApplication<Application>()
-        try {
-            ctx.contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-        } catch (e: Exception) {
-            // Algunos proveedores no dan permiso permanente; se intenta igual
-        }
-        viewModelScope.launch {
-            val err = withContext(Dispatchers.IO) { writeBackup(uri) }
-            if (err == null) {
-                autoBackupUri = uri
-                lastBackupAt = System.currentTimeMillis()
-                prefs.edit().putString("backup_uri", uri.toString()).putLong("backup_at", lastBackupAt).apply()
-                backupError = null
-                onDone(tr("Respaldo automático activado"))
-            } else {
-                onDone(tr("No se pudo escribir el respaldo: {}", err))
-            }
-        }
-    }
-
-    fun disableAutoBackup() {
-        val uri = autoBackupUri
-        autoBackupUri = null
-        backupError = null
-        prefs.edit().remove("backup_uri").apply()
-        if (uri != null) try {
-            getApplication<Application>().contentResolver.releasePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-        } catch (e: Exception) {
-        }
-    }
-
-    fun backupNow(uri: Uri, onDone: (String) -> Unit) {
-        viewModelScope.launch {
-            val err = withContext(Dispatchers.IO) { writeBackup(uri) }
-            onDone(if (err == null) tr("Respaldo guardado: {} pinturas, {} proyectos", owned.size, projects.size) else tr("No se pudo guardar: {}", err))
-        }
-    }
-
-    /**
-     * Restaura un respaldo uniéndolo con lo que ya hay: para cada pintura gana el registro más reciente,
-     * y se agregan las pinturas propias, códigos, colores, compras y proyectos que no estén.
-     */
-    fun restoreBackup(uri: Uri, onDone: (String) -> Unit) {
-        viewModelScope.launch {
-            val content = withContext(Dispatchers.IO) {
-                try {
-                    getApplication<Application>().contentResolver.openInputStream(uri)?.use { Backup.read(it, projectsRoot()) }
-                } catch (e: Exception) {
-                    null
-                }
-            }
-            if (content == null) {
-                onDone(tr("Ese archivo no es un respaldo de Gotario"))
-                return@launch
-            }
-            val b = content.state
-            val knownCustom = custom.map { it.id }.toHashSet()
-            val newCustom = b.custom.filter { it.id !in knownCustom }
-            custom = custom + newCustom
-            val mergedOwned = LinkedHashMap(owned)
-            var added = 0
-            b.owned.values.forEach { e ->
-                val cur = mergedOwned[e.paintId]
-                if (cur == null) added++
-                if (cur == null || e.updatedAt > cur.updatedAt) mergedOwned[e.paintId] = e
-            }
-            owned = mergedOwned
-            barcodes = b.barcodes + barcodes
-            val fixes = b.colorFixes + colorFixes
-            if (fixes != colorFixes) {
-                colorFixes = fixes
-                catalog = catalog.map { p -> fixes[p.id]?.let { p.copy(hex = it, quality = "u") } ?: p }
-                extra = extra.map { p -> fixes[p.id]?.let { p.copy(hex = it, quality = "u") } ?: p }
-            }
-            shopping = shopping + b.shopping.filter { s -> shopping.none { it.paintId == s.paintId } }
-            gear = gear + b.gear.filter { g -> gear.none { it.id == g.id } }
-            customSets = customSets + b.customSets.filter { c -> customSets.none { it.id == c.id } }
-            val knownProjects = projects.map { it.id }.toHashSet()
-            val newProjects = content.projects.filter { it.id !in knownProjects }
-            projects = projects + newProjects
-            rebuildIndexes()
-            migrateOrphans()
-            persist()
-            saveProjects()
-            onDone(tr("Restaurado: {} pinturas nuevas, {} propias, {} proyectos", added, newCustom.size, newProjects.size))
-        }
-    }
+        internal set
+    internal var backupJob: Job? = null
 }
