@@ -243,7 +243,12 @@ fun LightScreen(
             val result = withContext(Dispatchers.Default) {
                 try {
                     val m = block { phase, p -> scope.launch(Dispatchers.Main) { loadPhase = tr(phase); loadProgress = p } }
-                    val file = if (save) try { saveMesh(context, m) } catch (_: Exception) { null } else null
+                    val file = if (save) try { saveMesh(context, m) } catch (e: Exception) {
+                        scope.launch(Dispatchers.Main) {
+                            android.widget.Toast.makeText(context, tr("El modelo se abrió, pero no pude guardarlo para abrirlo rápido: {}", e.message ?: ""), android.widget.Toast.LENGTH_LONG).show()
+                        }
+                        null
+                    } else null
                     Result.success(m to file)
                 } catch (e: MeshLoadException) {
                     Result.failure(e)
@@ -392,7 +397,10 @@ fun LightScreen(
         val target = side
         scope.launch {
             val bmp = withContext(Dispatchers.IO) { try { loadBitmapForAnalysis(context, uri, 1280) } catch (_: Exception) { null } }
-            if (bmp == null) { downloadError = null; slots.remove(target); return@launch }
+            if (bmp == null) {
+                android.widget.Toast.makeText(context, tr("No pude abrir la foto."), android.widget.Toast.LENGTH_LONG).show()
+                return@launch
+            }
             slots[target] = PhotoSlot(bmp)
             process(target)
         }
@@ -947,8 +955,12 @@ fun LightScreen(
             glHolder[0] = null
             photoHolder[0]?.onPause()
             photoHolder[0] = null
-            // Fotos temporales de la cámara: ya quedaron copiadas en el almacén de Luz y sombra
+            // Fotos temporales de la cámara (ya copiadas al almacén de Luz y sombra) y el ZIP copiado
             File(context.cacheDir, "captures").listFiles()?.forEach { if (it.name.startsWith("figura-")) it.delete() }
+            File(context.cacheDir, "zip").listFiles()?.forEach { it.delete() }
+            // Libera la malla y el relieve de la memoria
+            renderer.mesh = null
+            photoRenderer.data = null
         }
     }
 

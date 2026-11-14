@@ -137,7 +137,9 @@ fun SettingsScreen(vm: MainViewModel, onClose: () -> Unit, onAction: (HubAction)
                         ) { uri ->
                             if (uri != null) try {
                                 ctx.contentResolver.openOutputStream(uri)?.use { it.write(com.ricardochr.estantepinturas.MeasurementLog.exportJson(ctx).toByteArray()) }
-                            } catch (_: Exception) {
+                                android.widget.Toast.makeText(ctx, tr("Colores exportados"), android.widget.Toast.LENGTH_SHORT).show()
+                            } catch (e: Exception) {
+                                android.widget.Toast.makeText(ctx, tr("No pude guardar el archivo: {}", e.message ?: ""), android.widget.Toast.LENGTH_LONG).show()
                             }
                         }
                         if (high > 0) {
@@ -151,7 +153,7 @@ fun SettingsScreen(vm: MainViewModel, onClose: () -> Unit, onAction: (HubAction)
                                 // i18n:on
                                 val url = "https://github.com/ricardochr/estante-pinturas/issues/new?title=" +
                                     android.net.Uri.encode(tr("Colores medidos ({})", high)) + "&body=" + android.net.Uri.encode(body)
-                                try { ctx.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))) } catch (_: Exception) { }
+                                try { ctx.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))) } catch (e: Exception) { android.widget.Toast.makeText(ctx, tr("No hay un navegador para abrir GitHub."), android.widget.Toast.LENGTH_LONG).show() }
                             }
                         }
                     }

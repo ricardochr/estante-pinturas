@@ -159,7 +159,10 @@ fun StorageScreen(
         if (vm.spots.isEmpty()) { hits = emptyList(); return@LaunchedEffect }
         searching = true
         hits = null
-        val res = try { vm.locatePaint(t) } catch (e: Exception) { emptyList() }
+        val res = try { vm.locatePaint(t) } catch (e: Exception) {
+            say(tr("No pude revisar las fotos de tus gavetas: {}", e.message ?: e.javaClass.simpleName))
+            emptyList()
+        }
         hits = res
         hitIdx = 0
         searching = false
@@ -212,7 +215,10 @@ fun StorageScreen(
                                     menuOpen = false
                                     detecting = true
                                     scope.launch {
-                                        val res = try { vm.detectInSpot(spot) } catch (e: Exception) { emptyList() }
+                                        val res = try { vm.detectInSpot(spot) } catch (e: Exception) {
+                                            say(tr("Error al leer la foto: {}", e.message ?: e.javaClass.simpleName))
+                                            emptyList()
+                                        }
                                         detecting = false
                                         if (res.isEmpty()) say(tr("No pude leer etiquetas en esta foto.")) else detected = res
                                     }

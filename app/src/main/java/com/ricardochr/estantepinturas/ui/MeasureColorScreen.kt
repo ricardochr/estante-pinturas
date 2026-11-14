@@ -158,6 +158,10 @@ private fun MeasureColorScreen(target: Paint, owned: List<Paint>, onClose: () ->
     }
 
     val gallery = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri -> if (uri != null) load(uri) }
+    // Al cerrar, borra las fotos temporales de la medición
+    androidx.compose.runtime.DisposableEffect(Unit) {
+        onDispose { File(context.cacheDir, "captures").listFiles()?.forEach { if (it.name.startsWith("medicion-") || it.name.startsWith("muestra-")) it.delete() } }
+    }
     // Cámara propia con exposición y balance de blancos bloqueados (la del sistema no permite bloquearlos)
     var capturing by remember { mutableStateOf(false) }
     fun takePhoto() { capturing = true }

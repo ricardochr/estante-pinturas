@@ -426,7 +426,8 @@ private fun CompareCamera(
             try {
                 p.unbindAll()
                 camera = p.bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview)
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                android.widget.Toast.makeText(context, tr("No pude abrir la cámara: {}", e.message ?: e.javaClass.simpleName), android.widget.Toast.LENGTH_LONG).show()
             }
         }, ContextCompat.getMainExecutor(context))
         onDispose { provider?.unbindAll() }

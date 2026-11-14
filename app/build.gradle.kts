@@ -16,14 +16,21 @@ android {
         targetSdk = 35
         versionCode = buildNumber
         versionName = "1.0.$buildNumber"
-        // Solo procesadores ARM (todos los teléfonos actuales): el APK pesa mucho menos
-        ndk {
-            abiFilters += listOf("arm64-v8a", "armeabi-v7a")
-        }
+
     }
 
     // Llave fija dentro del repo: así cada APK nuevo se instala encima del anterior
     // sin borrar el inventario. Es una app personal; no se publica en Play Store.
+    // Un APK por procesador: el de 64 bits (todos los teléfonos actuales) no carga las librerías de 32 bits
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("arm64-v8a", "armeabi-v7a")
+            isUniversalApk = false
+        }
+    }
+
     signingConfigs {
         create("estante") {
             storeFile = file("estante.jks")

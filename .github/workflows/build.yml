@@ -35,7 +35,9 @@ jobs:
           chmod +x gradlew
           ./gradlew testReleaseUnitTest assembleRelease --no-daemon --stacktrace -PbuildNumber=${{ github.run_number }}
           mkdir -p dist
-          cp app/build/outputs/apk/release/app-release.apk dist/Gotario-${{ github.run_number }}.apk
+          ls -la app/build/outputs/apk/release/
+          cp app/build/outputs/apk/release/app-arm64-v8a-release.apk dist/Gotario-${{ github.run_number }}.apk
+          cp app/build/outputs/apk/release/app-armeabi-v7a-release.apk dist/Gotario-${{ github.run_number }}-32bits.apk
 
       - uses: actions/upload-artifact@v4
         with:
@@ -47,6 +49,6 @@ jobs:
         with:
           tag_name: build-${{ github.run_number }}
           name: Gotario 1.0.${{ github.run_number }}
-          body: APK compilado del commit ${{ github.sha }}. Descárgalo desde el teléfono e instálalo encima de la versión anterior.
+          body: APK compilado del commit ${{ github.sha }}. Descárgalo desde el teléfono e instálalo encima de la versión anterior. Gotario-N.apk es para teléfonos de 64 bits (casi todos); usa el de 32 bits solo si el otro no se instala.
           files: dist/*.apk
           make_latest: true

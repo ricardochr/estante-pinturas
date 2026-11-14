@@ -276,6 +276,7 @@ private fun LiveCamera(
                 camera = p.bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview, analysis)
             } catch (e: Exception) {
                 camera = null
+                android.widget.Toast.makeText(context, tr("No pude abrir la cámara: {}", e.message ?: e.javaClass.simpleName), android.widget.Toast.LENGTH_LONG).show()
             }
         }, main)
         onDispose {
