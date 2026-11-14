@@ -305,8 +305,8 @@ private fun SummaryCard(paints: List<Paint>, bottles: Int, brands: Int, modifier
     PigmentCard(Pigment.Night, modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium) {
         Column(Modifier.padding(horizontal = 14.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(Modifier.fillMaxWidth()) {
-                Stat(paints.size.toString(), "colores", Pigment.Cobalt[0], Modifier.weight(1f))
-                Stat(bottles.toString(), "botes", Pigment.Emerald[0], Modifier.weight(1f))
+                Stat(paints.size.toString(), tr("colores"), Pigment.Cobalt[0], Modifier.weight(1f))
+                Stat(bottles.toString(), tr("botes"), Pigment.Emerald[0], Modifier.weight(1f))
                 Stat(brands.toString(), "marcas", Pigment.Magenta[0], Modifier.weight(1f))
             }
             if (strip.isNotEmpty()) {

@@ -165,7 +165,7 @@ private enum class LightTemp(val label: String, val rgb: FloatArray) {
  * Luz y sombra: coloca una luz alrededor de la figura y mira dónde caen las luces y sombras, sobre un
  * modelo 3D (STL/OBJ) o sobre fotos de la figura (frente, lados, espalda).
  */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 fun LightScreen(
     projects: List<com.ricardochr.estantepinturas.Project> = emptyList(),
@@ -467,6 +467,15 @@ fun LightScreen(
 
     Box(Modifier.fillMaxSize()) {
         BackHandler(onBack = onClose)
+        FirstTimeHelp(
+            "luz", tr("Luz y sombra"),
+            listOf(
+                tr("Abre el modelo 3D de tu figura (STL, OBJ o ZIP) o toma fotos de frente, lados y espalda."),
+                tr("Mueve el sol en el círculo: el centro es luz cenital, el borde luz horizontal y abajo del círculo es el frente de la figura."),
+                tr("Cambia a 3 o 5 zonas para ver dónde va cada tono; con un proyecto, verás qué pintura va en cada zona."),
+                tr("Guarda la imagen en la galería o en las fotos de avance de un proyecto."),
+            ),
+        )
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             Column(Modifier.fillMaxSize().systemBarsPadding()) {
                 TopAppBar(
@@ -592,7 +601,7 @@ fun LightScreen(
                             )
                         }
                     }
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    androidx.compose.foundation.layout.FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         listOf(
                             Triple(tr("Cenital"), azimuth, 88f),
                             Triple(tr("Frontal"), 0f, 30f),
@@ -603,7 +612,7 @@ fun LightScreen(
                             FilterChip(selected = false, onClick = { azimuth = az; elevation = el }, label = { Text(label, style = MaterialTheme.typography.labelSmall) })
                         }
                     }
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         FilterChip(selected = zones == 0, onClick = { zones = 0 }, label = { Text(tr("Iluminada")) })
                         FilterChip(selected = zones == 3, onClick = { zones = 3 }, label = { Text(tr("3 zonas")) })
                         FilterChip(selected = zones == 5, onClick = { zones = 5 }, label = { Text(tr("5 zonas")) })
@@ -645,7 +654,7 @@ fun LightScreen(
                             }
                         }
                     }
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         LightTemp.entries.forEach { t ->
                             FilterChip(selected = temp == t, onClick = { temp = t }, label = { Text(tr(t.label)) })
                         }
@@ -749,7 +758,7 @@ fun LightScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             Text(tr("Calidad"), style = MaterialTheme.typography.labelMedium)
                             MeshQuality.entries.forEach { q ->
                                 FilterChip(
@@ -807,7 +816,7 @@ fun LightScreen(
                             }
                         }
                     } else {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             Text(tr("Relieve"), style = MaterialTheme.typography.labelMedium)
                             DepthVariant.entries.forEach { v ->
                                 FilterChip(
@@ -871,7 +880,7 @@ fun LightScreen(
                             }
                         }
                         if (slots[side]?.scene != null) {
-                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                 PhotoLook.entries.forEach { l ->
                                     FilterChip(selected = look == l && !showOriginal, onClick = { look = l; showOriginal = false }, label = { Text(tr(l.label)) })
                                 }
@@ -901,7 +910,7 @@ fun LightScreen(
                             }
                             LabeledSlider(tr("Recorte"), cut, -1f..1f) { cut = it }
                             Text(tr("Pincel de recorte"), style = MaterialTheme.typography.labelMedium)
-                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                            androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                 FilterChip(selected = brush == 0, onClick = { brush = 0 }, label = { Text(tr("Mover luz")) })
                                 FilterChip(selected = brush == 1, onClick = { brush = 1 }, label = { Text(tr("Agregar")) })
                                 FilterChip(selected = brush == 2, onClick = { brush = 2 }, label = { Text(tr("Quitar")) })

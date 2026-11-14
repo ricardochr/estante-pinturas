@@ -7,6 +7,9 @@ import com.ricardochr.estantepinturas.*
 import com.ricardochr.estantepinturas.tr
 
 import androidx.compose.foundation.background
+import androidx.compose.material3.minimumInteractiveComponentSize
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -326,7 +329,7 @@ fun PaintRow(
 fun QtyStepper(qty: Int, onMinus: () -> Unit, onPlus: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Box(
-            Modifier.size(30.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceContainerHighest).clickable(onClick = onMinus),
+            Modifier.minimumInteractiveComponentSize().size(30.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceContainerHighest).clickable(onClick = onMinus).semantics { contentDescription = tr("Quitar un bote") },
             contentAlignment = Alignment.Center,
         ) { Text("−", fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface) }
         Text(
@@ -337,7 +340,7 @@ fun QtyStepper(qty: Int, onMinus: () -> Unit, onPlus: () -> Unit) {
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
         )
         Box(
-            Modifier.size(30.dp).clip(CircleShape).background(diagonal(Pigment.Cobalt)).clickable(onClick = onPlus),
+            Modifier.minimumInteractiveComponentSize().size(30.dp).clip(CircleShape).background(diagonal(Pigment.Cobalt)).clickable(onClick = onPlus).semantics { contentDescription = tr("Agregar un bote") },
             contentAlignment = Alignment.Center,
         ) { Text("+", fontSize = 18.sp, color = Color.White, fontWeight = FontWeight.Bold) }
     }

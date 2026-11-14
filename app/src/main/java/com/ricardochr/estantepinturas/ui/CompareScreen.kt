@@ -188,6 +188,14 @@ fun CompareScreen(
 
     Box(Modifier.fillMaxSize().background(Color.Black)) {
         BackHandler(onBack = onClose)
+        FirstTimeHelp(
+            "superponer", tr("Superponer referencia"),
+            listOf(
+                tr("Elige una foto de referencia (la de un pintor, la caja o tu boceto)."),
+                tr("Sostén el teléfono sobre la figura y ajusta transparencia, tamaño y posición hasta que coincidan."),
+                tr("Usa los contornos para ver qué te falta y guarda la comparación en las fotos de avance de tu proyecto."),
+            ),
+        )
         chooseTarget?.let { side ->
             androidx.compose.material3.AlertDialog(
                 onDismissRequest = { chooseTarget = null },

@@ -149,7 +149,9 @@ class PhotoGlRenderer(private val requestRender: () -> Unit) : GLSurfaceView.Ren
             GLES30.glCompileShader(sh)
             val ok = IntArray(1)
             GLES30.glGetShaderiv(sh, GLES30.GL_COMPILE_STATUS, ok, 0)
-            if (ok[0] == 0) android.util.Log.e("Gotario", tr("Shader foto: ") + GLES30.glGetShaderInfoLog(sh))
+            // i18n:off
+            if (ok[0] == 0) android.util.Log.e("Gotario", "Shader foto: " + GLES30.glGetShaderInfoLog(sh))
+            // i18n:on
             return sh
         }
         val p = GLES30.glCreateProgram()

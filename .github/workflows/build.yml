@@ -30,6 +30,13 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
+      - name: Revisar traducciones
+        run: |
+          python3 tools/i18n_wrap.py --write
+          # Textos nuevos sin envolver para traducir, o claves sin traducción: falla
+          git diff --exit-code -- app/src/main/java || (echo "Hay textos sin preparar para traducir: corre tools/i18n_wrap.py --write" && exit 1)
+          python3 tools/i18n_build.py --check
+
       - name: Compilar
         run: |
           chmod +x gradlew

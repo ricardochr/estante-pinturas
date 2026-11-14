@@ -3,6 +3,7 @@
 y avisa qué claves de tools/i18n/keys.json siguen sin traducción."""
 import json
 import os
+import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 en = json.load(open(os.path.join(ROOT, "tools", "i18n", "en.json"), encoding="utf-8"))
@@ -17,3 +18,7 @@ missing = [k for k in keys if k not in en]
 print(f"{len(out)} traducciones; {len(missing)} claves sin traducir (se muestran en español)")
 for k in missing:
     print("  ", json.dumps(k, ensure_ascii=False)[:120])
+
+# --check: falla (para CI) si quedan textos sin traducir
+if "--check" in sys.argv and missing:
+    sys.exit(f"Hay {len(missing)} textos sin traducción en tools/i18n/en.json")

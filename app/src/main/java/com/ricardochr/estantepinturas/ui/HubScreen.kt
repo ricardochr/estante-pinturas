@@ -47,6 +47,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -81,7 +85,18 @@ private data class HubTile(
  * agrupadas por para qué sirven.
  */
 @Composable
-fun HubScreen(vm: MainViewModel, onAction: (HubAction) -> Unit) {
+fun HubScreen(vm: MainViewModel, onAction0: (HubAction) -> Unit) {
+    // Cuántas veces usaste cada herramienta: las más usadas van primero en su sección
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val usagePrefs = remember { ctx.getSharedPreferences("taller", android.content.Context.MODE_PRIVATE) }
+    var usage by remember { androidx.compose.runtime.mutableStateOf(usagePrefs.all.mapValues { (it.value as? Int) ?: 0 }) }
+    val onAction: (HubAction) -> Unit = { a ->
+        val n = (usage[a.name] ?: 0) + 1
+        usagePrefs.edit().putInt(a.name, n).apply()
+        usage = usage + (a.name to n)
+        onAction0(a)
+    }
+    var query by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf("") }
     val owned = vm.owned.values.filter { it.qty > 0 }
     val bottles = owned.sumOf { it.qty }
     val toBuy = vm.shoppingCount
@@ -105,6 +120,16 @@ fun HubScreen(vm: MainViewModel, onAction: (HubAction) -> Unit) {
         HubTile(HubAction.Guide, Icons.AutoMirrored.Rounded.MenuBook, tr("Guía de técnicas"), tr("Capas, lavados, veladuras"), Pigment.Teal),
         HubTile(HubAction.Gear, Icons.Rounded.Air, tr("Mi equipo"), if (airbrushes == 0) tr("Registra tu aerógrafo") else tr("{} aerógrafo", airbrushes) + (if (airbrushes > 1) "s" else ""), Pigment.Slate),
     )
+    fun List<HubTile>.byUse() = sortedByDescending { usage[it.action.name] ?: 0 }
+    // Acciones de Configuración que también se pueden buscar desde aquí
+    val more = listOf(
+        HubTile(HubAction.UpdateCatalog, Icons.Rounded.Sync, tr("Actualizar catálogo y sets"), tr("Buscar pinturas nuevas"), Pigment.Cobalt),
+        HubTile(HubAction.Backup, Icons.Rounded.Backup, tr("Respaldo"), tr("Copia de tu inventario y proyectos"), Pigment.Emerald),
+        HubTile(HubAction.ExportInventory, Icons.Rounded.FileUpload, tr("Exportar inventario"), tr("Archivo CSV"), Pigment.Teal),
+        HubTile(HubAction.ImportInventory, Icons.Rounded.FileDownload, tr("Importar inventario"), tr("Desde un archivo CSV"), Pigment.Teal),
+        HubTile(HubAction.ImportCatalog, Icons.Rounded.LibraryAdd, tr("Agregar pinturas al catálogo"), tr("Desde un archivo CSV"), Pigment.Violet),
+        HubTile(HubAction.About, Icons.Rounded.Info, tr("Acerca de"), tr("Versión y fuentes del catálogo"), Pigment.Slate),
+    )
     val shop = listOf(
         HubTile(HubAction.Shopping, Icons.Rounded.ShoppingCart, tr("Lista de compras"), if (toBuy == 0) tr("Vacía · ve recomendaciones") else tr("Por comprar"), Pigment.Tangerine, badge = toBuy.takeIf { it > 0 }?.toString()),
         HubTile(HubAction.Sets, Icons.Rounded.Widgets, tr("Sets de pinturas"), tr("{} sets · cuáles tienes", vm.allSets.size), Pigment.Gold),
@@ -120,9 +145,9 @@ fun HubScreen(vm: MainViewModel, onAction: (HubAction) -> Unit) {
                         Text(tr("Tu estante"), style = MaterialTheme.typography.titleLarge, color = Color.White)
                     }
                     Row(Modifier.fillMaxWidth()) {
-                        HubStat(owned.size.toString(), "colores", Pigment.Cobalt[0], Modifier.weight(1f))
-                        HubStat(bottles.toString(), "botes", Pigment.Emerald[0], Modifier.weight(1f))
-                        HubStat(active.toString(), "proyectos", Pigment.Magenta[0], Modifier.weight(1f))
+                        HubStat(owned.size.toString(), tr("colores"), Pigment.Cobalt[0], Modifier.weight(1f))
+                        HubStat(bottles.toString(), tr("botes"), Pigment.Emerald[0], Modifier.weight(1f))
+                        HubStat(active.toString(), tr("proyectos"), Pigment.Magenta[0], Modifier.weight(1f))
                         HubStat(toBuy.toString(), tr("por comprar"), Pigment.Gold[0], Modifier.weight(1f))
                     }
                     if (strip.isNotEmpty()) {
@@ -134,8 +159,31 @@ fun HubScreen(vm: MainViewModel, onAction: (HubAction) -> Unit) {
                 }
             }
         }
-        hubSection(tr("Pintar"), Pigment.Magenta[0], paint, onAction)
-        hubSection(tr("Comprar y organizar"), Pigment.Tangerine[0], shop, onAction)
+        item(key = "buscar") {
+            androidx.compose.material3.OutlinedTextField(
+                value = query,
+                onValueChange = { query = it },
+                placeholder = { Text(tr("Buscar herramienta")) },
+                leadingIcon = { Icon(androidx.compose.material.icons.Icons.Default.Search, contentDescription = null) },
+                trailingIcon = {
+                    if (query.isNotEmpty()) androidx.compose.material3.IconButton(onClick = { query = "" }) {
+                        Icon(androidx.compose.material.icons.Icons.Default.Clear, contentDescription = tr("Borrar búsqueda"))
+                    }
+                },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+            )
+        }
+        val q = com.ricardochr.estantepinturas.norm(query.trim())
+        if (q.isNotEmpty()) {
+            val found = (paint + shop + more).filter { com.ricardochr.estantepinturas.norm(it.title + " " + it.subtitle).contains(q) }
+            if (found.isEmpty()) {
+                item(key = "nada") { Text(tr("No hay herramientas con \"{}\".", query.trim()), modifier = Modifier.padding(top = 16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
+            } else hubSection(tr("Resultados"), Pigment.Cobalt[0], found, onAction)
+        } else {
+            hubSection(tr("Pintar"), Pigment.Magenta[0], paint.byUse(), onAction)
+            hubSection(tr("Comprar y organizar"), Pigment.Tangerine[0], shop.byUse(), onAction)
+        }
     }
 }
 

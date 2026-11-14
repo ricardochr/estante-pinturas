@@ -177,6 +177,15 @@ private fun MeasureColorScreen(target: Paint, owned: List<Paint>, onClose: () ->
 
     Box(Modifier.fillMaxSize()) {
         BackHandler(onBack = ::back)
+        FirstTimeHelp(
+            "medir", tr("Medir color"),
+            listOf(
+                tr("Pinta en papel blanco una franja de la pintura a medir y otras de pinturas tuyas que la app te sugiere."),
+                tr("Con la cámara de la app, ajusta la exposición hasta que nada esté quemado y bloquea la luz."),
+                tr("Marca cada franja y el papel; la app corrige la luz con tus pinturas conocidas y te dice qué tan confiable es."),
+                tr("Toma 2 o 3 fotos para subir la confianza antes de guardar."),
+            ),
+        )
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             Column(Modifier.fillMaxSize().systemBarsPadding()) {
                 TopAppBar(

@@ -54,6 +54,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -501,6 +502,7 @@ private fun tabIcon(t: Tab): ImageVector = when (t) {
 private fun HeaderButton(icon: ImageVector, description: String, colors: List<Color>, onClick: () -> Unit) {
     Box(
         Modifier
+            .minimumInteractiveComponentSize()
             .size(40.dp)
             .clip(CircleShape)
             .background(diagonal(colors))
