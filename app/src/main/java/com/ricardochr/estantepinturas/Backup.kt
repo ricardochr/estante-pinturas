@@ -16,7 +16,7 @@ import java.util.zip.ZipOutputStream
  *  - projects.json + projects/<id>/<archivo>: proyectos con su referencia y fotos de avance (con sus
  *    planes, recetas y notas de dilución dentro de los JSON).
  *  - preferencias.json: configuración, colores medidos con la cámara, ajustes de Luz y sombra.
- *  - archivos/modelos/*.gmesh y archivos/luz/<proyecto>/<lado>.*: modelos 3D guardados y fotos con su relieve.
+ *  - archivos/modelos (archivos .gmesh) y archivos/luz/(proyecto)/(lado): modelos 3D guardados y fotos con su relieve.
  */
 object Backup {
     /** Preferencias que viajan en el respaldo (las de este teléfono, como el archivo de respaldo, no). */
