@@ -55,12 +55,22 @@ class OpenScreensTest {
         launch()
         rule.onAllNodesWithText("Taller")[0].performClick()
         rule.waitForIdle()
-        for (t in listOf("Superponer referencia", "Círculo cromático", "Esquemas de color", "Guía de técnicas")) {
+        // Superponer referencia abre el selector de fotos del sistema, así que se prueba aparte
+        for (t in listOf("Círculo cromático", "Esquemas de color", "Guía de técnicas", "Lista de compras", "Sets de pinturas", "Mi equipo")) {
             rule.onNodeWithText(t).performClick()
             rule.waitForIdle()
-            Thread.sleep(800)
-            androidx.test.espresso.Espresso.pressBack()
+            Thread.sleep(600)
+            rule.onAllNodes(androidx.compose.ui.test.hasContentDescription("Cerrar"))[0].performClick()
             rule.waitForIdle()
         }
+    }
+
+    @Test fun abreSuperponer() {
+        launch()
+        rule.onAllNodesWithText("Taller")[0].performClick()
+        rule.waitForIdle()
+        rule.onNodeWithText("Superponer referencia").performClick()
+        rule.waitForIdle()
+        Thread.sleep(1500)
     }
 }
