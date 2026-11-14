@@ -28,7 +28,8 @@ sealed class Screen(val key: String) {
     data class LiveFind(val paintId: String) : Screen("livefind|$paintId")
 
     companion object {
-        private val simple = listOf(Shopping, Backup, Gear, Compare, Light, Sets, Guide, Settings, Schemes, Gaps).associateBy { it.key }
+        // Perezoso: si se armara al cargar la clase, las pantallas todavía no existirían (quedarían en null)
+        private val simple by lazy { listOf(Shopping, Backup, Gear, Compare, Light, Sets, Guide, Settings, Schemes, Gaps).associateBy { it.key } }
 
         fun parse(k: String): Screen? {
             simple[k]?.let { return it }
