@@ -159,22 +159,9 @@ private fun App(vm: MainViewModel = viewModel()) {
     var createForBarcode by remember { mutableStateOf<String?>(null) }
     var showAbout by remember { mutableStateOf(false) }
     var confirmClearCatalog by remember { mutableStateOf(false) }
-    var storage by remember { mutableStateOf<StorageRequest?>(null) }
-    var liveFind by remember { mutableStateOf<Paint?>(null) }
-    var wheelFor by remember { mutableStateOf<Paint?>(null) }
+    // Pantallas abiertas encima de las pestañas: una sola pila (Atrás cierra la de arriba)
+    val nav = rememberNavStack()
     var invMode by rememberSaveable { mutableStateOf(0) } // 0 = Mis pinturas, 1 = Catálogo
-    var openProject by rememberSaveable { mutableStateOf<String?>(null) }
-    var showShopping by rememberSaveable { mutableStateOf(false) }
-    var showBackup by rememberSaveable { mutableStateOf(false) }
-    var showGear by rememberSaveable { mutableStateOf(false) }
-    var showCompare by rememberSaveable { mutableStateOf(false) }
-    var showLight by rememberSaveable { mutableStateOf(false) }
-    var showSets by rememberSaveable { mutableStateOf(false) }
-    var showGuide by rememberSaveable { mutableStateOf(false) }
-    var showSettings by rememberSaveable { mutableStateOf(false) }
-    var showSchemes by rememberSaveable { mutableStateOf(false) }
-    var showGaps by rememberSaveable { mutableStateOf(false) }
-    var showWheel by rememberSaveable { mutableStateOf(false) }
     fun goCatalog() { tab = Tab.Inventario; invMode = 1 }
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -206,22 +193,22 @@ private fun App(vm: MainViewModel = viewModel()) {
 
     val hubAction: (HubAction) -> Unit = { action ->
         when (action) {
-                        HubAction.Compare -> showCompare = true
-                        HubAction.Light -> showLight = true
-                        HubAction.Wheel -> showWheel = true
-                        HubAction.Schemes -> showSchemes = true
-                        HubAction.Gaps -> showGaps = true
-                        HubAction.Guide -> showGuide = true
-                        HubAction.Gear -> showGear = true
-                        HubAction.Shopping -> showShopping = true
-                        HubAction.Sets -> showSets = true
-                        HubAction.Find -> storage = StorageRequest()
+                        HubAction.Compare -> nav.open(Screen.Compare)
+                        HubAction.Light -> nav.open(Screen.Light)
+                        HubAction.Wheel -> nav.open(Screen.Wheel(null))
+                        HubAction.Schemes -> nav.open(Screen.Schemes)
+                        HubAction.Gaps -> nav.open(Screen.Gaps)
+                        HubAction.Guide -> nav.open(Screen.Guide)
+                        HubAction.Gear -> nav.open(Screen.Gear)
+                        HubAction.Shopping -> nav.open(Screen.Shopping)
+                        HubAction.Sets -> nav.open(Screen.Sets)
+                        HubAction.Find -> nav.open(Screen.Storage(null, null, null))
                         HubAction.AddCustom -> { createForBarcode = null; creating = true }
                         HubAction.UpdateCatalog -> if (!vm.catalogUpdating) {
                             say(tr("Buscando novedades…"))
                             vm.refreshCatalog { say(it) }
                         }
-                        HubAction.Backup -> showBackup = true
+                        HubAction.Backup -> nav.open(Screen.Backup)
                         HubAction.ExportInventory -> {
                             val stamp = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
                             exportLauncher.launch("inventario-pinturas-$stamp.csv")
@@ -277,10 +264,10 @@ private fun App(vm: MainViewModel = viewModel()) {
                             Text(tab.label, style = MaterialTheme.typography.headlineSmall, maxLines = 1)
                         }
                     }
-                    HeaderButton(Icons.Rounded.Settings, tr("Configuración"), Pigment.Slate) { showSettings = true }
-                    HeaderButton(Icons.Rounded.Layers, tr("Superponer referencia"), Pigment.Magenta) { showCompare = true }
+                    HeaderButton(Icons.Rounded.Settings, tr("Configuración"), Pigment.Slate) { nav.open(Screen.Settings) }
+                    HeaderButton(Icons.Rounded.Layers, tr("Superponer referencia"), Pigment.Magenta) { nav.open(Screen.Compare) }
                     Box {
-                        HeaderButton(Icons.Rounded.ShoppingCart, tr("Lista de compras"), Pigment.Tangerine) { showShopping = true }
+                        HeaderButton(Icons.Rounded.ShoppingCart, tr("Lista de compras"), Pigment.Tangerine) { nav.open(Screen.Shopping) }
                         val toBuy = vm.shoppingCount
                         if (toBuy > 0) {
                             Badge(Modifier.align(Alignment.TopEnd), containerColor = Pigment.Crimson[0], contentColor = Color.White) { Text(toBuy.toString()) }
@@ -300,11 +287,11 @@ private fun App(vm: MainViewModel = viewModel()) {
                         if (invMode == 0) {
                             InventoryScreen(
                                 vm,
-                                onOpenStorage = { storage = StorageRequest() },
+                                onOpenStorage = { nav.open(Screen.Storage(null, null, null)) },
                                 onEdit = { editing = it },
                                 onGoCatalog = { goCatalog() },
                                 onGoScan = { tab = Tab.Escanear },
-                                onOpenShopping = { showShopping = true },
+                                onOpenShopping = { nav.open(Screen.Shopping) },
                             )
                         } else {
                             CatalogList(
@@ -324,18 +311,17 @@ private fun App(vm: MainViewModel = viewModel()) {
                         }
                     }
                 }
-                Tab.Proyectos -> ProjectsScreen(vm, onOpenProject = { openProject = it })
+                Tab.Proyectos -> ProjectsScreen(vm, onOpenProject = { nav.open(Screen.Project(it)) })
                 Tab.Escanear -> ScanScreen(
                     vm,
-                    active = linking == null && editing == null && !creating && storage == null && liveFind == null &&
-                        openProject == null && !showShopping && !showBackup && !showGear && !showSets && !showCompare && !showLight && !showWheel && !showGuide && !showSettings && !showSchemes && !showGaps && wheelFor == null,
+                    active = linking == null && editing == null && !creating && nav.isEmpty,
                     onLinkBarcode = { linking = it },
                     onNotFound = { goCatalog() },
                     onAdded = { say(it) },
                 )
                 Tab.Paleta -> PaletteHub(vm, onOpenPaint = { editing = it }, onProjectCreated = {
                     say(tr("Proyecto creado: {}", it.name))
-                    openProject = it.id
+                    nav.open(Screen.Project(it.id))
                 })
                 Tab.Taller -> HubScreen(vm) { hubAction(it) }
             }
@@ -361,14 +347,14 @@ private fun App(vm: MainViewModel = viewModel()) {
             onOpenSimilar = { editing = it },
             locationName = vm.spotOf(p.id)?.name,
             inventory = remember(vm.owned, vm.byId) { vm.owned.values.filter { it.qty > 0 }.mapNotNull { vm.byId[it.paintId] } },
-            onOpenWheel = { editing = null; wheelFor = p },
+            onOpenWheel = { editing = null; nav.open(Screen.Wheel(p.id)) },
             onFixColor = { hx ->
                 vm.fixColor(p.id, hx)
                 editing = vm.byId[p.id]
                 say(tr("Color guardado"))
             },
-            onShowLocation = { editing = null; storage = StorageRequest(findPaintId = p.id) },
-            onPlaceLocation = { editing = null; storage = StorageRequest(placingPaintId = p.id) },
+            onShowLocation = { editing = null; nav.open(Screen.Storage(null, p.id, null)) },
+            onPlaceLocation = { editing = null; nav.open(Screen.Storage(null, null, p.id)) },
             inShopping = vm.shopping.any { it.paintId == p.id },
             onToggleShopping = {
                 if (vm.inShopping(p.id)) { vm.removeFromShopping(p.id); say(tr("Quitada de la lista de compras")) }
@@ -446,121 +432,11 @@ private fun App(vm: MainViewModel = viewModel()) {
         )
     }
 
-    openProject?.let { id ->
-        ProjectDetail(vm, id, onClose = { openProject = null }, onOpenPaint = { editing = it }, say = { say(it) })
-    }
-
-    if (showShopping) {
-        ShoppingScreen(vm, onClose = { showShopping = false }, onOpenPaint = { editing = it }, say = { say(it) })
-    }
-
-    if (showSets) {
-        com.ricardochr.estantepinturas.ui.SetsScreen(vm, onClose = { showSets = false }, onOpenPaint = { editing = it }, say = { say(it) })
-    }
-
-    if (showLight) {
-        com.ricardochr.estantepinturas.ui.LightScreen(
-            projects = vm.projects,
-            byId = vm.byId,
-            onSaveToProject = { pid, bmp, caption ->
-                vm.addProgressBitmap(pid, bmp, caption) { ok -> if (!ok) say(tr("No pude guardar la imagen en el proyecto")) }
-            },
-            onClose = { showLight = false },
-        )
-    }
-
-    if (showCompare) {
-        com.ricardochr.estantepinturas.ui.CompareScreen(
-            initialUri = null,
-            onClose = { showCompare = false },
-            saveTargets = vm.projects.map { it.id to it.name },
-            onSave = { pid, bmp ->
-                vm.addProgressBitmap(pid, bmp, tr("Comparación con la referencia")) { ok ->
-                    say(if (ok) tr("Comparación guardada en las fotos de avance") else tr("No pude guardar la comparación"))
-                }
-            },
-        )
-    }
-
-    if (showSchemes) {
-        com.ricardochr.estantepinturas.ui.SchemeScreen(
-            vm,
-            onClose = { showSchemes = false },
-            onOpenPaint = { editing = it },
-            onProjectCreated = { showSchemes = false; say(tr("Proyecto creado: {}", it.name)); openProject = it.id },
-            say = { say(it) },
-        )
-    }
-
-    if (showGaps) {
-        com.ricardochr.estantepinturas.ui.GapsScreen(vm, onClose = { showGaps = false }, onOpenPaint = { editing = it }, say = { say(it) })
-    }
-
-    if (showSettings) {
-        com.ricardochr.estantepinturas.ui.SettingsScreen(
-            vm,
-            onClose = { showSettings = false },
-            onAction = { hubAction(it) },
-            onLanguageChanged = { vm.refreshPaletteMatches() },
-        )
-    }
-
-    if (showGear) {
-        com.ricardochr.estantepinturas.ui.GearScreen(vm, onClose = { showGear = false }, say = { say(it) })
-    }
-
-    if (showBackup) {
-        BackupScreen(vm, onClose = { showBackup = false }, say = { say(it) })
-    }
-
-    storage?.let { req ->
-        StorageScreen(
-            vm = vm,
-            request = req,
-            onClose = { storage = null },
-            onOpenPaint = { editing = it },
-            onLiveFind = { liveFind = it },
-            say = { say(it) },
-        )
-    }
-
-    if (showGuide) {
-        Box(Modifier.fillMaxSize()) {
-            BackHandler { showGuide = false }
-            Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                Column(Modifier.fillMaxSize().systemBarsPadding()) {
-                    TopAppBar(
-                        title = { Text(tr("Guía de técnicas")) },
-                        navigationIcon = { IconButton(onClick = { showGuide = false }) { Icon(Icons.Default.Close, contentDescription = tr("Cerrar")) } },
-                        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
-                    )
-                    Box(Modifier.weight(1f)) { GuideScreen() }
-                }
-            }
+    // Pantallas abiertas, en el orden en que se abrieron: la última queda encima
+    nav.items.toList().forEach { screen ->
+        key(screen.key) {
+            OverlayScreen(screen, vm, nav, hubAction, onOpenPaint = { editing = it }, say = { say(it) })
         }
-    }
-
-    if (wheelFor != null || showWheel) {
-        val p = wheelFor
-        Box(Modifier.fillMaxSize()) {
-            BackHandler { wheelFor = null; showWheel = false }
-            Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                Column(Modifier.fillMaxSize().systemBarsPadding()) {
-                    TopAppBar(
-                        title = { Text(tr("Círculo cromático")) },
-                        navigationIcon = { IconButton(onClick = { wheelFor = null; showWheel = false }) { Icon(Icons.Default.Close, contentDescription = tr("Cerrar")) } },
-                        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
-                    )
-                    Box(Modifier.weight(1f)) {
-                        ColorWheelScreen(vm, onOpenPaint = { editing = it }, focus = p)
-                    }
-                }
-            }
-        }
-    }
-
-    liveFind?.let { p ->
-        LiveFindScreen(vm, p, onClose = { liveFind = null })
     }
 
     if (showAbout) {
@@ -717,6 +593,100 @@ private fun SegmentedPill(options: List<String>, selected: Int, colors: List<Col
                     maxLines = 1,
                 )
             }
+        }
+    }
+}
+
+
+/** Dibuja una pantalla de la pila. [onOpenPaint] abre la ficha de una pintura encima de todo. */
+@Composable
+private fun OverlayScreen(
+    screen: Screen,
+    vm: MainViewModel,
+    nav: NavStack,
+    hubAction: (HubAction) -> Unit,
+    onOpenPaint: (Paint) -> Unit,
+    say: (String) -> Unit,
+) {
+    val close = { nav.close(screen) }
+    when (screen) {
+        is Screen.Project -> ProjectDetail(vm, screen.id, onClose = close, onOpenPaint = onOpenPaint, say = say)
+        Screen.Shopping -> ShoppingScreen(vm, onClose = close, onOpenPaint = onOpenPaint, say = say)
+        Screen.Sets -> com.ricardochr.estantepinturas.ui.SetsScreen(vm, onClose = close, onOpenPaint = onOpenPaint, say = say)
+        Screen.Light -> com.ricardochr.estantepinturas.ui.LightScreen(
+            projects = vm.projects,
+            byId = vm.byId,
+            onSaveToProject = { pid, bmp, caption ->
+                vm.addProgressBitmap(pid, bmp, caption) { ok -> if (!ok) say(tr("No pude guardar la imagen en el proyecto")) }
+            },
+            onClose = close,
+        )
+        Screen.Compare -> com.ricardochr.estantepinturas.ui.CompareScreen(
+            initialUri = null,
+            onClose = close,
+            saveTargets = vm.projects.map { it.id to it.name },
+            onSave = { pid, bmp ->
+                vm.addProgressBitmap(pid, bmp, tr("Comparación con la referencia")) { ok ->
+                    say(if (ok) tr("Comparación guardada en las fotos de avance") else tr("No pude guardar la comparación"))
+                }
+            },
+        )
+        Screen.Schemes -> com.ricardochr.estantepinturas.ui.SchemeScreen(
+            vm,
+            onClose = close,
+            onOpenPaint = onOpenPaint,
+            onProjectCreated = { nav.close(screen); say(tr("Proyecto creado: {}", it.name)); nav.open(Screen.Project(it.id)) },
+            say = say,
+        )
+        Screen.Gaps -> com.ricardochr.estantepinturas.ui.GapsScreen(vm, onClose = close, onOpenPaint = onOpenPaint, say = say)
+        Screen.Settings -> com.ricardochr.estantepinturas.ui.SettingsScreen(
+            vm,
+            onClose = close,
+            onAction = { hubAction(it) },
+            onLanguageChanged = { vm.refreshPaletteMatches() },
+        )
+        Screen.Gear -> com.ricardochr.estantepinturas.ui.GearScreen(vm, onClose = close, say = say)
+        Screen.Backup -> BackupScreen(vm, onClose = close, say = say)
+        is Screen.Storage -> StorageScreen(
+            vm = vm,
+            request = StorageRequest(screen.spotId, screen.findPaintId, screen.placingPaintId),
+            onClose = close,
+            onOpenPaint = onOpenPaint,
+            onLiveFind = { nav.open(Screen.LiveFind(it.id)) },
+            say = say,
+        )
+        Screen.Guide -> Box(Modifier.fillMaxSize()) {
+            BackHandler(onBack = close)
+            Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                Column(Modifier.fillMaxSize().systemBarsPadding()) {
+                    TopAppBar(
+                        title = { Text(tr("Guía de técnicas")) },
+                        navigationIcon = { IconButton(onClick = close) { Icon(Icons.Default.Close, contentDescription = tr("Cerrar")) } },
+                        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
+                    )
+                    Box(Modifier.weight(1f)) { GuideScreen() }
+                }
+            }
+        }
+        is Screen.Wheel -> Box(Modifier.fillMaxSize()) {
+            BackHandler(onBack = close)
+            Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                Column(Modifier.fillMaxSize().systemBarsPadding()) {
+                    TopAppBar(
+                        title = { Text(tr("Círculo cromático")) },
+                        navigationIcon = { IconButton(onClick = close) { Icon(Icons.Default.Close, contentDescription = tr("Cerrar")) } },
+                        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
+                    )
+                    Box(Modifier.weight(1f)) {
+                        ColorWheelScreen(vm, onOpenPaint = onOpenPaint, focus = screen.paintId?.let { vm.byId[it] })
+                    }
+                }
+            }
+        }
+        is Screen.LiveFind -> {
+            val p = vm.byId[screen.paintId]
+            if (p != null) LiveFindScreen(vm, p, onClose = close)
+            else androidx.compose.runtime.LaunchedEffect(screen) { close() } // la pintura ya no existe
         }
     }
 }
