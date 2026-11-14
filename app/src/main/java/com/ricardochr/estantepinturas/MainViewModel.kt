@@ -398,6 +398,13 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     /** Variantes de color: color nuevo para algunos colores de la imagen (por índice). */
     var paletteOverrides by mutableStateOf<Map<Int, Lab>>(emptyMap())
         internal set
+    /** Técnicas aplicadas con Repintar (para el plan del proyecto). */
+    var repaintSteps by mutableStateOf<List<RepaintStep>>(emptyList())
+        internal set
+    /** Estados anteriores para Deshacer en Repintar. */
+    internal var repaintHistory: List<Pair<Map<Int, Lab>, List<RepaintStep>>> = emptyList()
+    var canUndoRepaint by mutableStateOf(false)
+        internal set
 
     var palette by mutableStateOf<PaletteView?>(null)
         internal set

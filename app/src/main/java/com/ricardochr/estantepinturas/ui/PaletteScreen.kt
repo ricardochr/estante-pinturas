@@ -4,6 +4,9 @@ import com.ricardochr.estantepinturas.*
 
 import com.ricardochr.estantepinturas.tr
 
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -151,6 +154,10 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, onProjectCrea
         if (sel == null) null else renderHighlight(view.palette, view.source, sel.ids).asImageBitmap()
     }
     var picked by remember(view) { mutableStateOf<MainViewModel.PointPick?>(null) }
+    // Repintar: zonas y colores elegidos (índices de familias y de colores de la imagen)
+    var repaintOpen by rememberSaveable { mutableStateOf(false) }
+    var repaintZones by remember(view.uri, view.detail) { mutableStateOf<Set<Int>>(emptySet()) }
+    var repaintColors by remember(view.uri, view.detail) { mutableStateOf<Set<Int>>(emptySet()) }
     var boxSize by remember { mutableStateOf(androidx.compose.ui.unit.IntSize.Zero) }
     var zoom by remember(view) { mutableStateOf(1f) }
     var pan by remember(view) { mutableStateOf(Offset.Zero) }
@@ -210,7 +217,15 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, onProjectCrea
                                         val local = center + (pos - center - pan) / zoom
                                         val nx = (local.x - ox) / dw
                                         val ny = (local.y - oy) / dh
-                                        if (dw > 0 && dh > 0 && nx in 0f..1f && ny in 0f..1f) picked = vm.pickPoint(nx, ny)
+                                        if (dw > 0 && dh > 0 && nx in 0f..1f && ny in 0f..1f) {
+                                            val pk = vm.pickPoint(nx, ny)
+                                            if (repaintOpen) {
+                                                // Con Repintar abierto, tocar la imagen agrega o quita ese color
+                                                pk?.label?.takeIf { it >= 0 }?.let { l ->
+                                                    repaintColors = if (l in repaintColors) repaintColors - l else repaintColors + l
+                                                }
+                                            } else picked = pk
+                                        }
                                     },
                                 )
                             }
@@ -282,6 +297,31 @@ fun PaletteScreen(vm: MainViewModel, onOpenPaint: (Paint) -> Unit, onProjectCrea
                     }
                 }
             }
+        }
+        item(key = "repintar") {
+            val families = view.advice.families.ifEmpty {
+                view.matches.indices.map { PaletteFamily("color", listOf(it), it, mapOf(it to "Base")) }
+            }
+            RepaintPanel(
+                vm = vm,
+                view = view,
+                families = families,
+                open = repaintOpen,
+                onOpen = { repaintOpen = it; if (!it) selected = null },
+                zones = repaintZones,
+                colors = repaintColors,
+                onZones = { z ->
+                    repaintZones = z
+                    val ids = z.flatMap { families.getOrNull(it)?.members.orEmpty() }.toSet() + repaintColors
+                    selected = if (ids.isEmpty()) null else Highlight(ids, tr("Lo que vas a repintar"))
+                },
+                onColors = { c ->
+                    repaintColors = c
+                    val ids = repaintZones.flatMap { families.getOrNull(it)?.members.orEmpty() }.toSet() + c
+                    selected = if (ids.isEmpty()) null else Highlight(ids, tr("Lo que vas a repintar"))
+                },
+                onApplied = { selected = null; showPreview = true; showBase = false },
+            )
         }
         item {
             Column(Modifier.padding(horizontal = 16.dp, vertical = 4.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -974,4 +1014,196 @@ private fun colorVariants(base: Lab): List<Pair<String, Lab>> {
         tr("Más vivo") to lch(base.l, (c * 1.45).coerceAtLeast(c + 12), h),
         tr("Más apagado") to lch(base.l, c * 0.5, h),
     )
+}
+
+
+/** Colores rápidos para repintar: tonos comunes en miniaturas. */
+private val QUICK_COLORS = listOf(
+    "#B3202A", "#7A1620", "#E0601E", "#E8C02A", "#C9A24A", "#3E7A2E", "#1E4A2A", "#2C8C8C",
+    "#2A4FA0", "#18264F", "#6A3A8C", "#C25A8A", "#7A4A2A", "#3C2A1E", "#D8B898", "#8A8A8A",
+    "#2A2A2E", "#F2F0E8", "#C0C4C8", "#B08A3A",
+)
+
+/**
+ * Repintar: elegir zonas o colores sueltos (también tocando la imagen), una técnica y un color, y
+ * aplicarlo a toda la selección. Las técnicas se suman y se pueden deshacer.
+ */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+private fun RepaintPanel(
+    vm: MainViewModel,
+    view: MainViewModel.PaletteView,
+    families: List<PaletteFamily>,
+    open: Boolean,
+    onOpen: (Boolean) -> Unit,
+    zones: Set<Int>,
+    colors: Set<Int>,
+    onZones: (Set<Int>) -> Unit,
+    onColors: (Set<Int>) -> Unit,
+    onApplied: () -> Unit,
+) {
+    var kind by rememberSaveable { mutableStateOf(RepaintKind.CAMBIAR) }
+    var amount by rememberSaveable { mutableStateOf(0.5f) }
+    var targetHex by rememberSaveable { mutableStateOf<String?>(null) }
+    var targetName by rememberSaveable { mutableStateOf<String?>(null) }
+    var picking by remember { mutableStateOf(false) }
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        shape = RoundedCornerShape(14.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),
+    ) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(Modifier.fillMaxWidth().clickable { onOpen(!open) }, verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text(tr("Repintar"), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                    Text(
+                        tr("Cambia el color de varias zonas a la vez o aplica veladuras, sombras y luces de color."),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Text(if (open) "▲" else "▼", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            if (!open) return@Column
+
+            // 1) Qué repintar
+            Text(tr("1. Qué repintar"), style = MaterialTheme.typography.labelLarge)
+            androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                FilterChip(
+                    selected = zones.size == families.size && families.isNotEmpty(),
+                    onClick = { onZones(if (zones.size == families.size) emptySet() else families.indices.toSet()) },
+                    label = { Text(tr("Toda la figura")) },
+                )
+                families.forEachIndexed { i, f ->
+                    val c = view.palette.clusters.getOrNull(f.base)
+                    FilterChip(
+                        selected = i in zones,
+                        onClick = { onZones(if (i in zones) zones - i else zones + i) },
+                        leadingIcon = { c?.let { Box(Modifier.size(14.dp).clip(RoundedCornerShape(7.dp)).background(Color(it.argb))) } },
+                        label = { Text(tr("Zona {} · {}", i + 1, f.name), maxLines = 1) },
+                    )
+                }
+            }
+            Text(tr("Colores sueltos (o toca la imagen)"), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                view.palette.clusters.forEachIndexed { i, c ->
+                    val on = i in colors
+                    Box(
+                        Modifier
+                            .size(34.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color(c.argb))
+                            .border(if (on) 3.dp else 1.dp, if (on) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp))
+                            .clickable { onColors(if (on) colors - i else colors + i) }
+                            .semantics { contentDescription = tr("Color {}", i + 1) + if (on) tr(", elegido") else "" },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        if (on) Text("✓", color = if (c.l > 60) Color.Black else Color.White, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+
+            // 2) Técnica
+            Text(tr("2. Técnica"), style = MaterialTheme.typography.labelLarge)
+            androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                RepaintKind.entries.forEach { k ->
+                    FilterChip(selected = kind == k, onClick = { kind = k }, label = { Text(tr(k.label)) })
+                }
+            }
+            Text(tr(kind.help), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+            // 3) Color
+            Text(tr("3. Color"), style = MaterialTheme.typography.labelLarge)
+            androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                QUICK_COLORS.forEach { hx ->
+                    val on = targetHex == hx && targetName == null
+                    Box(
+                        Modifier
+                            .size(30.dp)
+                            .clip(RoundedCornerShape(15.dp))
+                            .background(Color(parseHex(hx).toInt()))
+                            .border(if (on) 3.dp else 1.dp, if (on) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(15.dp))
+                            .clickable { targetHex = hx; targetName = null }
+                            .semantics { contentDescription = hx },
+                    )
+                }
+            }
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(onClick = { picking = true }) { Text(tr("Usar una pintura")) }
+                targetHex?.let { hx ->
+                    Box(Modifier.size(26.dp).clip(RoundedCornerShape(6.dp)).background(Color(parseHex(hx).toInt())))
+                    Text(targetName ?: hx, style = MaterialTheme.typography.bodySmall, maxLines = 1, modifier = Modifier.weight(1f))
+                }
+            }
+            if (kind != RepaintKind.CAMBIAR) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(tr("Fuerza"), style = MaterialTheme.typography.labelMedium, modifier = Modifier.width(70.dp))
+                    androidx.compose.material3.Slider(value = amount, onValueChange = { amount = it }, valueRange = 0.1f..1f, modifier = Modifier.weight(1f))
+                    Text(
+                        when {
+                            amount < 0.35f -> tr("suave")
+                            amount < 0.7f -> tr("media")
+                            else -> tr("fuerte")
+                        },
+                        style = MaterialTheme.typography.labelSmall,
+                        modifier = Modifier.width(52.dp),
+                    )
+                }
+            }
+
+            // Aplicar
+            val groups = remember(zones, colors, families) {
+                val zoneGroups = zones.sorted().mapNotNull { families.getOrNull(it) }.map { it.base to it.members }
+                val taken = zoneGroups.flatMap { it.second }.toSet()
+                val loose = colors.filter { it !in taken }
+                val looseBase = loose.maxByOrNull { view.palette.clusters.getOrNull(it)?.fraction ?: 0.0 }
+                zoneGroups + if (looseBase != null) listOf(looseBase to loose) else emptyList()
+            }
+            val label = buildList {
+                zones.sorted().forEach { i -> families.getOrNull(i)?.let { add(tr("zona {} ({})", i + 1, it.name)) } }
+                if (colors.isNotEmpty()) add(tr("{} colores sueltos", colors.size))
+            }.joinToString(", ")
+            val ready = groups.isNotEmpty() && targetHex != null
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Button(
+                    onClick = {
+                        val hx = targetHex ?: return@Button
+                        vm.repaint(kind, groups, hexToLab(hx), if (kind == RepaintKind.CAMBIAR) 1f else amount, label)
+                        onApplied()
+                    },
+                    enabled = ready,
+                    modifier = Modifier.weight(1f),
+                ) { Text(tr("Aplicar")) }
+                OutlinedButton(onClick = { vm.undoRepaint() }, enabled = vm.canUndoRepaint) { Text(tr("Deshacer")) }
+            }
+            if (!ready) {
+                Text(
+                    if (groups.isEmpty()) tr("Elige al menos una zona o un color.") else tr("Elige un color o una pintura."),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            if (vm.repaintSteps.isNotEmpty()) {
+                Text(tr("Aplicado"), style = MaterialTheme.typography.labelMedium)
+                vm.repaintSteps.forEach { st ->
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Box(Modifier.size(14.dp).clip(RoundedCornerShape(7.dp)).background(Color(labToArgb(st.target.l, st.target.a, st.target.b))))
+                        Text(tr("{}: {}", tr(st.kind.label), st.label), style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+                Text(
+                    tr("Al guardar como proyecto, las veladuras, sombras y luces se agregan al plan con la pintura tuya más adecuada."),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                TextButton(onClick = { vm.clearRecolors() }) { Text(tr("Quitar todo lo repintado")) }
+            }
+        }
+    }
+    if (picking) {
+        PaintPickerDialog(vm, tr("Repintar con…"), onDismiss = { picking = false }, fromCatalog = true) { p ->
+            picking = false
+            if (p.hasColor) { targetHex = p.hex; targetName = "${p.name} (${p.brand})" }
+        }
+    }
 }

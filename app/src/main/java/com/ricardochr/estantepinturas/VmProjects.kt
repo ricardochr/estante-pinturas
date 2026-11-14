@@ -120,6 +120,15 @@ internal fun MainViewModel.planFromPalette(pv: PaletteView): List<PlanStep> {
         val zone = tr("Zona {}", zi + 1) + " · " + f.name.replaceFirstChar { it.uppercase() }
         familySteps(f, pv.matches, pv.advice.zones, gearKit).forEach { out.add(PlanStep(UUID.randomUUID().toString(), zone, it)) }
     }
+    // Técnicas de Repintar (veladuras, sombras y luces de color), al final y en el orden en que las aplicaste
+    if (repaintSteps.isNotEmpty()) {
+        val inv = inventoryPaints()
+        val cat = extra + catalog
+        repaintSteps.filter { it.kind != RepaintKind.CAMBIAR }.forEach { s ->
+            val pick = paintForRepaint(s.kind, s.target, inv, cat)
+            out.add(PlanStep(UUID.randomUUID().toString(), tr("Técnicas"), repaintStepText(s, pick?.first, pick?.second ?: false)))
+        }
+    }
     return out
 }
 

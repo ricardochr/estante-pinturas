@@ -43,6 +43,33 @@ fun MainViewModel.recolorZone(members: List<Int>, base: Int, target: Lab) {
     refreshPaletteMatches()
 }
 
+/**
+ * Repinta zonas o colores sueltos con una técnica. [groups]: (base, colores) por zona elegida; los
+ * colores sueltos van como un grupo más. Se aplica sobre lo que ya hayas cambiado, así se pueden sumar
+ * técnicas (cambiar color, luego veladura, luego sombra…).
+ */
+fun MainViewModel.repaint(kind: RepaintKind, groups: List<Pair<Int, List<Int>>>, target: Lab, amount: Float, label: String) {
+    val clusters = palette?.palette?.clusters ?: return
+    // Lo último cambiado manda (la vista puede no haberse recalculado todavía)
+    val current = clusters.indices.associateWith { paletteOverrides[it] ?: clusters[it].lab }
+    val changed = repaintLabs(kind, current, groups, target, amount)
+    if (changed.isEmpty()) return
+    repaintHistory = (repaintHistory + (paletteOverrides to repaintSteps)).takeLast(20)
+    canUndoRepaint = true
+    paletteOverrides = paletteOverrides + changed
+    repaintSteps = repaintSteps + RepaintStep(kind, groups.flatMap { it.second }.toSet(), target, amount, label)
+    refreshPaletteMatches()
+}
+
+fun MainViewModel.undoRepaint() {
+    val last = repaintHistory.lastOrNull() ?: return
+    repaintHistory = repaintHistory.dropLast(1)
+    canUndoRepaint = repaintHistory.isNotEmpty()
+    paletteOverrides = last.first
+    repaintSteps = last.second
+    refreshPaletteMatches()
+}
+
 fun MainViewModel.resetZoneColor(members: List<Int>) {
     if (members.none { it in paletteOverrides }) return
     paletteOverrides = paletteOverrides - members.toSet()
@@ -50,6 +77,9 @@ fun MainViewModel.resetZoneColor(members: List<Int>) {
 }
 
 fun MainViewModel.clearRecolors() {
+    repaintSteps = emptyList()
+    repaintHistory = emptyList()
+    canUndoRepaint = false
     if (paletteOverrides.isEmpty()) return
     paletteOverrides = emptyMap()
     refreshPaletteMatches()
@@ -90,6 +120,9 @@ fun MainViewModel.analyzePalette(uri: Uri, detail: Int) {
     paletteError = null
     // Los colores se numeran de nuevo en cada análisis: las variantes anteriores ya no aplican
     paletteOverrides = emptyMap()
+    repaintSteps = emptyList()
+    repaintHistory = emptyList()
+    canUndoRepaint = false
     val inv = inventoryPaints()
     val cat = extra + catalog
     val reuse = palette?.takeIf { it.uri == uri }?.source
