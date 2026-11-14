@@ -1,5 +1,8 @@
 package com.ricardochr.estantepinturas
 
+import com.ricardochr.estantepinturas.MainViewModel.PaletteView
+import com.ricardochr.estantepinturas.MainViewModel.PointPick
+import com.ricardochr.estantepinturas.MainViewModel.Equivalent
 import android.app.Application
 import android.graphics.Bitmap
 import android.net.Uri
