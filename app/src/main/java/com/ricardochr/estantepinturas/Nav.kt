@@ -10,6 +10,8 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
  * Pantallas que se abren encima de las pestañas. Se guardan en una pila: la última es la que se ve
  * y Atrás la cierra. Cada una se escribe como texto para sobrevivir a que el sistema recree la app.
  */
+private fun enc(s: String?): String = if (s == null) "" else java.net.URLEncoder.encode(s, "UTF-8")
+
 sealed class Screen(val key: String) {
     data object Shopping : Screen("shopping")
     data object Backup : Screen("backup")
@@ -21,11 +23,12 @@ sealed class Screen(val key: String) {
     data object Settings : Screen("settings")
     data object Schemes : Screen("schemes")
     data object Gaps : Screen("gaps")
-    data class Wheel(val paintId: String?) : Screen("wheel|" + (paintId ?: ""))
-    data class Project(val id: String) : Screen("project|$id")
+    // Los ids de pintura llevan "|", así que cada parte se codifica
+    data class Wheel(val paintId: String?) : Screen("wheel|" + enc(paintId))
+    data class Project(val id: String) : Screen("project|" + enc(id))
     data class Storage(val spotId: String?, val findPaintId: String?, val placingPaintId: String?) :
-        Screen("storage|" + (spotId ?: "") + "|" + (findPaintId ?: "") + "|" + (placingPaintId ?: ""))
-    data class LiveFind(val paintId: String) : Screen("livefind|$paintId")
+        Screen("storage|" + enc(spotId) + "|" + enc(findPaintId) + "|" + enc(placingPaintId))
+    data class LiveFind(val paintId: String) : Screen("livefind|" + enc(paintId))
 
     companion object {
         // Perezoso: si se armara al cargar la clase, las pantallas todavía no existirían (quedarían en null)
@@ -34,7 +37,7 @@ sealed class Screen(val key: String) {
         fun parse(k: String): Screen? {
             simple[k]?.let { return it }
             val p = k.split("|")
-            fun at(i: Int) = p.getOrNull(i)?.takeIf { it.isNotEmpty() }
+            fun at(i: Int) = p.getOrNull(i)?.takeIf { it.isNotEmpty() }?.let { java.net.URLDecoder.decode(it, "UTF-8") }
             return when (p[0]) {
                 "wheel" -> Wheel(at(1))
                 "project" -> at(1)?.let { Project(it) }
