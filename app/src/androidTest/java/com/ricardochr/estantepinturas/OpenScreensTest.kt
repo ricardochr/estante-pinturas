@@ -6,6 +6,7 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToNode
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -57,6 +58,10 @@ class OpenScreensTest {
         rule.waitForIdle()
         // Superponer referencia abre el selector de fotos del sistema, así que se prueba aparte
         for (t in listOf("Círculo cromático", "Esquemas de color", "Guía de técnicas", "Lista de compras", "Sets de pinturas", "Mi equipo")) {
+            // Las tarjetas de abajo no existen hasta que se desplaza la lista
+            rule.onAllNodes(androidx.compose.ui.test.hasScrollToNodeAction())[0]
+                .performScrollToNode(androidx.compose.ui.test.hasText(t))
+            rule.waitForIdle()
             rule.onNodeWithText(t).performClick()
             rule.waitForIdle()
             Thread.sleep(600)
