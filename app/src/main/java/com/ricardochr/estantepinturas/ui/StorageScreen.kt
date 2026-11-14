@@ -664,8 +664,12 @@ fun PaintPickerDialog(vm: MainViewModel, title: String, onDismiss: () -> Unit, f
             else -> inv.asSequence().filter { matchesWords(it.searchText, words) }.take(200).toList()
         }
     }
+    // Ventana propia: así funciona aunque se abra desde dentro de una lista (sin alto definido)
+    androidx.compose.ui.window.Dialog(
+        onDismissRequest = onDismiss,
+        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false),
+    ) {
     Box(Modifier.fillMaxSize()) {
-        BackHandler(onBack = onDismiss)
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             Column(Modifier.fillMaxSize().systemBarsPadding()) {
                 TopAppBar(
@@ -684,6 +688,7 @@ fun PaintPickerDialog(vm: MainViewModel, title: String, onDismiss: () -> Unit, f
                 }
             }
         }
+    }
     }
 }
 
