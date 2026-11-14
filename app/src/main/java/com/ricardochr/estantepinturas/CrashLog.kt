@@ -19,7 +19,9 @@ object CrashLog {
             try {
                 val sw = StringWriter()
                 e.printStackTrace(PrintWriter(sw))
-                file(app).writeText(tr("Gotario {} · {} · Android {}\nHilo: {}\n\n{}", BuildConfig.VERSION_NAME, android.os.Build.MODEL, android.os.Build.VERSION.RELEASE, t.name, sw))
+                // i18n:off
+                file(app).writeText("Gotario ${BuildConfig.VERSION_NAME} · ${android.os.Build.MODEL} · Android ${android.os.Build.VERSION.RELEASE}\nHilo: ${t.name}\n\n$sw")
+                // i18n:on
             } catch (_: Throwable) {
             }
             previous?.uncaughtException(t, e)
