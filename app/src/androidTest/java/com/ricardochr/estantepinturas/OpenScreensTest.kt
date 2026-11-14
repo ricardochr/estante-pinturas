@@ -18,6 +18,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class OpenScreensTest {
     @get:Rule val rule = createEmptyComposeRule()
+    @get:Rule val camera: androidx.test.rule.GrantPermissionRule = androidx.test.rule.GrantPermissionRule.grant(android.Manifest.permission.CAMERA)
 
     @Before fun spanish() {
         val ctx = InstrumentationRegistry.getInstrumentation().targetContext
