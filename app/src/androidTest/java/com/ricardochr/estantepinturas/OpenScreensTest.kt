@@ -25,7 +25,16 @@ class OpenScreensTest {
         val ctx = InstrumentationRegistry.getInstrumentation().targetContext
         ctx.getSharedPreferences("settings", Context.MODE_PRIVATE).edit().putString("lang", "es").commit()
         // La ayuda de la primera vez se muestra; no debe estorbar la prueba
+        ctx.getSharedPreferences("taller", Context.MODE_PRIVATE).edit().clear().commit()
         ctx.getSharedPreferences("ayuda", Context.MODE_PRIVATE).edit().putBoolean("luz", true).putBoolean("medir", true).putBoolean("superponer", true).commit()
+    }
+
+    /** Toca una herramienta del Taller, desplazando la lista si hace falta. */
+    private fun tool(t: String) {
+        rule.onAllNodes(androidx.compose.ui.test.hasScrollToNodeAction())[0].performScrollToNode(androidx.compose.ui.test.hasText(t))
+        rule.waitForIdle()
+        rule.onNodeWithText(t).performClick()
+        rule.waitForIdle()
     }
 
     private fun launch() {
@@ -45,8 +54,7 @@ class OpenScreensTest {
         launch()
         rule.onAllNodesWithText("Taller")[0].performClick()
         rule.waitForIdle()
-        rule.onNodeWithText("Luz y sombra").performClick()
-        rule.waitForIdle()
+        tool("Luz y sombra")
         rule.waitUntil(10_000) { rule.onAllNodesWithText("LUZ Y SOMBRA").fetchSemanticsNodes().isNotEmpty() }
         rule.onNodeWithText("Fotos").performClick()
         rule.waitForIdle()
@@ -58,12 +66,7 @@ class OpenScreensTest {
         rule.waitForIdle()
         // Superponer referencia abre el selector de fotos del sistema, así que se prueba aparte
         for (t in listOf("Círculo cromático", "Esquemas de color", "Guía de técnicas", "Lista de compras", "Sets de pinturas", "Mi equipo")) {
-            // Las tarjetas de abajo no existen hasta que se desplaza la lista
-            rule.onAllNodes(androidx.compose.ui.test.hasScrollToNodeAction())[0]
-                .performScrollToNode(androidx.compose.ui.test.hasText(t))
-            rule.waitForIdle()
-            rule.onNodeWithText(t).performClick()
-            rule.waitForIdle()
+            tool(t)
             Thread.sleep(600)
             rule.onAllNodes(androidx.compose.ui.test.hasContentDescription("Cerrar"))[0].performClick()
             rule.waitForIdle()
@@ -74,8 +77,7 @@ class OpenScreensTest {
         launch()
         rule.onAllNodesWithText("Taller")[0].performClick()
         rule.waitForIdle()
-        rule.onNodeWithText("Superponer referencia").performClick()
-        rule.waitForIdle()
+        tool("Superponer referencia")
         Thread.sleep(1500)
     }
 }
