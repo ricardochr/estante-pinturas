@@ -99,4 +99,6 @@ dependencies {
     implementation("com.microsoft.onnxruntime:onnxruntime-android:1.20.0")
 
     testImplementation("junit:junit:4.13.2")
+    // org.json real para probar el respaldo fuera del teléfono (en Android viene incluido)
+    testImplementation("org.json:json:20240303")
 }

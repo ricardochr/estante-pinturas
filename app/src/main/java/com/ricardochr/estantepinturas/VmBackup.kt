@@ -33,7 +33,9 @@ internal fun MainViewModel.writeBackup(uri: Uri): String? = try {
         ?: getApplication<Application>().contentResolver.openOutputStream(uri, "w")
     if (out == null) tr("No se pudo abrir el archivo")
     else {
-        out.use { Backup.write(it, currentState(), projects, projectsRoot()) }
+        val app = getApplication<Application>()
+        val prefsJson = Backup.prefsToJson(Backup.PREF_FILES.associateWith { app.getSharedPreferences(it, android.content.Context.MODE_PRIVATE).all })
+        out.use { Backup.write(it, currentState(), projects, projectsRoot(), app.filesDir, prefsJson) }
         null
     }
 } catch (e: Exception) {
@@ -105,7 +107,9 @@ fun MainViewModel.restoreBackup(uri: Uri, onDone: (String) -> Unit) {
     viewModelScope.launch {
         val content = withContext(Dispatchers.IO) {
             try {
-                getApplication<Application>().contentResolver.openInputStream(uri)?.use { Backup.read(it, projectsRoot()) }
+                getApplication<Application>().contentResolver.openInputStream(uri)?.use {
+                    Backup.read(it, projectsRoot(), getApplication<Application>().filesDir)
+                }
             } catch (e: Exception) {
                 null
             }
@@ -139,10 +143,47 @@ fun MainViewModel.restoreBackup(uri: Uri, onDone: (String) -> Unit) {
         val knownProjects = projects.map { it.id }.toHashSet()
         val newProjects = content.projects.filter { it.id !in knownProjects }
         projects = projects + newProjects
+        content.prefs?.let { restorePrefs(it) }
         rebuildIndexes()
         migrateOrphans()
         persist()
         saveProjects()
-        onDone(tr("Restaurado: {} pinturas nuevas, {} propias, {} proyectos", added, newCustom.size, newProjects.size))
+        onDone(
+            tr("Restaurado: {} pinturas nuevas, {} propias, {} proyectos", added, newCustom.size, newProjects.size) +
+                if (content.files > 0) tr(" · {} archivos (modelos 3D y fotos de Luz y sombra)", content.files) else "",
+        )
     }
+}
+
+/**
+ * Restaura preferencias del respaldo uniéndolas con las actuales: lo que ya tienes en este teléfono se
+ * respeta; se agrega lo que falta. En los colores medidos gana la medición más reciente.
+ */
+internal fun MainViewModel.restorePrefs(o: org.json.JSONObject) {
+    val app = getApplication<Application>()
+    for (file in Backup.PREF_FILES) {
+        val f = o.optJSONObject(file) ?: continue
+        val sp = app.getSharedPreferences(file, android.content.Context.MODE_PRIVATE)
+        val ed = sp.edit()
+        for (k in f.keys()) {
+            val e = f.getJSONObject(k)
+            val exists = sp.contains(k)
+            if (file == "mediciones" && exists) {
+                // Gana la medición más reciente
+                val cur = try { org.json.JSONObject(sp.getString(k, "{}")!!).optLong("at") } catch (_: Exception) { 0L }
+                val new = try { org.json.JSONObject(e.optString("v")).optLong("at") } catch (_: Exception) { 0L }
+                if (new <= cur) continue
+            } else if (exists) continue
+            when (e.optString("t")) {
+                "s" -> ed.putString(k, e.optString("v"))
+                "b" -> ed.putBoolean(k, e.optBoolean("v"))
+                "i" -> ed.putInt(k, e.optInt("v"))
+                "l" -> ed.putLong(k, e.optLong("v"))
+                "f" -> ed.putFloat(k, e.optDouble("v").toFloat())
+                "set" -> ed.putStringSet(k, e.optJSONArray("v")?.let { a -> (0 until a.length()).map { a.getString(it) }.toSet() } ?: emptySet())
+            }
+        }
+        ed.apply()
+    }
+    Prefs.reload(app)
 }

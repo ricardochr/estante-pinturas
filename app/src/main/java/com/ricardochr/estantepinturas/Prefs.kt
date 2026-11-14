@@ -50,6 +50,12 @@ object Prefs {
         autoUpdate = p.getBoolean("autoUpdate", false)
     }
 
+    /** Vuelve a leer la configuración (después de restaurar un respaldo). */
+    fun reload(context: Context) {
+        sp = null
+        init(context)
+    }
+
     fun changeLang(v: String) { lang = v; sp?.edit()?.putString("lang", v)?.apply() }
     fun changeTheme(v: String) { theme = v; sp?.edit()?.putString("theme", v)?.apply() }
     fun changeCompactRows(v: Boolean) { compactRows = v; sp?.edit()?.putBoolean("compactRows", v)?.apply() }

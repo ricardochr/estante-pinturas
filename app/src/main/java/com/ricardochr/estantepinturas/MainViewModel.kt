@@ -96,10 +96,13 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
      * del catálogo nuevo; si no existe, se conserva como pintura propia para no perder nada.
      */
     internal fun migrateOrphans() {
-        val orphanIds = (owned.keys + barcodes.values).filter { !byId.containsKey(it) }.toSet()
+        val refs = UserRefs(owned, barcodes, colorFixes, shopping, locations, projects, customSets)
+        val orphanIds = referencedIds(refs).filter { !byId.containsKey(it) }.toSet() +
+            colorFixes.keys.filter { !byId.containsKey(it) }
         if (orphanIds.isEmpty()) return
         val remap = HashMap<String, String>()
         val newCustom = ArrayList<Paint>()
+        val needed = referencedIds(refs)
         for (oldId in orphanIds) {
             val parts = oldId.removePrefix("x|").split("|")
             if (parts.size < 4) continue
@@ -107,30 +110,35 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             val found = findPaint(brand, line, name, code)
             if (found != null) {
                 remap[oldId] = found.id
-            } else {
+            } else if (oldId in needed) {
+                // Ya no está en el catálogo: se conserva como pintura propia (con su color corregido, si lo tenía)
                 val p = Paint(
                     id = "custom:" + UUID.randomUUID().toString(),
                     brand = brand, line = line, name = name, code = code,
-                    hex = "#888888", type = guessType(name, line), custom = true,
+                    hex = colorFixes[oldId] ?: "#888888", type = guessType(name, line), custom = true,
                 )
                 newCustom.add(p)
                 remap[oldId] = p.id
             }
         }
         if (remap.isEmpty()) return
-        val newOwned = LinkedHashMap<String, OwnedEntry>()
-        owned.values.forEach { e ->
-            val id = remap[e.paintId] ?: e.paintId
-            val prev = newOwned[id]
-            newOwned[id] = if (prev == null) e.copy(paintId = id)
-            else prev.copy(qty = prev.qty + e.qty, notes = listOf(prev.notes, e.notes).filter { it.isNotBlank() }.distinct().joinToString(" · "))
+        val r = applyRemap(refs, remap)
+        owned = r.owned
+        barcodes = r.barcodes
+        shopping = r.shopping
+        locations = r.locations
+        customSets = r.customSets
+        if (r.colorFixes != colorFixes) {
+            colorFixes = r.colorFixes
+            catalog = catalog.map { p -> colorFixes[p.id]?.let { p.copy(hex = it, quality = "u") } ?: p }
+            extra = extra.map { p -> colorFixes[p.id]?.let { p.copy(hex = it, quality = "u") } ?: p }
         }
-        owned = newOwned
-        barcodes = barcodes.mapValues { (_, v) -> remap[v] ?: v }
-        if (newCustom.isNotEmpty()) {
-            custom = custom + newCustom
-            rebuildIndexes()
+        if (r.projects != projects) {
+            projects = r.projects
+            saveProjects()
         }
+        if (newCustom.isNotEmpty()) custom = custom + newCustom
+        rebuildIndexes()
         persist()
     }
 
