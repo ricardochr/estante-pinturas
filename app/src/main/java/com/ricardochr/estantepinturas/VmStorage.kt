@@ -34,7 +34,7 @@ data class PlaceInfo(val spot: StorageSpot, val zone: SpotZone?, val hasPoint: B
 
 fun MainViewModel.spotFile(s: StorageSpot): File = File(File(getApplication<Application>().filesDir, "spots"), s.photo)
 
-private fun MainViewModel.ocrFile(spotId: String): File = File(File(getApplication<Application>().filesDir, "spots"), "$spotId.ocr.json")
+private fun MainViewModel.ocrFile(spotId: String): File = File(File(getApplication<Application>().filesDir, "spots"), "$spotId.ocr2.json")
 
 fun MainViewModel.spotOf(paintId: String): StorageSpot? = placeOf(paintId)?.spot
 
@@ -68,11 +68,11 @@ fun MainViewModel.addSpot(uri: Uri, name: String, onDone: (StorageSpot?) -> Unit
     viewModelScope.launch {
         val spot = withContext(Dispatchers.IO) {
             try {
-                val bmp = loadBitmapForAnalysis(getApplication(), uri, 2400) ?: return@withContext null
+                val bmp = loadBitmapForAnalysis(getApplication(), uri, 4096) ?: return@withContext null
                 val id = UUID.randomUUID().toString()
                 val dir = File(getApplication<Application>().filesDir, "spots").apply { mkdirs() }
                 val file = "$id.jpg"
-                File(dir, file).outputStream().use { bmp.compress(Bitmap.CompressFormat.JPEG, 88, it) }
+                File(dir, file).outputStream().use { bmp.compress(Bitmap.CompressFormat.JPEG, 92, it) }
                 StorageSpot(id, name.ifBlank { tr("Lugar {}", spots.size + 1) }, file)
             } catch (e: Exception) {
                 null
@@ -196,9 +196,12 @@ internal fun MainViewModel.textBlocksOf(spot: StorageSpot, bmp: android.graphics
     } catch (_: Exception) {
         // archivo dañado: se vuelve a leer la foto
     }
+    // Dos pasadas: la foto entera (texto grande, en las cuatro orientaciones) y por partes ampliadas (letra pequeña)
     val image = bmp ?: loadSpotBitmap(spot) ?: return emptyList()
-    val list = readTextBlocks(image).map { TextBlockAt(it.lines, it.x / image.width, it.y / image.height) }
+    val whole = readTextBlocks(image).map { TextBlockAt(it.lines, it.x / image.width, it.y / image.height) }
     if (bmp == null) image.recycle()
+    val list = whole + readTextBlocksTiled(spotFile(spot).absolutePath) { readProgress = it }
+    readProgress = 0f
     ocrCache[spot.id] = list
     try {
         val arr = org.json.JSONArray()
@@ -221,6 +224,11 @@ suspend fun MainViewModel.detectInSpot(spot: StorageSpot, reread: Boolean = fals
         if (reread) { ocrCache.remove(spot.id); ocrFile(spot.id).delete() }
         val blocks = textBlocksOf(spot)
         val found = LinkedHashMap<String, DetectedPaint>()
+        // Tus pinturas: coincidencia tolerante (nombre dentro de una línea, letras mal leídas, código confuso)
+        val mine = ownedIds.mapNotNull { byId[it] }
+        matchLabels(blocks, mine).values.sortedByDescending { it.score }.forEach { m ->
+            found[m.paint.id] = DetectedPaint(m.paint, m.block.x, m.block.y, true)
+        }
         for (b in blocks) {
             val hits = matchBlock(b.lines)
             if (hits.isEmpty()) continue
@@ -239,7 +247,7 @@ suspend fun MainViewModel.detectInSpot(spot: StorageSpot, reread: Boolean = fals
 }
 
 internal fun MainViewModel.loadSpotBitmap(spot: StorageSpot): android.graphics.Bitmap? =
-    android.graphics.BitmapFactory.decodeFile(spotFile(spot).absolutePath)
+    decodeForDisplay(spotFile(spot).absolutePath)
 
 fun MainViewModel.isSpotRead(spot: StorageSpot) = ocrCache.containsKey(spot.id) || ocrFile(spot.id).exists()
 
@@ -253,8 +261,8 @@ fun MainViewModel.replaceSpotPhoto(spotId: String, uri: Uri, onDone: (Int?) -> U
     viewModelScope.launch {
         val ok = withContext(Dispatchers.IO) {
             try {
-                val bmp = loadBitmapForAnalysis(getApplication(), uri, 2400) ?: return@withContext false
-                spotFile(spot).outputStream().use { bmp.compress(Bitmap.CompressFormat.JPEG, 88, it) }
+                val bmp = loadBitmapForAnalysis(getApplication(), uri, 4096) ?: return@withContext false
+                spotFile(spot).outputStream().use { bmp.compress(Bitmap.CompressFormat.JPEG, 92, it) }
                 ocrFile(spotId).delete()
                 true
             } catch (e: Exception) {
@@ -306,6 +314,7 @@ suspend fun MainViewModel.locatePaint(paint: Paint): List<LocateHit> {
     val saved = allLocations(paint.id)
     val allSpots = spots
     val myZones = zonesFor(paint)
+    val ownedList = (owned.values.filter { it.qty > 0 }.mapNotNull { byId[it.paintId] } + paint).distinctBy { it.id }
     val sameBrand = (locations.values + moreLocations).filter { l -> l.hasPoint && l.paintId != paint.id && byId[l.paintId]?.brand == paint.brand }
     return withContext(Dispatchers.Default) {
         val hits = ArrayList<LocateHit>()
@@ -315,8 +324,11 @@ suspend fun MainViewModel.locatePaint(paint: Paint): List<LocateHit> {
             val placeOnly = here.any { !it.hasPoint }
             if (placeOnly) hits.add(LocateHit(spot, -1f, -1f, LocateKind.PLACE, 0.93f))
             val bmp = loadSpotBitmap(spot) ?: continue
-            for (b in textBlocksOf(spot, bmp)) {
-                if (matchBlock(b.lines).any { it.paint.id == paint.id }) hits.add(LocateHit(spot, b.x, b.y, LocateKind.LABEL, 0.95f))
+            val blocks = textBlocksOf(spot, bmp)
+            val label = matchLabels(blocks, ownedList)[paint.id]
+            if (label != null) hits.add(LocateHit(spot, label.block.x, label.block.y, LocateKind.LABEL, 0.95f))
+            else for (b in blocks) {
+                if (matchBlock(b.lines).any { it.paint.id == paint.id }) { hits.add(LocateHit(spot, b.x, b.y, LocateKind.LABEL, 0.95f)); break }
             }
             val zonesHere = myZones.filter { it.spotId == spot.id }
             // Si ya se sabe exactamente dónde está, la zona no agrega nada

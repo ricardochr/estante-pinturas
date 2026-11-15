@@ -40,7 +40,7 @@ object Backup {
     }
 
     private val SAFE_PATH = Regex("^projects/[A-Za-z0-9-]{1,64}/[A-Za-z0-9._-]{1,80}$")
-    private val SAFE_FILE = Regex("^archivos/(modelos/[A-Za-z0-9._ -]{1,80}\\.gmesh|luz/[A-Za-z0-9_-]{1,64}/[A-Z]{3,12}\\.(jpg|depth|mask)|spots/[A-Za-z0-9-]{1,64}\\.(jpg|ocr\\.json))$")
+    private val SAFE_FILE = Regex("^archivos/(modelos/[A-Za-z0-9._ -]{1,80}\\.gmesh|luz/[A-Za-z0-9_-]{1,64}/[A-Z]{3,12}\\.(jpg|depth|mask)|spots/[A-Za-z0-9-]{1,64}\\.(jpg|ocr2?\\.json))$")
 
     class Content(val state: SavedState, val projects: List<Project>, val prefs: JSONObject? = null, val files: Int = 0)
 

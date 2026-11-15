@@ -454,6 +454,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     /** Lugar donde se guardan las pinturas que vas agregando (al escanear); null = no preguntar. */
     var stowSpotId by mutableStateOf<String?>(null)
     /** Sube cuando cambia la foto de un lugar, para volver a cargarla. */
+    /** Avance de la lectura de etiquetas de una foto (0–1; 0 = no se está leyendo). */
+    var readProgress by mutableStateOf(0f)
+        internal set
     var spotsVersion by mutableStateOf(0)
         internal set
     // ---------- catálogo importado ----------

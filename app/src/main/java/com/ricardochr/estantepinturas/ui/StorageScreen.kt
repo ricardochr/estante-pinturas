@@ -163,6 +163,7 @@ fun StorageScreen(
     var bulk by remember { mutableStateOf(false) }
     var replaceId by remember { mutableStateOf<String?>(null) }
     var askAlso by remember { mutableStateOf<Triple<Paint, String, Offset>?>(null) }
+    var showRead by remember { mutableStateOf(false) }
 
     val spot = vm.spots.firstOrNull { it.id == spotId }
 
@@ -252,6 +253,7 @@ fun StorageScreen(
                             IconButton(onClick = { menuOpen = true }) { Icon(Icons.Default.MoreVert, contentDescription = tr("Opciones")) }
                             DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
                                 DropdownMenuItem(text = { Text(tr("Leer todas las etiquetas de esta foto")) }, onClick = { menuOpen = false; readLabels(spot, reread = false) })
+                                DropdownMenuItem(text = { Text(tr("Ver el texto leído en la foto")) }, onClick = { menuOpen = false; showRead = true })
                                 DropdownMenuItem(text = { Text(tr("Marcar zona de una marca")) }, onClick = {
                                     menuOpen = false; target = null; hits = null; placing = null; zoning = true
                                 })
@@ -417,7 +419,7 @@ fun StorageScreen(
                     )
                 }
                 val photo by produceState<ImageBitmap?>(null, spot.id, vm.spotsVersion) {
-                    value = withContext(Dispatchers.IO) { BitmapFactory.decodeFile(vm.spotFile(spot).absolutePath)?.asImageBitmap() }
+                    value = withContext(Dispatchers.IO) { decodeForDisplay(vm.spotFile(spot).absolutePath)?.asImageBitmap() }
                 }
                 val candidatesHere = hits.orEmpty().withIndex().filter { it.value.spot.id == spot.id && it.value.isPoint }
                 val activeZone = currentHit?.takeIf { it.spot.id == spot.id }?.zone
@@ -469,7 +471,7 @@ fun StorageScreen(
                         Surface(color = Color.Black.copy(alpha = 0.7f), contentColor = Color.White, shape = MaterialTheme.shapes.small) {
                             Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                 CircularProgressIndicator(Modifier.size(22.dp), color = Color.White, strokeWidth = 2.dp)
-                                Text(tr("Leyendo etiquetas…"))
+                                Text(tr("Leyendo etiquetas…") + if (vm.readProgress > 0f) " ${(vm.readProgress * 100).toInt()}%" else "")
                             }
                         }
                     }
@@ -537,6 +539,34 @@ fun StorageScreen(
                 zoneRect = null
                 say(tr("Zona guardada: {}. Tus pinturas de esa marca sin otro lugar quedan aquí.", if (line.isBlank()) brand else "$brand · $line"))
             }
+        }
+        if (showRead && spot != null) {
+            // Diagnóstico: lo que la lectura alcanzó a ver, para entender por qué no encontró una pintura
+            val lines by produceState<List<String>?>(null, spot.id) {
+                value = withContext(Dispatchers.Default) { vm.textBlocksOf(spot).map { it.lines.joinToString(" ") }.distinct() }
+            }
+            val clipboard = androidx.compose.ui.platform.LocalClipboardManager.current
+            AlertDialog(
+                onDismissRequest = { showRead = false },
+                title = { Text(tr("Texto leído en la foto")) },
+                text = {
+                    val l = lines
+                    if (l == null) Text(tr("Leyendo etiquetas…"))
+                    else Column(Modifier.verticalScroll(rememberScrollState())) {
+                        Text(tr("{} textos. Si el nombre de una pintura no aparece aquí, su etiqueta no se alcanza a leer en esta foto.", l.size), style = MaterialTheme.typography.bodySmall)
+                        // i18n:off
+                        Text(l.joinToString("\n"), style = MaterialTheme.typography.labelSmall)
+                        // i18n:on
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        clipboard.setText(androidx.compose.ui.text.AnnotatedString(lines.orEmpty().joinToString("\n")))
+                        showRead = false
+                    }) { Text(tr("Copiar")) }
+                },
+                dismissButton = { TextButton(onClick = { showRead = false }) { Text(tr("Cerrar")) } },
+            )
         }
         if (showZones && spot != null) {
             val zs = vm.zones.filter { it.spotId == spot.id }
