@@ -12,7 +12,7 @@ import java.util.zip.ZipOutputStream
 /**
  * Respaldo en un solo archivo .zip:
  *  - inventario.json: inventario, pinturas propias, códigos de barras, colores corregidos y lista de compras
- *    (sin gavetas ni ubicaciones: las pinturas cambian de lugar).
+ *    y tus lugares (gavetas, organizadores), zonas y ubicaciones; sus fotos van en archivos/spots.
  *  - projects.json + projects/<id>/<archivo>: proyectos con su referencia y fotos de avance (con sus
  *    planes, recetas y notas de dilución dentro de los JSON).
  *  - preferencias.json: configuración, colores medidos con la cámara, ajustes de Luz y sombra.
@@ -40,7 +40,7 @@ object Backup {
     }
 
     private val SAFE_PATH = Regex("^projects/[A-Za-z0-9-]{1,64}/[A-Za-z0-9._-]{1,80}$")
-    private val SAFE_FILE = Regex("^archivos/(modelos/[A-Za-z0-9._ -]{1,80}\\.gmesh|luz/[A-Za-z0-9_-]{1,64}/[A-Z]{3,12}\\.(jpg|depth|mask))$")
+    private val SAFE_FILE = Regex("^archivos/(modelos/[A-Za-z0-9._ -]{1,80}\\.gmesh|luz/[A-Za-z0-9_-]{1,64}/[A-Z]{3,12}\\.(jpg|depth|mask)|spots/[A-Za-z0-9-]{1,64}\\.(jpg|ocr\\.json))$")
 
     class Content(val state: SavedState, val projects: List<Project>, val prefs: JSONObject? = null, val files: Int = 0)
 
@@ -51,6 +51,8 @@ object Backup {
         File(filesRoot, "luz").listFiles()?.filter { it.isDirectory }?.forEach { d ->
             d.listFiles()?.filter { it.isFile }?.forEach { out.add("luz/" + d.name + "/" + it.name) }
         }
+        // Fotos de tus gavetas y organizadores, con las etiquetas ya leídas
+        File(filesRoot, "spots").listFiles()?.filter { it.isFile }?.forEach { out.add("spots/" + it.name) }
         return out.filter { SAFE_FILE.matches("archivos/$it") }
     }
 
@@ -63,8 +65,7 @@ object Backup {
         prefs: JSONObject? = null,
     ) {
         ZipOutputStream(out.buffered()).use { zip ->
-            val clean = state.copy(spots = emptyList(), locations = emptyMap())
-            val inv = Store.stateToJson(clean).put("app", "gotario").put("savedAt", System.currentTimeMillis())
+            val inv = Store.stateToJson(state).put("app", "gotario").put("savedAt", System.currentTimeMillis())
             zip.putNextEntry(ZipEntry("inventario.json"))
             zip.write(inv.toString().toByteArray(Charsets.UTF_8))
             zip.closeEntry()
@@ -134,6 +135,6 @@ object Backup {
             }
         }
         val s = state ?: return null
-        return Content(s.copy(spots = emptyList(), locations = emptyMap()), projects, prefs, files)
+        return Content(s, projects, prefs, files)
     }
 }

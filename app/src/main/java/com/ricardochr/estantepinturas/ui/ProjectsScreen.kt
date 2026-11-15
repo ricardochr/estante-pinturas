@@ -187,7 +187,8 @@ private fun ProjectCard(vm: MainViewModel, p: Project, onClick: () -> Unit) {
 
 /** Detalle de un proyecto: referencia, pinturas con su uso, notas y fotos de avance. */
 @Composable
-fun ProjectDetail(vm: MainViewModel, projectId: String, onClose: () -> Unit, onOpenPaint: (Paint) -> Unit, say: (String) -> Unit) {
+fun ProjectDetail(vm: MainViewModel, projectId: String, onClose: () -> Unit, onOpenPaint: (Paint) -> Unit, say: (String) -> Unit, onFind: (Paint) -> Unit = {}) {
+    var gather by remember { mutableStateOf(false) }
     val p = vm.projects.firstOrNull { it.id == projectId }
     if (p == null) {
         androidx.compose.runtime.LaunchedEffect(projectId) { onClose() }
@@ -326,6 +327,9 @@ fun ProjectDetail(vm: MainViewModel, projectId: String, onClose: () -> Unit, onO
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 OutlinedButton(onClick = { pickFrom = false }) { Text(tr("+ De mi inventario")) }
                                 OutlinedButton(onClick = { pickFrom = true }) { Text(tr("+ Del catálogo")) }
+                            }
+                            if (p.paints.isNotEmpty()) {
+                                Button(onClick = { gather = true }, modifier = Modifier.fillMaxWidth()) { Text(tr("Reunir pinturas: dónde está cada una")) }
                             }
                             if (missing.isNotEmpty()) {
                                 val pending = missing.filter { m -> vm.shopping.none { it.paintId == m.first.id } }
@@ -467,6 +471,13 @@ fun ProjectDetail(vm: MainViewModel, projectId: String, onClose: () -> Unit, onO
                         }
                     }
                 }
+            }
+        }
+
+        if (gather) {
+            GatherDialog(vm, p.paints.map { it.paintId }, onDismiss = { gather = false }) { paint ->
+                gather = false
+                onFind(paint)
             }
         }
 
@@ -707,6 +718,54 @@ private fun RecipeDialog(
         PaintPickerDialog(vm, tr("Pintura para la mezcla"), onDismiss = { picking = null }, fromCatalog = catalog) { paint ->
             picking = null
             if (parts.none { it.first.id == paint.id }) parts = parts + (paint to 1)
+        }
+    }
+}
+
+
+/** Lista para reunir las pinturas de un proyecto en un solo recorrido: agrupadas por lugar, para ir marcando. */
+@Composable
+private fun GatherDialog(vm: MainViewModel, paintIds: List<String>, onDismiss: () -> Unit, onFind: (Paint) -> Unit) {
+    val groups = remember(paintIds, vm.locations, vm.moreLocations, vm.zones, vm.owned) { vm.pickList(paintIds) }
+    val done = remember { androidx.compose.runtime.mutableStateListOf<String>() }
+    androidx.compose.ui.window.Dialog(
+        onDismissRequest = onDismiss,
+        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false),
+    ) {
+        Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+            Column(Modifier.fillMaxSize().systemBarsPadding()) {
+                Row(Modifier.padding(start = 4.dp, end = 16.dp, top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = onDismiss) { Icon(Icons.Default.Close, contentDescription = tr("Cerrar")) }
+                    Column(Modifier.weight(1f)) {
+                        Text(tr("Reunir pinturas"), style = MaterialTheme.typography.titleLarge)
+                        Text(tr("{} de {} listas", done.size, paintIds.distinct().size), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+                androidx.compose.foundation.lazy.LazyColumn(Modifier.weight(1f), contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 24.dp)) {
+                    groups.forEach { (place, paints) ->
+                        item(key = "g-$place") {
+                            Text("📍 $place · ${paints.size}", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(start = 16.dp, top = 14.dp, bottom = 4.dp))
+                        }
+                        items(paints.size, key = { place + paints[it].id }) { i ->
+                            val paint = paints[i]
+                            val on = paint.id in done
+                            Row(
+                                Modifier.fillMaxWidth().clickable { if (on) done.remove(paint.id) else done.add(paint.id) }.padding(horizontal = 8.dp, vertical = 2.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                androidx.compose.material3.Checkbox(checked = on, onCheckedChange = { if (it) done.add(paint.id) else done.remove(paint.id) })
+                                Swatch(paint.hex, size = 26.dp, metallic = paint.type == "Metálica")
+                                Column(Modifier.weight(1f)) {
+                                    Text(paint.name, style = MaterialTheme.typography.bodyMedium, maxLines = 1)
+                                    Text(listOf(paint.brand, paint.code).filter { it.isNotBlank() }.joinToString(" · "), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+                                }
+                                if ((vm.owned[paint.id]?.qty ?: 0) > 0) TextButton(onClick = { onFind(paint) }) { Text(tr("Ver")) }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

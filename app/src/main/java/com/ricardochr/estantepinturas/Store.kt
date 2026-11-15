@@ -17,13 +17,37 @@ data class SavedState(
     val shopping: List<ShopItem> = emptyList(),
     val gear: List<Gear> = emptyList(),
     val customSets: List<PaintSet> = emptyList(),
+    /** Zonas marcadas en las fotos: "en este rectángulo van las pinturas de esta marca o línea". */
+    val zones: List<SpotZone> = emptyList(),
+    /** Ubicaciones adicionales de pinturas con botes en más de un lugar. */
+    val moreLocations: List<PaintLocation> = emptyList(),
 )
 
 /** Un lugar donde guardas pinturas (gaveta, estante), con su foto. */
-data class StorageSpot(val id: String, val name: String, val photo: String)
+data class StorageSpot(val id: String, val name: String, val photo: String, /** Gaveta, Pared, Estante, Caja u Otro. */ val kind: String = "Gaveta")
+
+/**
+ * Zona de una foto reservada a una marca (y opcionalmente una línea): las pinturas tuyas de esa marca
+ * que no tengan otra ubicación se dan por guardadas ahí. Sirve cuando las etiquetas no se ven.
+ * Coordenadas 0–1 de la foto. [exclude]: pinturas que dijiste que no están ahí.
+ */
+data class SpotZone(
+    val id: String,
+    val spotId: String,
+    val x0: Float, val y0: Float, val x1: Float, val y1: Float,
+    val brand: String,
+    val line: String = "",
+    val exclude: Set<String> = emptySet(),
+) {
+    fun contains(x: Float, y: Float) = x in x0..x1 && y in y0..y1
+    val label: String get() = if (line.isBlank()) brand else "$brand · $line"
+}
 
 /** Dónde está una pintura: en qué foto y en qué punto (0–1 relativo al ancho y alto). */
-data class PaintLocation(val paintId: String, val spotId: String, val x: Float, val y: Float)
+data class PaintLocation(val paintId: String, val spotId: String, val x: Float, val y: Float) {
+    /** Tiene un punto marcado en la foto (si no, solo se sabe en qué lugar está). */
+    val hasPoint: Boolean get() = x >= 0f && y >= 0f
+}
 
 class Store(private val context: Context) {
 
@@ -262,7 +286,26 @@ class Store(private val context: Context) {
             val sa = o.optJSONArray("spots") ?: JSONArray()
             for (i in 0 until sa.length()) {
                 val e = sa.getJSONObject(i)
-                spots.add(StorageSpot(e.getString("id"), e.optString("name", tr("Gaveta")), e.getString("photo")))
+                spots.add(StorageSpot(e.getString("id"), e.optString("name", tr("Gaveta")), e.getString("photo"), e.optString("kind", "Gaveta")))
+            }
+            val zones = ArrayList<SpotZone>()
+            val za = o.optJSONArray("zones") ?: JSONArray()
+            for (i in 0 until za.length()) {
+                val e = za.getJSONObject(i)
+                val ex = e.optJSONArray("exclude") ?: JSONArray()
+                zones.add(
+                    SpotZone(
+                        e.getString("id"), e.getString("spotId"),
+                        e.getDouble("x0").toFloat(), e.getDouble("y0").toFloat(), e.getDouble("x1").toFloat(), e.getDouble("y1").toFloat(),
+                        e.optString("brand"), e.optString("line"), (0 until ex.length()).map { ex.getString(it) }.toSet(),
+                    ),
+                )
+            }
+            val moreLocations = ArrayList<PaintLocation>()
+            val ma = o.optJSONArray("moreLocations") ?: JSONArray()
+            for (i in 0 until ma.length()) {
+                val e = ma.getJSONObject(i)
+                moreLocations.add(PaintLocation(e.getString("paintId"), e.getString("spotId"), e.getDouble("x").toFloat(), e.getDouble("y").toFloat()))
             }
             val locations = LinkedHashMap<String, PaintLocation>()
             val la = o.optJSONArray("locations") ?: JSONArray()
@@ -303,7 +346,7 @@ class Store(private val context: Context) {
                     )
                 )
             }
-            return SavedState(owned, custom, barcodes, spots, locations, fixes, shopping, gear, customSets)
+            return SavedState(owned, custom, barcodes, spots, locations, fixes, shopping, gear, customSets, zones, moreLocations)
         }
 
         fun stateToJson(state: SavedState): JSONObject {
@@ -340,8 +383,22 @@ class Store(private val context: Context) {
             state.barcodes.forEach { (k, v) -> bo.put(k, v) }
             o.put("barcodes", bo)
             val sa = JSONArray()
-            state.spots.forEach { s -> sa.put(JSONObject().put("id", s.id).put("name", s.name).put("photo", s.photo)) }
+            state.spots.forEach { s -> sa.put(JSONObject().put("id", s.id).put("name", s.name).put("photo", s.photo).put("kind", s.kind)) }
             o.put("spots", sa)
+            val za = JSONArray()
+            state.zones.forEach { z ->
+                za.put(
+                    JSONObject().put("id", z.id).put("spotId", z.spotId)
+                        .put("x0", z.x0.toDouble()).put("y0", z.y0.toDouble()).put("x1", z.x1.toDouble()).put("y1", z.y1.toDouble())
+                        .put("brand", z.brand).put("line", z.line).put("exclude", JSONArray(z.exclude.toList())),
+                )
+            }
+            o.put("zones", za)
+            val ma = JSONArray()
+            state.moreLocations.forEach { l ->
+                ma.put(JSONObject().put("paintId", l.paintId).put("spotId", l.spotId).put("x", l.x.toDouble()).put("y", l.y.toDouble()))
+            }
+            o.put("moreLocations", ma)
             val la = JSONArray()
             state.locations.values.forEach { l ->
                 la.put(JSONObject().put("paintId", l.paintId).put("spotId", l.spotId).put("x", l.x.toDouble()).put("y", l.y.toDouble()))

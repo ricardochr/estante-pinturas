@@ -26,7 +26,7 @@ import java.util.UUID
 
 internal fun MainViewModel.projectsRoot(): File = File(getApplication<Application>().filesDir, "projects")
 
-internal fun MainViewModel.currentState() = SavedState(owned, custom, barcodes, spots, locations, colorFixes, shopping, gear, customSets)
+internal fun MainViewModel.currentState() = SavedState(owned, custom, barcodes, spots, locations, colorFixes, shopping, gear, customSets, zones, moreLocations)
 
 internal fun MainViewModel.writeBackup(uri: Uri): String? = try {
     val out = getApplication<Application>().contentResolver.openOutputStream(uri, "wt")
@@ -137,6 +137,13 @@ fun MainViewModel.restoreBackup(uri: Uri, onDone: (String) -> Unit) {
             catalog = catalog.map { p -> fixes[p.id]?.let { p.copy(hex = it, quality = "u") } ?: p }
             extra = extra.map { p -> fixes[p.id]?.let { p.copy(hex = it, quality = "u") } ?: p }
         }
+        // Lugares: se agregan los que no tienes; tus ubicaciones actuales mandan sobre las del respaldo
+        val knownSpots = spots.map { it.id }.toHashSet()
+        spots = spots + b.spots.filter { it.id !in knownSpots }
+        val spotIds = spots.map { it.id }.toHashSet()
+        locations = b.locations.filterValues { it.spotId in spotIds } + locations
+        zones = zones + b.zones.filter { z -> z.spotId in spotIds && zones.none { it.id == z.id } }
+        moreLocations = (moreLocations + b.moreLocations.filter { it.spotId in spotIds }).distinct()
         shopping = shopping + b.shopping.filter { s -> shopping.none { it.paintId == s.paintId } }
         gear = gear + b.gear.filter { g -> gear.none { it.id == g.id } }
         customSets = customSets + b.customSets.filter { c -> customSets.none { it.id == c.id } }

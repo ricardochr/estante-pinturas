@@ -80,4 +80,12 @@ class OpenScreensTest {
         tool("Superponer referencia")
         Thread.sleep(1500)
     }
+
+    @Test fun abreEncontrarPintura() {
+        launch()
+        rule.onAllNodesWithText("Taller")[0].performClick()
+        rule.waitForIdle()
+        tool("Encontrar pintura")
+        rule.waitUntil(10_000) { rule.onAllNodesWithText("ENCONTRAR PINTURA").fetchSemanticsNodes().isNotEmpty() }
+    }
 }

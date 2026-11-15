@@ -71,6 +71,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             barcodes = saved.barcodes
             spots = saved.spots
             locations = saved.locations
+            zones = saved.zones
+            moreLocations = saved.moreLocations
             colorFixes = saved.colorFixes
             shopping = saved.shopping
             gear = saved.gear
@@ -127,6 +129,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         barcodes = r.barcodes
         shopping = r.shopping
         locations = r.locations
+        moreLocations = moreLocations.map { it.copy(paintId = remap[it.paintId] ?: it.paintId) }
         customSets = r.customSets
         if (r.colorFixes != colorFixes) {
             colorFixes = r.colorFixes
@@ -219,7 +222,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     internal fun persist() {
-        val snapshot = SavedState(owned, custom, barcodes, spots, locations, colorFixes, shopping, gear, customSets)
+        val snapshot = SavedState(owned, custom, barcodes, spots, locations, colorFixes, shopping, gear, customSets, zones, moreLocations)
         viewModelScope.launch(Dispatchers.IO) { store.saveState(snapshot) }
         scheduleAutoBackup()
     }
@@ -232,6 +235,11 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val cur = owned[paintId]
         val qty = ((cur?.qty ?: 0) + delta).coerceAtLeast(0)
         owned = owned + (paintId to OwnedEntry(paintId, qty, cur?.notes ?: "", System.currentTimeMillis(), low = (cur?.low ?: false) && qty > 0, thin = cur?.thin ?: ""))
+        // "Guardar en": la pintura que agregas queda en el lugar elegido si aún no tenía uno
+        val stow = stowSpotId
+        if (delta > 0 && stow != null && spots.any { it.id == stow } && !locations.containsKey(paintId)) {
+            locations = locations + (paintId to PaintLocation(paintId, stow, -1f, -1f))
+        }
         persist()
     }
 
@@ -244,6 +252,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     fun remove(paintId: String) {
         owned = owned - paintId
         locations = locations - paintId
+        moreLocations = moreLocations.filterNot { it.paintId == paintId }
         val p = byId[paintId]
         if (p != null && p.custom) {
             custom = custom.filterNot { it.id == paintId }
@@ -437,7 +446,16 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     // ---------- localizar una pintura ----------
 
     /** Texto leído por foto (posiciones relativas 0–1), para no repetir el OCR en cada búsqueda. */
-    internal val ocrCache = HashMap<String, List<TextBlockAt>>()
+    internal val ocrCache = java.util.concurrent.ConcurrentHashMap<String, List<TextBlockAt>>()
+    var zones by mutableStateOf<List<SpotZone>>(emptyList())
+        internal set
+    var moreLocations by mutableStateOf<List<PaintLocation>>(emptyList())
+        internal set
+    /** Lugar donde se guardan las pinturas que vas agregando (al escanear); null = no preguntar. */
+    var stowSpotId by mutableStateOf<String?>(null)
+    /** Sube cuando cambia la foto de un lugar, para volver a cargarla. */
+    var spotsVersion by mutableStateOf(0)
+        internal set
     // ---------- catálogo importado ----------
     // ---------- CSV ----------
     // ---------- sets de pinturas ----------

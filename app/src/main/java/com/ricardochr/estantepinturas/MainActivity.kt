@@ -374,7 +374,7 @@ private fun App(vm: MainViewModel = viewModel()) {
             },
             similar = remember(p.id, vm.owned) { vm.similarOwned(p) },
             onOpenSimilar = { editing = it },
-            locationName = vm.spotOf(p.id)?.name,
+            locationName = vm.placesOf(p.id).joinToString(" + ") { it.text }.ifBlank { null },
             inventory = remember(vm.owned, vm.byId) { vm.owned.values.filter { it.qty > 0 }.mapNotNull { vm.byId[it.paintId] } },
             onOpenWheel = { editing = null; nav.open(Screen.Wheel(p.id)) },
             onFixColor = { hx ->
@@ -640,7 +640,10 @@ private fun OverlayScreen(
 ) {
     val close = { nav.close(screen) }
     when (screen) {
-        is Screen.Project -> ProjectDetail(vm, screen.id, onClose = close, onOpenPaint = onOpenPaint, say = say)
+        is Screen.Project -> ProjectDetail(
+            vm, screen.id, onClose = close, onOpenPaint = onOpenPaint, say = say,
+            onFind = { nav.open(Screen.Storage(null, it.id, null)) },
+        )
         Screen.Shopping -> ShoppingScreen(vm, onClose = close, onOpenPaint = onOpenPaint, say = say)
         Screen.Sets -> com.ricardochr.estantepinturas.ui.SetsScreen(vm, onClose = close, onOpenPaint = onOpenPaint, say = say)
         Screen.Light -> com.ricardochr.estantepinturas.ui.LightScreen(

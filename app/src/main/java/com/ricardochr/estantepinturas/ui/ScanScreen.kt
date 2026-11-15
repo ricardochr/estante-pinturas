@@ -218,6 +218,21 @@ fun ScanScreen(
     DisposableEffect(Unit) { onDispose { analyzer.close() } }
 
     Column(Modifier.fillMaxSize()) {
+        // Guardar en: lo que agregues queda en ese lugar, sin tener que ubicarlo después
+        if (vm.spots.isNotEmpty()) {
+            androidx.compose.foundation.lazy.LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                item { Text(tr("Guardar en:"), style = MaterialTheme.typography.labelMedium) }
+                item { androidx.compose.material3.FilterChip(selected = vm.stowSpotId == null, onClick = { vm.stowSpotId = null }, label = { Text(tr("No indicar")) }) }
+                items(vm.spots.size) { i ->
+                    val sp = vm.spots[i]
+                    androidx.compose.material3.FilterChip(selected = vm.stowSpotId == sp.id, onClick = { vm.stowSpotId = sp.id }, label = { Text("📍 " + sp.name) })
+                }
+            }
+        }
         Box(
             Modifier
                 .fillMaxWidth()

@@ -14,10 +14,15 @@ enum class LocateKind(val label: String) {
     SAVED("Ubicación que confirmaste"),
     LABEL("Etiqueta leída"),
     COLOR("Color parecido"),
+    ZONE("Zona de su marca"),
+    PLACE("Está en este lugar (sin punto marcado)"),
 }
 
 /** Posible lugar de una pintura en una foto (x, y relativos 0–1). */
-data class LocateHit(val spot: StorageSpot, val x: Float, val y: Float, val kind: LocateKind, val confidence: Float)
+data class LocateHit(val spot: StorageSpot, val x: Float, val y: Float, val kind: LocateKind, val confidence: Float, val zone: SpotZone? = null) {
+    /** Señala un bote concreto (no una zona ni solo el lugar). */
+    val isPoint: Boolean get() = kind != LocateKind.ZONE && kind != LocateKind.PLACE
+}
 
 /** Bloque de texto leído en la foto y su centro en píxeles de la imagen original. */
 class TextBlockAt(val lines: List<String>, val x: Float, val y: Float)

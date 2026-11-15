@@ -8,6 +8,11 @@ import com.ricardochr.estantepinturas.tr
 
 import android.graphics.BitmapFactory
 import android.net.Uri
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -135,7 +140,7 @@ fun StorageScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    var spotId by remember { mutableStateOf(request.spotId ?: request.findPaintId?.let { vm.locations[it]?.spotId } ?: vm.spots.firstOrNull()?.id) }
+    var spotId by remember { mutableStateOf(request.spotId ?: request.findPaintId?.let { vm.placeOf(it)?.spot?.id } ?: vm.spots.firstOrNull()?.id) }
     var placing by remember { mutableStateOf(request.placingPaintId?.let { vm.byId[it] }) }
     var query by remember { mutableStateOf("") }
     var target by remember { mutableStateOf(request.findPaintId?.let { vm.byId[it] }) }
@@ -150,6 +155,14 @@ fun StorageScreen(
     var renaming by remember { mutableStateOf(false) }
     var confirmDelete by remember { mutableStateOf(false) }
     var newName by remember { mutableStateOf("") }
+    var newKind by remember { mutableStateOf("Gaveta") }
+    // Zonas por marca, varias pinturas a la vez, cambio de foto y botes en más de un lugar
+    var zoning by remember { mutableStateOf(false) }
+    var zoneRect by remember { mutableStateOf<FloatArray?>(null) }
+    var showZones by remember { mutableStateOf(false) }
+    var bulk by remember { mutableStateOf(false) }
+    var replaceId by remember { mutableStateOf<String?>(null) }
+    var askAlso by remember { mutableStateOf<Triple<Paint, String, Offset>?>(null) }
 
     val spot = vm.spots.firstOrNull { it.id == spotId }
 
@@ -174,17 +187,44 @@ fun StorageScreen(
     fun added(s: StorageSpot?) {
         if (s == null) say(tr("No pude guardar la foto.")) else {
             spotId = s.id
-            say(tr("Foto guardada: {}", s.name))
+            // Enseguida se le pone nombre y tipo (gaveta, pared…)
+            newName = s.name; newKind = s.kind; renaming = true
+        }
+    }
+
+    /** Lee las etiquetas de la foto y muestra lo encontrado para confirmar. */
+    fun readLabels(s: StorageSpot, reread: Boolean) {
+        detecting = true
+        scope.launch {
+            val res = try { vm.detectInSpot(s, reread) } catch (e: Exception) {
+                say(tr("Error al leer la foto: {}", e.message ?: e.javaClass.simpleName))
+                emptyList()
+            }
+            detecting = false
+            if (res.isEmpty()) say(tr("No pude leer etiquetas en esta foto. Marca zonas por marca o agrega las pinturas a este lugar desde el menú.")) else detected = res
+        }
+    }
+
+    fun gotPhoto(uri: Uri) {
+        val rid = replaceId
+        replaceId = null
+        if (rid == null) { vm.addSpot(uri, "") { added(it) }; return }
+        vm.replaceSpotPhoto(rid, uri) { n ->
+            if (n == null) say(tr("No pude guardar la foto."))
+            else {
+                say(if (n > 0) tr("Foto actualizada. {} pinturas quedaron sin punto; leo las etiquetas para volver a ubicarlas.", n) else tr("Foto actualizada. Leo las etiquetas."))
+                vm.spots.firstOrNull { it.id == rid }?.let { readLabels(it, reread = true) }
+            }
         }
     }
 
     val gallery = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        if (uri != null) vm.addSpot(uri, "") { added(it) }
+        if (uri != null) gotPhoto(uri) else replaceId = null
     }
     var captureUri by remember { mutableStateOf<Uri?>(null) }
     val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { ok ->
         val u = captureUri
-        if (ok && u != null) vm.addSpot(u, "") { added(it) }
+        if (ok && u != null) gotPhoto(u) else replaceId = null
     }
     fun takePhoto() {
         val dir = File(context.cacheDir, "captures").apply { mkdirs() }
@@ -211,19 +251,20 @@ fun StorageScreen(
                         if (spot != null) {
                             IconButton(onClick = { menuOpen = true }) { Icon(Icons.Default.MoreVert, contentDescription = tr("Opciones")) }
                             DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
-                                DropdownMenuItem(text = { Text(tr("Leer todas las etiquetas de esta foto")) }, onClick = {
-                                    menuOpen = false
-                                    detecting = true
-                                    scope.launch {
-                                        val res = try { vm.detectInSpot(spot) } catch (e: Exception) {
-                                            say(tr("Error al leer la foto: {}", e.message ?: e.javaClass.simpleName))
-                                            emptyList()
-                                        }
-                                        detecting = false
-                                        if (res.isEmpty()) say(tr("No pude leer etiquetas en esta foto.")) else detected = res
-                                    }
+                                DropdownMenuItem(text = { Text(tr("Leer todas las etiquetas de esta foto")) }, onClick = { menuOpen = false; readLabels(spot, reread = false) })
+                                DropdownMenuItem(text = { Text(tr("Marcar zona de una marca")) }, onClick = {
+                                    menuOpen = false; target = null; hits = null; placing = null; zoning = true
                                 })
-                                DropdownMenuItem(text = { Text(tr("Cambiar nombre")) }, onClick = { menuOpen = false; newName = spot.name; renaming = true })
+                                if (vm.zones.any { it.spotId == spot.id }) {
+                                    DropdownMenuItem(text = { Text(tr("Zonas de esta foto")) }, onClick = { menuOpen = false; showZones = true })
+                                }
+                                DropdownMenuItem(text = { Text(tr("Agregar pinturas a este lugar")) }, onClick = { menuOpen = false; bulk = true })
+                                DropdownMenuItem(text = { Text(tr("Moví pinturas: tomar foto nueva")) }, onClick = { menuOpen = false; replaceId = spot.id; takePhoto() })
+                                DropdownMenuItem(text = { Text(tr("Moví pinturas: foto nueva de la galería")) }, onClick = {
+                                    menuOpen = false; replaceId = spot.id
+                                    gallery.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                                })
+                                DropdownMenuItem(text = { Text(tr("Nombre y tipo de lugar")) }, onClick = { menuOpen = false; newName = spot.name; newKind = spot.kind; renaming = true })
                                 DropdownMenuItem(text = { Text(tr("Eliminar esta foto")) }, onClick = { menuOpen = false; confirmDelete = true })
                             }
                         }
@@ -278,6 +319,19 @@ fun StorageScreen(
                             hasSpots = vm.spots.isNotEmpty(),
                             onPrev = { if (hitIdx > 0) hitIdx-- },
                             onNext = { if (hitIdx < (hits?.size ?: 1) - 1) hitIdx++ },
+                            onNotHere = {
+                                currentHit?.let { h ->
+                                    when (h.kind) {
+                                        LocateKind.ZONE -> h.zone?.let { vm.excludeFromZone(it.id, t.id) }
+                                        LocateKind.SAVED, LocateKind.PLACE -> vm.clearLocation(t.id, h.spot.id)
+                                        else -> {}
+                                    }
+                                    // Lo que dependía de esa zona también se descarta
+                                    val rest = hits.orEmpty().filter { it !== h && !(h.kind == LocateKind.ZONE && it.zone?.id == h.zone?.id) }
+                                    hits = rest
+                                    hitIdx = hitIdx.coerceIn(0, (rest.size - 1).coerceAtLeast(0))
+                                }
+                            },
                             onConfirm = {
                                 currentHit?.let { h ->
                                     vm.setLocation(t.id, h.spot.id, h.x, h.y)
@@ -300,6 +354,14 @@ fun StorageScreen(
                             }
                         }
                     }
+                    if (zoning) {
+                        Surface(color = MaterialTheme.colorScheme.tertiaryContainer, contentColor = MaterialTheme.colorScheme.onTertiaryContainer, shape = MaterialTheme.shapes.small) {
+                            Row(Modifier.padding(start = 12.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Text(tr("Arrastra el dedo sobre la foto para encerrar los botes de una misma marca."), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+                                TextButton(onClick = { zoning = false }) { Text(tr("Cancelar")) }
+                            }
+                        }
+                    }
                     // Pin tocado
                     val sel = selectedPin?.let { vm.byId[it] }
                     if (sel != null && target == null) {
@@ -309,7 +371,7 @@ fun StorageScreen(
                                 Text(sel.name, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
                                 TextButton(onClick = { onOpenPaint(sel) }) { Text(tr("Ficha")) }
                                 TextButton(onClick = { placing = sel; selectedPin = null }) { Text(tr("Mover")) }
-                                TextButton(onClick = { vm.clearLocation(sel.id); selectedPin = null }) { Text(tr("Quitar")) }
+                                TextButton(onClick = { vm.clearLocation(sel.id, spot?.id); selectedPin = null }) { Text(tr("Quitar")) }
                             }
                         }
                     }
@@ -325,7 +387,7 @@ fun StorageScreen(
                         FilterChip(
                             selected = s.id == spotId,
                             onClick = { spotId = s.id; selectedPin = null },
-                            label = { Text(if (target != null && n > 0) "${s.name} · $n" else s.name) },
+                            label = { Text((if (s.kind != "Gaveta") tr(s.kind) + ": " else "") + if (target != null && n > 0) "${s.name} · $n" else s.name) },
                         )
                     }
                     item { AssistChip(onClick = { takePhoto() }, label = { Text(tr("+ Tomar foto")) }) }
@@ -339,16 +401,26 @@ fun StorageScreen(
 
                 if (spot == null) {
                     EmptyState(
-                        tr("Fotografía tu gaveta"),
-                        tr("Toma una foto desde arriba, con buena luz, de donde guardas tus pinturas. Después busca una pintura y la app te señala dónde puede estar, por su etiqueta y por su color."),
+                        tr("Fotografía donde guardas tus pinturas"),
+                        tr("Una foto por cada gaveta, organizador de pared, estante o caja. La app lee las etiquetas que se vean; donde no se ven (botes vistos desde arriba), marcas una zona por marca y te señala el bote por su color."),
                     )
                     return@Column
                 }
 
-                val photo by produceState<ImageBitmap?>(null, spot.id) {
+                if (target == null && !zoning) {
+                    val (withPoint, noPoint, byZone) = vm.countsIn(spot.id)
+                    Text(
+                        tr("{} pinturas aquí: {} con punto, {} sin punto, {} por zona de marca", withPoint + noPoint + byZone, withPoint, noPoint, byZone),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 4.dp),
+                    )
+                }
+                val photo by produceState<ImageBitmap?>(null, spot.id, vm.spotsVersion) {
                     value = withContext(Dispatchers.IO) { BitmapFactory.decodeFile(vm.spotFile(spot).absolutePath)?.asImageBitmap() }
                 }
-                val candidatesHere = hits.orEmpty().withIndex().filter { it.value.spot.id == spot.id }
+                val candidatesHere = hits.orEmpty().withIndex().filter { it.value.spot.id == spot.id && it.value.isPoint }
+                val activeZone = currentHit?.takeIf { it.spot.id == spot.id }?.zone
                 Box(
                     Modifier
                         .fillMaxWidth()
@@ -367,9 +439,18 @@ fun StorageScreen(
                         candidates = candidatesHere.map { Offset(it.value.x, it.value.y) to (it.index + 1) },
                         activeCandidate = candidatesHere.indexOfFirst { it.index == hitIdx }.takeIf { it >= 0 },
                         selected = selectedPin,
+                        zones = if (target == null) vm.zones.filter { it.spotId == spot.id } else listOfNotNull(activeZone),
+                        focusZone = activeZone?.takeIf { currentHit?.kind == LocateKind.ZONE },
+                        drawZone = zoning,
+                        onZoneDrawn = { r -> zoning = false; zoneRect = r },
                         onTapEmpty = { pos ->
                             val p = placing
-                            if (p != null) {
+                            val other = p?.let { vm.locations[it.id] }
+                            if (p != null && other != null && other.spotId != spot.id && (vm.owned[p.id]?.qty ?: 0) > 1) {
+                                // Tiene más de un bote y ya estaba en otro lugar: ¿se movió o hay uno en cada sitio?
+                                askAlso = Triple(p, spot.id, pos)
+                                placing = null
+                            } else if (p != null) {
                                 vm.setLocation(p.id, spot.id, pos.x, pos.y)
                                 say(tr("Ubicada: {}", p.name))
                                 placing = null
@@ -427,9 +508,70 @@ fun StorageScreen(
             AlertDialog(
                 onDismissRequest = { renaming = false },
                 title = { Text(tr("Nombre del lugar")) },
-                text = { OutlinedTextField(newName, { newName = it }, singleLine = true, placeholder = { Text(tr("Gaveta de arriba")) }) },
-                confirmButton = { TextButton(onClick = { vm.renameSpot(spot.id, newName); renaming = false }) { Text(tr("Guardar")) } },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedTextField(newName, { newName = it }, singleLine = true, placeholder = { Text(tr("Gaveta de arriba")) })
+                        Text(tr("Tipo de lugar"), style = MaterialTheme.typography.labelMedium)
+                        Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            SPOT_KINDS.forEach { k -> FilterChip(selected = newKind == k, onClick = { newKind = k }, label = { Text(tr(k)) }) }
+                        }
+                        if (!vm.isSpotRead(spot)) {
+                            Text(tr("Al guardar leo las etiquetas de la foto para ubicar tus pinturas."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        val first = !vm.isSpotRead(spot)
+                        vm.renameSpot(spot.id, newName, newKind)
+                        renaming = false
+                        if (first) readLabels(spot, reread = false)
+                    }) { Text(tr("Guardar")) }
+                },
                 dismissButton = { TextButton(onClick = { renaming = false }) { Text(tr("Cancelar")) } },
+            )
+        }
+        zoneRect?.let { r ->
+            if (spot != null) ZoneDialog(vm, spot, r, onDismiss = { zoneRect = null }) { brand, line ->
+                vm.addZone(spot.id, r[0], r[1], r[2], r[3], brand, line)
+                zoneRect = null
+                say(tr("Zona guardada: {}. Tus pinturas de esa marca sin otro lugar quedan aquí.", if (line.isBlank()) brand else "$brand · $line"))
+            }
+        }
+        if (showZones && spot != null) {
+            val zs = vm.zones.filter { it.spotId == spot.id }
+            AlertDialog(
+                onDismissRequest = { showZones = false },
+                title = { Text(tr("Zonas de esta foto")) },
+                text = {
+                    Column {
+                        zs.forEach { z ->
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(z.label, modifier = Modifier.weight(1f))
+                                TextButton(onClick = { vm.removeZone(z.id) }) { Text(tr("Quitar")) }
+                            }
+                        }
+                        if (zs.isEmpty()) Text(tr("No hay zonas."))
+                    }
+                },
+                confirmButton = { TextButton(onClick = { showZones = false }) { Text(tr("Cerrar")) } },
+            )
+        }
+        if (bulk && spot != null) {
+            BulkAssignDialog(vm, spot, onDismiss = { bulk = false }) { ids ->
+                vm.assignToSpot(ids, spot.id)
+                bulk = false
+                say(tr("{} pinturas agregadas a {}", ids.size, spot.name))
+            }
+        }
+        askAlso?.let { (p, sid, pos) ->
+            val from = vm.spotOf(p.id)?.name ?: ""
+            AlertDialog(
+                onDismissRequest = { askAlso = null },
+                title = { Text(p.name) },
+                text = { Text(tr("Tienes {} botes y ya estaba en {}. ¿La moviste o hay un bote en cada lugar?", vm.owned[p.id]?.qty ?: 2, from)) },
+                confirmButton = { TextButton(onClick = { vm.setLocation(p.id, sid, pos.x, pos.y, also = true); askAlso = null; say(tr("Ubicada: {}", p.name)) }) { Text(tr("También está aquí")) } },
+                dismissButton = { TextButton(onClick = { vm.setLocation(p.id, sid, pos.x, pos.y); askAlso = null; say(tr("Ubicada: {}", p.name)) }) { Text(tr("La moví")) } },
             )
         }
         if (confirmDelete && spot != null) {
@@ -464,6 +606,7 @@ private fun TargetCard(
     onMarkManually: () -> Unit,
     onLive: () -> Unit,
     onClear: () -> Unit,
+    onNotHere: () -> Unit = {},
 ) {
     Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = MaterialTheme.shapes.medium) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -500,9 +643,10 @@ private fun TargetCard(
                                 color = MaterialTheme.colorScheme.primary,
                             )
                             Text(
-                                h.kind.label + when (h.kind) {
-                                    LocateKind.COLOR -> tr(" · {}% probable", (h.confidence * 100).roundToInt())
-                                    else -> ""
+                                when (h.kind) {
+                                    LocateKind.COLOR -> tr(h.kind.label) + (h.zone?.let { tr(" dentro de la zona {}", it.label) } ?: "") + tr(" · {}% probable", (h.confidence * 100).roundToInt())
+                                    LocateKind.ZONE -> tr("Zona {}: debería estar dentro del recuadro. Las siguientes opciones señalan botes de su color ahí.", h.zone?.label ?: "")
+                                    else -> tr(h.kind.label)
                                 },
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -513,14 +657,15 @@ private fun TargetCard(
                     }
                 }
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (h != null && h.kind != LocateKind.SAVED) {
+            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (h != null && h.isPoint && h.kind != LocateKind.SAVED) {
                     Button(onClick = onConfirm) { Text(tr("Es aquí ✓")) }
                 }
-                FilledTonalButton(onClick = onLive) { Text(tr("Buscar con cámara")) }
-                if (h == null && hasSpots && !searching) {
-                    OutlinedButton(onClick = onMarkManually) { Text(tr("Marcar")) }
+                if (hasSpots && !searching && (h == null || !h.isPoint)) {
+                    Button(onClick = onMarkManually) { Text(tr("Marcar el bote")) }
                 }
+                if (h != null) OutlinedButton(onClick = onNotHere) { Text(tr("No está aquí")) }
+                FilledTonalButton(onClick = onLive) { Text(tr("Cámara")) }
             }
         }
     }
@@ -538,11 +683,18 @@ private fun PhotoWithPins(
     onTapEmpty: (Offset) -> Unit,
     onTapPin: (String) -> Unit,
     onTapCandidate: (Int) -> Unit,
+    zones: List<SpotZone> = emptyList(),
+    focusZone: SpotZone? = null,
+    drawZone: Boolean = false,
+    onZoneDrawn: (FloatArray) -> Unit = {},
 ) {
     var zoom by remember(spot.id) { mutableStateOf(1f) }
     var pan by remember(spot.id) { mutableStateOf(Offset.Zero) }
     val density = LocalDensity.current
-    val pins = if (showPins) vm.locations.values.filter { it.spotId == spot.id } else emptyList()
+    val pins = if (showPins) (vm.locations.values + vm.moreLocations).filter { it.spotId == spot.id && it.hasPoint } else emptyList()
+    var dragStart by remember { mutableStateOf<Offset?>(null) }
+    var dragEnd by remember { mutableStateOf<Offset?>(null) }
+    LaunchedEffect(drawZone) { if (drawZone) { zoom = 1f; pan = Offset.Zero }; dragStart = null; dragEnd = null }
     val pulse by rememberInfiniteTransition(label = "pulse").animateFloat(
         initialValue = 0.75f, targetValue = 1.35f,
         animationSpec = infiniteRepeatable(tween(650), RepeatMode.Reverse), label = "pulse",
@@ -553,6 +705,7 @@ private fun PhotoWithPins(
             .fillMaxSize()
             .pointerInput(spot.id) {
                 detectTransformGestures { _, p, z, _ ->
+                    if (drawZone) return@detectTransformGestures
                     zoom = (zoom * z).coerceIn(1f, 8f)
                     pan = if (zoom == 1f) Offset.Zero else pan + p
                 }
@@ -566,10 +719,18 @@ private fun PhotoWithPins(
 
         // Acercar y centrar la opción activa
         val focus = activeCandidate?.let { candidates.getOrNull(it)?.first }
-        LaunchedEffect(focus, spot.id) {
+        LaunchedEffect(focus, spot.id, focusZone) {
             if (focus != null) {
                 zoom = 2.6f
                 pan = Offset(-zoom * (focus.x * w - w / 2), -zoom * (focus.y * h - h / 2))
+            } else if (focusZone != null) {
+                // Acercar hasta que la zona llene la vista (sin pasarse)
+                val zw = (focusZone.x1 - focusZone.x0).coerceAtLeast(0.05f)
+                val zh = (focusZone.y1 - focusZone.y0).coerceAtLeast(0.05f)
+                zoom = minOf(0.9f / zw, 0.9f / zh).coerceIn(1f, 3f)
+                val cx = (focusZone.x0 + focusZone.x1) / 2
+                val cy = (focusZone.y0 + focusZone.y1) / 2
+                pan = if (zoom == 1f) Offset.Zero else Offset(-zoom * (cx * w - w / 2), -zoom * (cy * h - h / 2))
             }
         }
 
@@ -599,6 +760,24 @@ private fun PhotoWithPins(
                 },
         ) {
             Image(img, contentDescription = tr("Foto de {}", spot.name), contentScale = ContentScale.FillBounds, modifier = Modifier.fillMaxSize())
+            // Zonas por marca
+            zones.forEach { z ->
+                val zc = if (z.id == focusZone?.id) MARKER else Color(0xFF4FC3F7)
+                Box(
+                    Modifier
+                        .offset { IntOffset((z.x0 * w).roundToInt(), (z.y0 * h).roundToInt()) }
+                        .size(with(density) { ((z.x1 - z.x0) * w).toDp() }, with(density) { ((z.y1 - z.y0) * h).toDp() })
+                        .border(2.dp, zc, RoundedCornerShape(6.dp)),
+                ) {
+                    Text(
+                        z.label,
+                        color = Color.Black,
+                        fontSize = 10.sp,
+                        maxLines = 1,
+                        modifier = Modifier.background(zc, RoundedCornerShape(topStart = 6.dp, bottomEnd = 6.dp)).padding(horizontal = 4.dp),
+                    )
+                }
+            }
             pins.forEach { l ->
                 val paint = vm.byId[l.paintId] ?: return@forEach
                 val isSel = l.paintId == selected
@@ -643,6 +822,147 @@ private fun PhotoWithPins(
                             .background(if (active) MARKER else Color.White, CircleShape)
                             .padding(horizontal = 5.dp),
                     )
+                }
+            }
+            if (drawZone) {
+                // Capa para dibujar el rectángulo de la zona con el dedo
+                Box(
+                    Modifier.fillMaxSize().pointerInput(Unit) {
+                        detectDragGestures(
+                            onDragStart = { dragStart = it; dragEnd = it },
+                            onDrag = { change, _ -> dragEnd = change.position },
+                            onDragCancel = { dragStart = null; dragEnd = null },
+                            onDragEnd = {
+                                val a = dragStart; val b = dragEnd
+                                dragStart = null; dragEnd = null
+                                if (a != null && b != null && kotlin.math.abs(a.x - b.x) > 24 && kotlin.math.abs(a.y - b.y) > 24) {
+                                    onZoneDrawn(
+                                        floatArrayOf(
+                                            (minOf(a.x, b.x) / size.width).coerceIn(0f, 1f), (minOf(a.y, b.y) / size.height).coerceIn(0f, 1f),
+                                            (maxOf(a.x, b.x) / size.width).coerceIn(0f, 1f), (maxOf(a.y, b.y) / size.height).coerceIn(0f, 1f),
+                                        ),
+                                    )
+                                }
+                            },
+                        )
+                    },
+                )
+                val a = dragStart; val b = dragEnd
+                if (a != null && b != null) {
+                    Box(
+                        Modifier
+                            .offset { IntOffset(minOf(a.x, b.x).roundToInt(), minOf(a.y, b.y).roundToInt()) }
+                            .size(with(density) { kotlin.math.abs(a.x - b.x).toDp() }, with(density) { kotlin.math.abs(a.y - b.y).toDp() })
+                            .background(MARKER.copy(alpha = 0.2f))
+                            .border(2.dp, MARKER),
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** Elegir de qué marca (y línea, si quieres) son los botes encerrados en la zona. */
+@Composable
+private fun ZoneDialog(vm: MainViewModel, spot: StorageSpot, r: FloatArray, onDismiss: () -> Unit, onSave: (String, String) -> Unit) {
+    val brands = remember(spot.id, r) { vm.suggestBrands(spot, r[0], r[1], r[2], r[3]) }
+    var brand by remember { mutableStateOf(brands.firstOrNull() ?: "") }
+    var line by remember(brand) { mutableStateOf("") }
+    val lines = remember(brand, vm.owned) {
+        vm.owned.values.filter { it.qty > 0 }.mapNotNull { vm.byId[it.paintId] }.filter { it.brand == brand }.groupingBy { it.line }.eachCount()
+            .entries.sortedByDescending { it.value }.map { it.key to it.value }
+    }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(tr("¿Qué hay en esta zona?")) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (brands.isEmpty()) Text(tr("Primero agrega pinturas a tu inventario."))
+                Text(tr("Marca"), style = MaterialTheme.typography.labelMedium)
+                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    brands.forEach { b -> FilterChip(selected = brand == b, onClick = { brand = b }, label = { Text(b) }) }
+                }
+                if (lines.size > 1) {
+                    Text(tr("Línea (opcional)"), style = MaterialTheme.typography.labelMedium)
+                    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        FilterChip(selected = line.isEmpty(), onClick = { line = "" }, label = { Text(tr("Todas")) })
+                        lines.forEach { (l, n) -> FilterChip(selected = line == l, onClick = { line = l }, label = { Text("$l · $n") }) }
+                    }
+                }
+                Text(
+                    tr("Tus pinturas de esta marca que no tengan otro lugar guardado se darán por guardadas en esta zona, y al buscarlas la app señala dentro del recuadro los botes de su color."),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        },
+        confirmButton = { TextButton(onClick = { onSave(brand, line) }, enabled = brand.isNotBlank()) { Text(tr("Guardar zona")) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Cancelar")) } },
+    )
+}
+
+/** Elegir varias pinturas de tu inventario para decir que están en este lugar. */
+@Composable
+private fun BulkAssignDialog(vm: MainViewModel, spot: StorageSpot, onDismiss: () -> Unit, onSave: (List<String>) -> Unit) {
+    var q by remember { mutableStateOf("") }
+    var onlyUnplaced by remember { mutableStateOf(true) }
+    var brand by remember { mutableStateOf<String?>(null) }
+    val chosen = remember { mutableStateListOf<String>() }
+    val inv = remember(vm.owned, vm.byId) {
+        vm.owned.values.filter { it.qty > 0 }.mapNotNull { vm.byId[it.paintId] }.sortedWith(compareBy({ it.brand }, { it.line }, { it.name }))
+    }
+    val words = queryWords(q)
+    val shown = remember(q, inv, onlyUnplaced, brand, vm.locations, vm.zones) {
+        inv.filter { p ->
+            (brand == null || p.brand == brand) && (words.isEmpty() || matchesWords(p.searchText, words)) &&
+                (!onlyUnplaced || vm.placeOf(p.id) == null) && vm.allLocations(p.id).none { it.spotId == spot.id }
+        }
+    }
+    val brands = remember(inv) { inv.groupingBy { it.brand }.eachCount().entries.sortedByDescending { it.value }.map { it.key } }
+    androidx.compose.ui.window.Dialog(
+        onDismissRequest = onDismiss,
+        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false),
+    ) {
+        Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+            Column(Modifier.fillMaxSize().systemBarsPadding()) {
+                TopAppBar(
+                    title = { Text(tr("Agregar a {}", spot.name), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                    navigationIcon = { IconButton(onClick = onDismiss) { Icon(Icons.Default.ArrowBack, contentDescription = tr("Volver")) } },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
+                )
+                Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    SearchField(q, { q = it }, tr("Buscar en tu inventario…"))
+                    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        FilterChip(selected = onlyUnplaced, onClick = { onlyUnplaced = !onlyUnplaced }, label = { Text(tr("Solo sin lugar")) })
+                        brands.forEach { b -> FilterChip(selected = brand == b, onClick = { brand = if (brand == b) null else b }, label = { Text(b) }) }
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(tr("{} en la lista", shown.size), style = MaterialTheme.typography.labelMedium, modifier = Modifier.weight(1f))
+                        TextButton(onClick = { shown.forEach { if (it.id !in chosen) chosen.add(it.id) } }, enabled = shown.isNotEmpty()) { Text(tr("Marcar todas")) }
+                    }
+                }
+                LazyColumn(Modifier.weight(1f)) {
+                    items(shown, key = { it.id }) { p ->
+                        val on = p.id in chosen
+                        Row(
+                            Modifier.fillMaxWidth().clickable { if (on) chosen.remove(p.id) else chosen.add(p.id) }.padding(horizontal = 12.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Checkbox(checked = on, onCheckedChange = { if (it) chosen.add(p.id) else chosen.remove(p.id) })
+                            Swatch(p.hex, size = 26.dp, metallic = p.type == "Metálica")
+                            Column(Modifier.weight(1f)) {
+                                Text(p.name, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text(
+                                    listOf(p.brand, p.line, p.code).filter { it.isNotBlank() }.joinToString(" · ") + (vm.placeOf(p.id)?.let { tr(" · ahora en {}", it.text) } ?: ""),
+                                    style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                        }
+                    }
+                }
+                Button(onClick = { onSave(chosen.toList()) }, enabled = chosen.isNotEmpty(), modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                    Text(tr("Agregar {} pinturas", chosen.size))
                 }
             }
         }

@@ -90,16 +90,23 @@ fun InventoryScreen(
     var sortMode by rememberSaveable { mutableStateOf(PaintSort.values().firstOrNull { it.name == com.ricardochr.estantepinturas.Prefs.defaultSort } ?: PaintSort.Marca) }
     var filter by rememberSaveable(stateSaver = PaintFilter.saver) { mutableStateOf(PaintFilter()) }
     var showFilters by remember { mutableStateOf(false) }
+    // Filtro por lugar: "" = todos, "-" = sin lugar, o el id de un lugar
+    var placeFilter by rememberSaveable { mutableStateOf("") }
 
     val ownedPaints: List<Pair<Paint, OwnedEntry>> = remember(vm.owned, vm.byId) {
         vm.owned.values.mapNotNull { e -> vm.byId[e.paintId]?.let { it to e } }
     }
     val brands = remember(ownedPaints) { ownedPaints.map { it.first.brand }.distinct() }
     val counts = remember(ownedPaints) { FilterCounts(ownedPaints.map { it.first }, emptyMap()) }
-    val shown = rememberFiltered(query, null, listOf(ownedPaints, sortMode, filter)) { words, _ ->
+    val shown = rememberFiltered(query, null, listOf(ownedPaints, sortMode, filter, placeFilter, vm.locations, vm.moreLocations, vm.zones)) { words, _ ->
         sortPaints(
             ownedPaints.filter { (p, e) ->
-                filter.matches(p, e.qty) && (words.isEmpty() || matchesWords(p.searchText + " " + norm(e.notes), words))
+                filter.matches(p, e.qty) && (words.isEmpty() || matchesWords(p.searchText + " " + norm(e.notes), words)) &&
+                    when (placeFilter) {
+                        "" -> true
+                        "-" -> e.qty > 0 && vm.placeOf(p.id) == null
+                        else -> vm.placesOf(p.id).any { it.spot.id == placeFilter }
+                    }
             },
             sortMode, { it.first }, { it.second.qty },
         )
@@ -156,6 +163,19 @@ fun InventoryScreen(
                 if (ownedPaints.isNotEmpty()) {
                     FilterBar(filter, { filter = it }, sortMode, PaintSort.values().toList(), { sortMode = it }, onOpenSheet = { showFilters = true })
                 }
+                if (ownedPaints.isNotEmpty() && vm.spots.isNotEmpty()) {
+                    androidx.compose.foundation.lazy.LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp),
+                    ) {
+                        item { androidx.compose.material3.FilterChip(selected = placeFilter == "", onClick = { placeFilter = "" }, label = { Text(tr("Todos los lugares")) }) }
+                        item { androidx.compose.material3.FilterChip(selected = placeFilter == "-", onClick = { placeFilter = if (placeFilter == "-") "" else "-" }, label = { Text(tr("Sin lugar")) }) }
+                        items(vm.spots.size) { i ->
+                            val sp = vm.spots[i]
+                            androidx.compose.material3.FilterChip(selected = placeFilter == sp.id, onClick = { placeFilter = if (placeFilter == sp.id) "" else sp.id }, label = { Text("📍 " + sp.name) })
+                        }
+                    }
+                }
             }
         }
         when {
@@ -172,10 +192,10 @@ fun InventoryScreen(
                     }
                 }
             }
-            filter.activeCount > 0 && shown.isEmpty() -> item {
+            (filter.activeCount > 0 || placeFilter != "") && shown.isEmpty() -> item {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
                     EmptyState(tr("Nada con estos filtros"), tr("Ninguna de tus pinturas cumple todos los filtros elegidos."))
-                    TextButton(onClick = { filter = PaintFilter() }) { Text(tr("Quitar filtros")) }
+                    TextButton(onClick = { filter = PaintFilter(); placeFilter = "" }) { Text(tr("Quitar filtros")) }
                 }
             }
             shown.isEmpty() -> item {
@@ -185,7 +205,7 @@ fun InventoryScreen(
                 }
             }
             else -> items(shown, key = { it.first.id }, contentType = { 0 }) { (p, e) ->
-                val where = vm.spotOf(p.id)?.name
+                val where = if (e.qty > 0) vm.placesOf(p.id).joinToString(" + ") { it.text }.ifBlank { null } else null
                 PaintRow(p, extra = listOfNotNull(where?.let { "📍 $it" }, e.notes.ifBlank { null }).joinToString(" · "), onClick = { onEdit(p) }) {
                     QtyStepper(
                         e.qty,
