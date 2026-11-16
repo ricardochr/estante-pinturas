@@ -1,6 +1,6 @@
 # Validación de sets
 
-Sets publicados: 769 — ok 391, parcial 36, revisar 342. Descartados: 1463.
+Sets publicados: 769 — ok 391, parcial 36, revisar 342. Descartados: 1460.
 
 ## Por revisar o parciales
 
@@ -1415,9 +1415,6 @@ Sets publicados: 769 — ok 391, parcial 36, revisar 342. Descartados: 1463.
 - The Army Painter — WARPAINTS: FANATIC METALLICS PAINT SET (www.tistaminis.com): solo 0 pinturas reconocidas
 - The Army Painter — WARPAINTS: FANATIC STARTER SET (www.tistaminis.com): solo 1 pinturas reconocidas
 - The Army Painter — WARPAINTS: FANATIC WASHES PAINT SET (www.tistaminis.com): solo 2 pinturas reconocidas
-- The Army Painter — WARPAINTS: SPEEDPAINT COMPLETE SET 2.0 (www.tistaminis.com): solo 0 pinturas reconocidas
-- The Army Painter — WARPAINTS: SPEEDPAINT MOST WANTED SET 2.0 (www.tistaminis.com): solo 0 pinturas reconocidas
-- The Army Painter — WARPAINTS: SPEEDPAINT STARTER SET 2.0 (www.tistaminis.com): solo 0 pinturas reconocidas
 - The Army Painter — Wargamers Complete Upgrade Set (Tienda oficial): solo 0 pinturas reconocidas
 - The Army Painter — Warpaints Air Complete Set (Tienda oficial): solo 0 pinturas reconocidas
 - The Army Painter — Warpaints Air Complete Set - The Army Painter (www.goblingaming.co.uk): solo 0 pinturas reconocidas
