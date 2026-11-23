@@ -1,12 +1,12 @@
 # Catálogo de pinturas
 
-Total: **8924** pinturas · generado 2026-11-16
+Total: **8925** pinturas · generado 2026-11-23
 
 | Marca | Pinturas | Fuente |
 |---|---:|---|
 | AK Interactive | 1614 | tienda oficial + datos abiertos |
 | Vallejo | 1495 | tienda oficial + datos abiertos |
-| The Army Painter | 783 | tienda oficial + datos abiertos |
+| The Army Painter | 784 | tienda oficial + datos abiertos |
 | Mr. Hobby | 668 | datos abiertos |
 | Citadel | 608 | datos abiertos |
 | Scale75 | 557 | tienda oficial + datos abiertos |
@@ -152,11 +152,11 @@ Total: **8924** pinturas · generado 2026-11-16
 - Warpaints Air: 104
 - Speedpaint 2.0: 91
 - Warpaints Historical: 85
-- Warpaints: 63
+- Warpaints: 62
 - Speedpaint Marker: 60
 - John Blanche Masterclass: 40
 - D&D Nolzur's Marvelous Pigments: 35
-- Colour Primer: 26
+- Colour Primer: 28
 - Warpaints Fanatic Effects: 18
 - Warpaints Fanatic Metallic: 18
 - Warpaints Fanatic Wash: 18
@@ -173,7 +173,7 @@ Total: **8924** pinturas · generado 2026-11-16
 - Speedpaint Set: 1
 - Warpaints Effects: 1
 - Warpaints Wash: 1
-- Pinturas con color estimado de la foto: 91
+- Pinturas con color estimado de la foto: 93
 
 ## Vallejo
 
@@ -207,6 +207,6 @@ Total: **8924** pinturas · generado 2026-11-16
 
 ## Calidad del color
 
-- Medido (datos abiertos o muestra oficial): 7135
-- Estimado de la foto del producto: 1634
+- Medido (datos abiertos o muestra oficial): 7134
+- Estimado de la foto del producto: 1636
 - Típico según el nombre (aproximado): 155

@@ -1,13 +1,13 @@
 # Validación de colores
 
-Pinturas: 8924. Comparadas con paintdex y miniature-paints (ΔE2000).
+Pinturas: 8925. Comparadas con paintdex y miniature-paints (ΔE2000).
 
 | Estado | Pinturas |
 |---|---:|
 | Coincide con otra fuente (<10) | 1 |
 | Diferencia moderada (10–20) | 6 |
 | Se contradice (>20) | 8 |
-| Sin segunda fuente | 8896 |
+| Sin segunda fuente | 8897 |
 | Sin color | 13 |
 
 Color que contradice el nombre: 936
@@ -46,7 +46,7 @@ Corregidas con la fuente porque el catálogo no encaja con el nombre y la fuente
 | Reaper | 0 | 0 | 0 | 438 | 0 |
 | Scale75 | 0 | 0 | 0 | 557 | 0 |
 | Tamiya | 0 | 0 | 0 | 329 | 0 |
-| The Army Painter | 0 | 0 | 0 | 783 | 0 |
+| The Army Painter | 0 | 0 | 0 | 784 | 0 |
 | Turbo Dork | 0 | 0 | 0 | 40 | 0 |
 | Vallejo | 1 | 1 | 0 | 1481 | 12 |
 | Warcolours | 0 | 0 | 0 | 178 | 0 |
