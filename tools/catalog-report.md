@@ -1,15 +1,14 @@
 # Catálogo de pinturas
 
-Total: **8925** pinturas · generado 2026-11-23
+Total: **8410** pinturas · generado 2026-11-25
 
 | Marca | Pinturas | Fuente |
 |---|---:|---|
-| AK Interactive | 1614 | tienda oficial + datos abiertos |
+| AK Interactive | 1656 | tienda oficial + datos abiertos |
 | Vallejo | 1495 | tienda oficial + datos abiertos |
 | The Army Painter | 784 | tienda oficial + datos abiertos |
 | Mr. Hobby | 668 | datos abiertos |
 | Citadel | 608 | datos abiertos |
-| Scale75 | 557 | tienda oficial + datos abiertos |
 | Reaper | 438 | datos abiertos |
 | Foundry | 360 | datos abiertos |
 | Tamiya | 329 | datos abiertos |
@@ -34,20 +33,21 @@ Total: **8925** pinturas · generado 2026-11-23
 - AFV: 106
 - 3rd Gen Air: 94
 - Real Colors - WWII: 92
-- Quick Gen: 79
+- Quick Gen: 81
 - Figures: 75
 - Air: 72
 - 3rd Gen Afv: 64
 - Dual Exo: 56
 - Oils: 52
 - Real Colors - Air: 48
-- Pigments: 40
-- Enamel Effects: 39
+- Pigments: 42
+- Enamel Effects: 40
 - 3rd Gen Figures: 38
 - Artist Dense Acrylic: 38
+- Liquid Pigments: 37
+- The Inks: 35
 - Real Colors - AFV: 30
 - 3rd Gen: 28
-- The Inks: 28
 - Xtreme Metal (Enamel): 27
 - Real Colors - Standard: 26
 - Real Colors - Civil: 24
@@ -55,15 +55,14 @@ Total: **8925** pinturas · generado 2026-11-23
 - 3rd Gen Metallic: 22
 - Acrylic Wash: 18
 - Naval: 18
+- Enamel Panel Liner: 16
 - General: 16
 - AFV (3rd Gen): 13
 - Primer (3rd Gen): 13
 - True Metal (Wax): 13
-- Enamel Panel Liner: 12
 - Gouache: 12
 - 3rd Gen Intense: 11
 - Air (3rd Gen): 11
-- Liquid Pigments: 11
 - 3rd Gen Punch: 10
 - Enamel Filter: 7
 - Glow Fluor (Enamel): 7
@@ -134,17 +133,6 @@ Total: **8925** pinturas · generado 2026-11-23
 
 ## Scale75
 
-- Drop & Paint: 128
-- Scalecolor: 103
-- Artist: 84
-- Warfront: 64
-- Fantasy & Games: 48
-- Instant Colors: 46
-- Scalecolor Games: 46
-- Óleos: 24
-- Soil Works: 8
-- FX Fluor: 6
-- Pinturas con color estimado de la foto: 221
 
 ## The Army Painter
 
@@ -207,6 +195,6 @@ Total: **8925** pinturas · generado 2026-11-23
 
 ## Calidad del color
 
-- Medido (datos abiertos o muestra oficial): 7134
-- Estimado de la foto del producto: 1636
-- Típico según el nombre (aproximado): 155
+- Medido (datos abiertos o muestra oficial): 6805
+- Estimado de la foto del producto: 1460
+- Típico según el nombre (aproximado): 145

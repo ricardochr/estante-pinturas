@@ -1,16 +1,16 @@
 # Validación de colores
 
-Pinturas: 8925. Comparadas con paintdex y miniature-paints (ΔE2000).
+Pinturas: 8410. Comparadas con paintdex y miniature-paints (ΔE2000).
 
 | Estado | Pinturas |
 |---|---:|
 | Coincide con otra fuente (<10) | 1 |
 | Diferencia moderada (10–20) | 6 |
 | Se contradice (>20) | 8 |
-| Sin segunda fuente | 8897 |
+| Sin segunda fuente | 8382 |
 | Sin color | 13 |
 
-Color que contradice el nombre: 936
+Color que contradice el nombre: 904
 No se parece a ninguna fuente: 0
 Marcadas como dudosas en la app: 0
 Estimaciones reemplazadas por una medición de los datos abiertos: 4
@@ -28,7 +28,7 @@ Corregidas con la fuente porque el catálogo no encaja con el nombre y la fuente
 
 | Marca | Coincide | Moderada | Contradice | Sin 2.ª fuente | Sin color |
 |---|---:|---:|---:|---:|---:|
-| AK Interactive | 0 | 0 | 0 | 1613 | 1 |
+| AK Interactive | 0 | 0 | 0 | 1655 | 1 |
 | Ammo by Mig | 0 | 0 | 0 | 292 | 0 |
 | Citadel | 0 | 4 | 8 | 596 | 0 |
 | Coat d'Arms | 0 | 0 | 0 | 157 | 0 |
@@ -44,7 +44,6 @@ Corregidas con la fuente porque el catálogo no encaja con el nombre y la fuente
 | P3 | 0 | 0 | 0 | 129 | 0 |
 | Pro Acryl | 0 | 0 | 0 | 218 | 0 |
 | Reaper | 0 | 0 | 0 | 438 | 0 |
-| Scale75 | 0 | 0 | 0 | 557 | 0 |
 | Tamiya | 0 | 0 | 0 | 329 | 0 |
 | The Army Painter | 0 | 0 | 0 | 784 | 0 |
 | Turbo Dork | 0 | 0 | 0 | 40 | 0 |
@@ -171,6 +170,9 @@ Corregidas con la fuente porque el catálogo no encaja con el nombre y la fuente
 - AK Interactive — Medium Green 42 10ml (RC260): #495241
 - AK Interactive — Raf Dark Green – 10ml (RC286): #4F5143
 - AK Interactive — Sea Blue 10ml (RC257): #2A5AB0
+- AK Interactive — Night Blue Ink (AK11228): #0B1C26
+- AK Interactive — Purple Ink (AK11224): #B47C89
+- AK Interactive — Sepia Ink (AK11219): #230D00
 - Ammo by Mig — Bone (AMIG0122): #EDEEDC
 - Ammo by Mig — Burnt Sand (AMIG0118): #7E5A3A
 - Ammo by Mig — Copper (AMIG0199): #C94A5D
@@ -361,6 +363,3 @@ Corregidas con la fuente porque el catálogo no encaja con el nombre y la fuente
 - Foundry — German Splinter Green Shade (84A): #4F5950
 - Foundry — German Splinter Tan (85B): #7F7865
 - Foundry — German Splinter Tan Shade (85A): #666352
-- Foundry — Leather & Metal Washes (47B): #B6A18E
-- Foundry — Leather & Metal Washes Shade (47A): #DDBA9E
-- Foundry — Musket Stock Brown Shade (72A): #2C1F26
