@@ -1,6 +1,6 @@
 # Validación de sets
 
-Sets publicados: 776 — ok 396, parcial 33, revisar 347. Descartados: 1401.
+Sets publicados: 786 — ok 402, parcial 36, revisar 348. Descartados: 1401.
 
 ## Por revisar o parciales
 
@@ -185,6 +185,7 @@ Sets publicados: 776 — ok 396, parcial 33, revisar 347. Descartados: 1401.
 - **Pro Acryl — PRO Acryl Expansion Set #2 - Transparents!** (10/9, Tienda oficial): Anuncia 9 pinturas y se reconocieron 10: puede incluir alguna que no viene
 - **Pro Acryl — PRO Acryl Expansion Set #3** (8/9, Tienda oficial): Trae 9 pinturas; se reconocieron 8 (faltan 1 en el catálogo)
 - **Pro Acryl — Pro Acryl Sets - 24 Colour Base Set – 24 Colors** (16/24, www.gapgames.com.au): Anuncia 24 pinturas; solo se reconocieron 16
+- **Scale75 — AMBUSH paint set** (3/4, Tienda oficial): Trae 4 pinturas; se reconocieron 3 (faltan 1 en el catálogo)
 - **Scale75 — Drop and Paints - Back To Black Paint Set** (8/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Scale75 — Drop and Paints - Blue Moon 2 Paint Set** (8/2, www.gapgames.com.au): Anuncia 2 pinturas y se reconocieron 8: puede incluir alguna que no viene
 - **Scale75 — Drop and Paints - Color Palace Vol 1 Paint Set** (64/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
@@ -200,6 +201,7 @@ Sets publicados: 776 — ok 396, parcial 33, revisar 347. Descartados: 1401.
 - **Scale75 — Drop and Paints - Yellow Submarine Paint Set** (8/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Scale75 — Fantasy Colours - Creatures From Hell Paint Set** (7/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Scale75 — Fantasy Colours - Makeup Paint Set** (7/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Scale75 — SOVIET ARMORED CREW PAINT SET** (3/4, Tienda oficial): Trae 4 pinturas; se reconocieron 3 (faltan 1 en el catálogo)
 - **Scale75 — Scalecolor - Color Boost 24 Color Set** (16/24, www.gapgames.com.au): Anuncia 24 pinturas; solo se reconocieron 16
 - **Scale75 — Scalecolor Artist - Charmed Paint Set** (6/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Scale75 — Scalecolor Artist - Game of Inks Paint Set** (6/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
@@ -207,6 +209,8 @@ Sets publicados: 776 — ok 396, parcial 33, revisar 347. Descartados: 1401.
 - **Scale75 — Scalecolor Artist - Volcano Paint Set** (4/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Scale75 — Scalecolor Artist Ready Painter One Paint Set** (6/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Scale75 — Scalecolor Metal n' Alchemy Gold Bundle** (4/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Scale75 — VIII ARMY PAINT SET** (6/8, Tienda oficial): Trae 8 pinturas; se reconocieron 6 (faltan 2 en el catálogo)
+- **Scale75 — WAR TANKS STARTER SET** (5/9, Tienda oficial): Anuncia 9 pinturas; solo se reconocieron 5
 - **The Army Painter — Flexible Triad PLUS - Deep Green** (7/6, www.gapgames.com.au): Anuncia 6 pinturas y se reconocieron 7: puede incluir alguna que no viene
 - **The Army Painter — Flexible Triad PLUS - Ruddy Browns** (7/6, www.gapgames.com.au): Anuncia 6 pinturas y se reconocieron 7: puede incluir alguna que no viene
 - **The Army Painter — Flexible Triad Plus: Olive Greens** (7/6, www.goblingaming.co.uk): Anuncia 6 pinturas y se reconocieron 7: puede incluir alguna que no viene
