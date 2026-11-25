@@ -765,6 +765,22 @@ def key_name(r):
     return (r["brand"], norm(r["name"]))
 
 
+def keep_previous(items, path, brands, brand_of, min_ratio=0.5):
+    """Reemplaza en items los de cada marca que se redujeron a menos de min_ratio de lo publicado antes
+    (en path) por los anteriores. Devuelve las marcas conservadas."""
+    if not os.path.exists(path):
+        return []
+    try:
+        prev = json.load(open(path, encoding="utf-8"))
+    except Exception:
+        return []
+    old, new = Counter(brand_of(x) for x in prev), Counter(brand_of(x) for x in items)
+    kept = [b for b in brands if old[b] >= 20 and new[b] < old[b] * min_ratio]
+    if kept:
+        items[:] = [x for x in items if brand_of(x) not in kept] + [x for x in prev if brand_of(x) in kept]
+    return kept
+
+
 def build(args):
     src = load_sources(args)
     store = {
@@ -955,6 +971,13 @@ def build(args):
             row.append(q)  # "f" = estimado de la foto, "n" = típico según el nombre
         final.append(row)
     final.sort(key=lambda x: (x[0].lower(), x[1].lower(), x[2].lower()))
+
+    # 4b) Si la tienda de una marca falló (bloqueo, 401, caída), se conserva lo que había en el catálogo anterior
+    #     en vez de publicar la marca vacía o recortada
+    kept_brands = keep_previous(final, OUT, list(store), lambda r: r[0])
+    if kept_brands:
+        print(f"Marcas conservadas del catálogo anterior (su tienda no respondió bien): {kept_brands}")
+        final.sort(key=lambda x: (x[0].lower(), x[1].lower(), x[2].lower()))
 
     # 5) Lista manual (tools/extra-paints.json): lo que ninguna fuente publica completo
     extra = load_extra()
@@ -1264,6 +1287,9 @@ def build_sets(src, final):
                          "status": "ok", "note": "Reúne los colores de otros sets de la marca", "source": origin})
     from extras import load_extra, apply_sets
     print(f"Sets de la lista manual: {apply_sets(sets, final, load_extra()['sets'])}")
+    kept = keep_previous(sets, SETS_OUT, sorted({r[0] for r in final}), lambda x: x["brand"])
+    if kept:
+        print(f"Sets conservados del archivo anterior: {kept}")
     sets.sort(key=lambda x: (x["brand"], x["name"]))
     with open(SETS_OUT, "w", encoding="utf-8") as f:
         json.dump(sets, f, ensure_ascii=False, separators=(",", ":"))

@@ -101,6 +101,7 @@ AK_RETAIL_LINES = [
     (r"\bthe inks?\b|\bink\b", "The Inks", "Tinta"),
     (r"\boils?\b|abteilung", "Oils", "Opaca"),
 ]
+RETAIL_NOT_PAINT_NAME = re.compile(r"^quick gen$|\bfixer\b|\bweathering dry\b|\bremover\b|\bsolvent\b|\bretarder\b", re.I)
 _STRIP = re.compile(r"\bak[- ]?interactive\b:?|\bak\b:?|\bwargame\b|\benamel\b|\bliquid\b|\bpigments?\b|\bseries\b|"
                     r"\b\d+\s?ml\b|\(.*?\)|\bbottle\b|\bacrylic\b|\bpaints?\b|\bcolou?rs?\b", re.I)
 
@@ -138,6 +139,10 @@ def parse_retail_ak(prods):
                 break
             name = ""
         if not name:
+            continue
+        # "Quick Gen Winter Blue Soldiers" -> "Winter Blue Soldiers"; nombres que son solo la línea o un auxiliar, fuera
+        name = re.sub(r"^" + re.escape(hit[0].split(" (")[0]) + r"\s+", "", name, flags=re.I).strip()
+        if not name or name.lower() == hit[0].lower() or RETAIL_NOT_PAINT_NAME.search(name):
             continue
         seen.add(code)
         out.append(dict(brand="AK Interactive", line=hit[0], name=_title_case(name), code=code, type=hit[1],
