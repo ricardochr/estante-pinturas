@@ -1018,7 +1018,7 @@ def build(args):
     print(f"catalog.json: {len(final)} pinturas")
     for b, n in sorted(by_brand.items(), key=lambda t: -t[1]):
         print(f"  {b}: {n}")
-    build_sets(src, final)
+    build_sets(src, final, kept_brands)
 
 
 # ---------------------------------------------------------------- sets de pinturas
@@ -1147,7 +1147,7 @@ def _set_items(key, prods):
     return [t for t in best.values() if not (key == "ak" and spanish.search(t[0]))]
 
 
-def build_sets(src, final):
+def build_sets(src, final, kept_brands=()):
     by_brand = defaultdict(list)
     for r in final:
         by_brand[r[0]].append(r)
@@ -1290,6 +1290,16 @@ def build_sets(src, final):
     kept = keep_previous(sets, SETS_OUT, sorted({r[0] for r in final}), lambda x: x["brand"])
     if kept:
         print(f"Sets conservados del archivo anterior: {kept}")
+    # Marcas cuya tienda falló: los sets de la tienda oficial no se pudieron leer; se suman los anteriores que falten
+    if kept_brands and os.path.exists(SETS_OUT):
+        ids = {f"{r[0]}|{r[1]}|{r[2]}|{r[3]}" for r in final}
+        have = {(x["brand"], norm(x["name"])) for x in sets}
+        n = 0
+        for x in json.load(open(SETS_OUT, encoding="utf-8")):
+            if x["brand"] in kept_brands and (x["brand"], norm(x["name"])) not in have and all(p in ids for p in x["paints"]):
+                sets.append(x); have.add((x["brand"], norm(x["name"]))); n += 1
+        if n:
+            print(f"Sets recuperados del archivo anterior: {n}")
     sets.sort(key=lambda x: (x["brand"], x["name"]))
     with open(SETS_OUT, "w", encoding="utf-8") as f:
         json.dump(sets, f, ensure_ascii=False, separators=(",", ":"))
