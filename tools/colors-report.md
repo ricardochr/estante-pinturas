@@ -1,19 +1,19 @@
 # Validación de colores
 
-Pinturas: 8410. Comparadas con paintdex y miniature-paints (ΔE2000).
+Pinturas: 8964. Comparadas con paintdex y miniature-paints (ΔE2000).
 
 | Estado | Pinturas |
 |---|---:|
 | Coincide con otra fuente (<10) | 1 |
 | Diferencia moderada (10–20) | 6 |
 | Se contradice (>20) | 8 |
-| Sin segunda fuente | 8382 |
+| Sin segunda fuente | 8936 |
 | Sin color | 13 |
 
-Color que contradice el nombre: 904
+Color que contradice el nombre: 939
 No se parece a ninguna fuente: 0
 Marcadas como dudosas en la app: 0
-Estimaciones reemplazadas por una medición de los datos abiertos: 4
+Estimaciones reemplazadas por una medición de los datos abiertos: 6
 Conservadas porque encajan con su nombre y la única fuente en contra no: 0
 Corregidas con la fuente porque el catálogo no encaja con el nombre y la fuente sí: 0
 
@@ -28,7 +28,7 @@ Corregidas con la fuente porque el catálogo no encaja con el nombre y la fuente
 
 | Marca | Coincide | Moderada | Contradice | Sin 2.ª fuente | Sin color |
 |---|---:|---:|---:|---:|---:|
-| AK Interactive | 0 | 0 | 0 | 1655 | 1 |
+| AK Interactive | 0 | 0 | 0 | 1652 | 1 |
 | Ammo by Mig | 0 | 0 | 0 | 292 | 0 |
 | Citadel | 0 | 4 | 8 | 596 | 0 |
 | Coat d'Arms | 0 | 0 | 0 | 157 | 0 |
@@ -44,6 +44,7 @@ Corregidas con la fuente porque el catálogo no encaja con el nombre y la fuente
 | P3 | 0 | 0 | 0 | 129 | 0 |
 | Pro Acryl | 0 | 0 | 0 | 218 | 0 |
 | Reaper | 0 | 0 | 0 | 438 | 0 |
+| Scale75 | 0 | 0 | 0 | 557 | 0 |
 | Tamiya | 0 | 0 | 0 | 329 | 0 |
 | The Army Painter | 0 | 0 | 0 | 784 | 0 |
 | Turbo Dork | 0 | 0 | 0 | 40 | 0 |

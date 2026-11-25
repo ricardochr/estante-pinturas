@@ -1,14 +1,15 @@
 # Catálogo de pinturas
 
-Total: **8410** pinturas · generado 2026-11-25
+Total: **8964** pinturas · generado 2026-11-25
 
 | Marca | Pinturas | Fuente |
 |---|---:|---|
-| AK Interactive | 1656 | tienda oficial + datos abiertos |
+| AK Interactive | 1653 | tienda oficial + datos abiertos |
 | Vallejo | 1495 | tienda oficial + datos abiertos |
 | The Army Painter | 784 | tienda oficial + datos abiertos |
 | Mr. Hobby | 668 | datos abiertos |
 | Citadel | 608 | datos abiertos |
+| Scale75 | 557 | tienda oficial + datos abiertos |
 | Reaper | 438 | datos abiertos |
 | Foundry | 360 | datos abiertos |
 | Tamiya | 329 | datos abiertos |
@@ -33,15 +34,15 @@ Total: **8410** pinturas · generado 2026-11-25
 - AFV: 106
 - 3rd Gen Air: 94
 - Real Colors - WWII: 92
-- Quick Gen: 81
+- Quick Gen: 80
 - Figures: 75
 - Air: 72
 - 3rd Gen Afv: 64
 - Dual Exo: 56
 - Oils: 52
 - Real Colors - Air: 48
-- Pigments: 42
 - Enamel Effects: 40
+- Pigments: 40
 - 3rd Gen Figures: 38
 - Artist Dense Acrylic: 38
 - Liquid Pigments: 37
@@ -133,6 +134,16 @@ Total: **8410** pinturas · generado 2026-11-25
 
 ## Scale75
 
+- Drop & Paint: 128
+- Scalecolor: 103
+- Artist: 84
+- Warfront: 64
+- Fantasy & Games: 48
+- Instant Colors: 46
+- Scalecolor Games: 46
+- Óleos: 24
+- Soil Works: 8
+- FX Fluor: 6
 
 ## The Army Painter
 
@@ -195,6 +206,6 @@ Total: **8410** pinturas · generado 2026-11-25
 
 ## Calidad del color
 
-- Medido (datos abiertos o muestra oficial): 6805
-- Estimado de la foto del producto: 1460
-- Típico según el nombre (aproximado): 145
+- Medido (datos abiertos o muestra oficial): 7139
+- Estimado de la foto del producto: 1645
+- Típico según el nombre (aproximado): 180

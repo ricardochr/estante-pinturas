@@ -1,6 +1,6 @@
 # Validación de sets
 
-Sets publicados: 751 — ok 393, parcial 33, revisar 325. Descartados: 1352.
+Sets publicados: 776 — ok 396, parcial 33, revisar 347. Descartados: 1401.
 
 ## Por revisar o parciales
 
@@ -74,7 +74,7 @@ Sets publicados: 751 — ok 393, parcial 33, revisar 325. Descartados: 1352.
 - **AK Interactive — Interactive WWII US Navy ASW Aircraft Colors Set 3rd Gen Aircraft Series AK-11731** (3/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **AK Interactive — Interactive WWII US Uniform Colors Set 3rd Gen Aircraft Series AK-11691** (3/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **AK Interactive — Interactive WWII USAAF Aircraft Colors Vol.1 Set 3rd Gen Aircraft Series AK-11732** (4/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
-- **AK Interactive — Interactive Weathering Dry Pigments Effects Set AK9753** (11/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **AK Interactive — Interactive Weathering Dry Pigments Effects Set AK9753** (9/?, scalemodelshop.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **AK Interactive — Israeli Air Force Colors SET 3G** (8/?, www.thecombatcompany.com): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **AK Interactive — Luftwaffe Fighter Colors 1941-1944 SET 3G** (4/?, www.thecombatcompany.com): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **AK Interactive — Luftwaffe Pre-WWII Aircraft Colors SET 3G** (3/?, www.thecombatcompany.com): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
@@ -185,6 +185,28 @@ Sets publicados: 751 — ok 393, parcial 33, revisar 325. Descartados: 1352.
 - **Pro Acryl — PRO Acryl Expansion Set #2 - Transparents!** (10/9, Tienda oficial): Anuncia 9 pinturas y se reconocieron 10: puede incluir alguna que no viene
 - **Pro Acryl — PRO Acryl Expansion Set #3** (8/9, Tienda oficial): Trae 9 pinturas; se reconocieron 8 (faltan 1 en el catálogo)
 - **Pro Acryl — Pro Acryl Sets - 24 Colour Base Set – 24 Colors** (16/24, www.gapgames.com.au): Anuncia 24 pinturas; solo se reconocieron 16
+- **Scale75 — Drop and Paints - Back To Black Paint Set** (8/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Scale75 — Drop and Paints - Blue Moon 2 Paint Set** (8/2, www.gapgames.com.au): Anuncia 2 pinturas y se reconocieron 8: puede incluir alguna que no viene
+- **Scale75 — Drop and Paints - Color Palace Vol 1 Paint Set** (64/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Scale75 — Drop and Paints - Color Palace Vol 2 Paint Set** (64/2, www.gapgames.com.au): Anuncia 2 pinturas y se reconocieron 64: puede incluir alguna que no viene
+- **Scale75 — Drop and Paints - Copper Kettle Paint Set** (8/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Scale75 — Drop and Paints - Green Manalishi 2 Paint Set** (8/2, www.gapgames.com.au): Anuncia 2 pinturas y se reconocieron 8: puede incluir alguna que no viene
+- **Scale75 — Drop and Paints - Green Manalishi Paint Set** (8/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Scale75 — Drop and Paints - Orange Crush Paint Set** (8/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Scale75 — Drop and Paints - Purple Rain Paint Set** (9/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Scale75 — Drop and Paints - Red Balloons Paint Set** (8/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Scale75 — Drop and Paints - Sugar Brown Paint Set** (8/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Scale75 — Drop and Paints - True Colors Paint Set** (8/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Scale75 — Drop and Paints - Yellow Submarine Paint Set** (8/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Scale75 — Fantasy Colours - Creatures From Hell Paint Set** (7/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Scale75 — Fantasy Colours - Makeup Paint Set** (7/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Scale75 — Scalecolor - Color Boost 24 Color Set** (16/24, www.gapgames.com.au): Anuncia 24 pinturas; solo se reconocieron 16
+- **Scale75 — Scalecolor Artist - Charmed Paint Set** (6/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Scale75 — Scalecolor Artist - Game of Inks Paint Set** (6/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Scale75 — Scalecolor Artist - The Emerald Forest Paint Set** (5/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Scale75 — Scalecolor Artist - Volcano Paint Set** (4/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Scale75 — Scalecolor Artist Ready Painter One Paint Set** (6/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
+- **Scale75 — Scalecolor Metal n' Alchemy Gold Bundle** (4/?, www.gapgames.com.au): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **The Army Painter — Flexible Triad PLUS - Deep Green** (7/6, www.gapgames.com.au): Anuncia 6 pinturas y se reconocieron 7: puede incluir alguna que no viene
 - **The Army Painter — Flexible Triad PLUS - Ruddy Browns** (7/6, www.gapgames.com.au): Anuncia 6 pinturas y se reconocieron 7: puede incluir alguna que no viene
 - **The Army Painter — Flexible Triad Plus: Olive Greens** (7/6, www.goblingaming.co.uk): Anuncia 6 pinturas y se reconocieron 7: puede incluir alguna que no viene
@@ -382,9 +404,9 @@ Sets publicados: 751 — ok 393, parcial 33, revisar 325. Descartados: 1352.
 - AK Interactive — AK Interactive  WWII Axis Aircraft Cockpit Colors -Set of 3 Markers (www.tistaminis.com): solo 0 pinturas reconocidas
 - AK Interactive — AK Interactive  WWII Axis Aircraft Squiggle Camouflage Colors - Set of 3 Markers (www.tistaminis.com): solo 0 pinturas reconocidas
 - AK Interactive — AK Interactive - Artist Dense Acrylic Deluxe Edition Box Full Range (www.gapgames.com.au): solo 0 pinturas reconocidas
-- AK Interactive — AK Interactive - Quick Gen - Metallics Set (www.gapgames.com.au): solo 1 pinturas reconocidas
-- AK Interactive — AK Interactive - Quick Gen - Quick Paint Combo Set 100 Colors (www.gapgames.com.au): solo 1 pinturas reconocidas
-- AK Interactive — AK Interactive - Quick Gen - Quick Paint Set 36 Quick Gen Colors (www.gapgames.com.au): solo 1 pinturas reconocidas
+- AK Interactive — AK Interactive - Quick Gen - Metallics Set (www.gapgames.com.au): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive - Quick Gen - Quick Paint Combo Set 100 Colors (www.gapgames.com.au): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive - Quick Gen - Quick Paint Set 36 Quick Gen Colors (www.gapgames.com.au): solo 0 pinturas reconocidas
 - AK Interactive — AK Interactive 14 Selected Colors Basic Starter Set (www.tistaminis.com): solo 0 pinturas reconocidas
 - AK Interactive — AK Interactive 3G Paints Briefcase Set 120 Afv Colors AK-11705 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - AK Interactive — AK Interactive 3G Paints Briefcase Set 120 Aircraft Colors AK-11706 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
@@ -440,33 +462,33 @@ Sets publicados: 751 — ok 393, parcial 33, revisar 325. Descartados: 1352.
 - AK Interactive — AK Interactive Playmarkers Set - Viscera (3 Colours) (www.gapgames.com.au): solo 1 pinturas reconocidas
 - AK Interactive — AK Interactive Playmarkers: Special Box Full Range 34 Colour Set (www.gapgames.com.au): solo 1 pinturas reconocidas
 - AK Interactive — AK Interactive Primary & Secondary Acrylic Set AK-AD102 (scalemodelshop.co.uk): solo 1 pinturas reconocidas
-- AK Interactive — AK Interactive Quick Gen - Metallics (Set) (www.tistaminis.com): solo 1 pinturas reconocidas
-- AK Interactive — AK Interactive Quick Gen - Quick Paint Combo Set 100 Colors (www.tistaminis.com): solo 1 pinturas reconocidas
-- AK Interactive — AK Interactive Quick Gen Paint Set – Combo Set 100 Colors AK17603 (scalemodelshop.co.uk): solo 2 pinturas reconocidas
-- AK Interactive — AK Interactive Quick Gen Paint Set – Quick Starter AK17525 (scalemodelshop.co.uk): solo 1 pinturas reconocidas
-- AK Interactive — AK Interactive Quick Gen: Blue Soldiers Acrylic Paint Set (4 Colours) (www.gapgames.com.au): solo 1 pinturas reconocidas
-- AK Interactive — AK Interactive Quick Gen: British Uniforms Acrylic Paint Set (3 Colours) (www.gapgames.com.au): solo 1 pinturas reconocidas
-- AK Interactive — AK Interactive Quick Gen: Creatures And Witches Acrylic Paint Set (4 Colours) (www.gapgames.com.au): solo 1 pinturas reconocidas
-- AK Interactive — AK Interactive Quick Gen: DAK Uniforms Acrylic Paint Set (3 Colours) (www.gapgames.com.au): solo 1 pinturas reconocidas
-- AK Interactive — AK Interactive Quick Gen: Dark Soldiers Acrylic Paint Set (4 Colours) (www.gapgames.com.au): solo 1 pinturas reconocidas
-- AK Interactive — AK Interactive Quick Gen: Demons Acrylic Paint Set (4 Colours) (www.gapgames.com.au): solo 1 pinturas reconocidas
-- AK Interactive — AK Interactive Quick Gen: Desert Acrylic Paint Set (3 Colours) (www.gapgames.com.au): solo 1 pinturas reconocidas
-- AK Interactive — AK Interactive Quick Gen: Dwarfs Acrylic Paint Set (4 Colours) (www.gapgames.com.au): solo 1 pinturas reconocidas
-- AK Interactive — AK Interactive Quick Gen: Elves Acrylic Paint Set (4 Colours) (www.gapgames.com.au): solo 1 pinturas reconocidas
-- AK Interactive — AK Interactive Quick Gen: Forest & Jungle Acrylic Paint Set (3 Colours) (www.gapgames.com.au): solo 1 pinturas reconocidas
-- AK Interactive — AK Interactive Quick Gen: German Uniforms Acrylic Paint Set (3 Colours) (www.gapgames.com.au): solo 1 pinturas reconocidas
-- AK Interactive — AK Interactive Quick Gen: Green Skins Acrylic Paint Set (4 Colours) (www.gapgames.com.au): solo 1 pinturas reconocidas
-- AK Interactive — AK Interactive Quick Gen: Green Soldiers Acrylic Paint Set (4 Colours) (www.gapgames.com.au): solo 1 pinturas reconocidas
-- AK Interactive — AK Interactive Quick Gen: Human Flesh Acrylic Paint Set (4 Colours) (www.gapgames.com.au): solo 1 pinturas reconocidas
-- AK Interactive — AK Interactive Quick Gen: Purple Soldiers Acrylic Paint Set (4 Colours) (www.gapgames.com.au): solo 1 pinturas reconocidas
-- AK Interactive — AK Interactive Quick Gen: Red Soldiers Acrylic Paint Set (4 Colours) (www.gapgames.com.au): solo 1 pinturas reconocidas
-- AK Interactive — AK Interactive Quick Gen: Rocks Acrylic Paint Set (3 Colours) (www.gapgames.com.au): solo 1 pinturas reconocidas
-- AK Interactive — AK Interactive Quick Gen: Skeletons Acrylic Paint Set (4 Colours) (www.gapgames.com.au): solo 1 pinturas reconocidas
-- AK Interactive — AK Interactive Quick Gen: Soviet Uniforms Acrylic Paint Set (3 Colours) (www.gapgames.com.au): solo 1 pinturas reconocidas
-- AK Interactive — AK Interactive Quick Gen: US Uniforms Acrylic Paint Set (3 Colours) (www.gapgames.com.au): solo 1 pinturas reconocidas
-- AK Interactive — AK Interactive Quick Gen: Winter Blue Soldiers Acrylic Paint Set (4 Colours) (www.gapgames.com.au): solo 2 pinturas reconocidas
-- AK Interactive — AK Interactive Quick Gen: Yellow Soldiers Acrylic Paint Set (4 Colours) (www.gapgames.com.au): solo 1 pinturas reconocidas
-- AK Interactive — AK Interactive Quick Gen: Zombies Acrylic Paint Set (4 Colours) (www.gapgames.com.au): solo 1 pinturas reconocidas
+- AK Interactive — AK Interactive Quick Gen - Metallics (Set) (www.tistaminis.com): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Quick Gen - Quick Paint Combo Set 100 Colors (www.tistaminis.com): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Quick Gen Paint Set – Combo Set 100 Colors AK17603 (scalemodelshop.co.uk): solo 1 pinturas reconocidas
+- AK Interactive — AK Interactive Quick Gen Paint Set – Quick Starter AK17525 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Quick Gen: Blue Soldiers Acrylic Paint Set (4 Colours) (www.gapgames.com.au): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Quick Gen: British Uniforms Acrylic Paint Set (3 Colours) (www.gapgames.com.au): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Quick Gen: Creatures And Witches Acrylic Paint Set (4 Colours) (www.gapgames.com.au): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Quick Gen: DAK Uniforms Acrylic Paint Set (3 Colours) (www.gapgames.com.au): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Quick Gen: Dark Soldiers Acrylic Paint Set (4 Colours) (www.gapgames.com.au): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Quick Gen: Demons Acrylic Paint Set (4 Colours) (www.gapgames.com.au): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Quick Gen: Desert Acrylic Paint Set (3 Colours) (www.gapgames.com.au): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Quick Gen: Dwarfs Acrylic Paint Set (4 Colours) (www.gapgames.com.au): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Quick Gen: Elves Acrylic Paint Set (4 Colours) (www.gapgames.com.au): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Quick Gen: Forest & Jungle Acrylic Paint Set (3 Colours) (www.gapgames.com.au): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Quick Gen: German Uniforms Acrylic Paint Set (3 Colours) (www.gapgames.com.au): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Quick Gen: Green Skins Acrylic Paint Set (4 Colours) (www.gapgames.com.au): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Quick Gen: Green Soldiers Acrylic Paint Set (4 Colours) (www.gapgames.com.au): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Quick Gen: Human Flesh Acrylic Paint Set (4 Colours) (www.gapgames.com.au): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Quick Gen: Purple Soldiers Acrylic Paint Set (4 Colours) (www.gapgames.com.au): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Quick Gen: Red Soldiers Acrylic Paint Set (4 Colours) (www.gapgames.com.au): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Quick Gen: Rocks Acrylic Paint Set (3 Colours) (www.gapgames.com.au): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Quick Gen: Skeletons Acrylic Paint Set (4 Colours) (www.gapgames.com.au): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Quick Gen: Soviet Uniforms Acrylic Paint Set (3 Colours) (www.gapgames.com.au): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Quick Gen: US Uniforms Acrylic Paint Set (3 Colours) (www.gapgames.com.au): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Quick Gen: Winter Blue Soldiers Acrylic Paint Set (4 Colours) (www.gapgames.com.au): solo 1 pinturas reconocidas
+- AK Interactive — AK Interactive Quick Gen: Yellow Soldiers Acrylic Paint Set (4 Colours) (www.gapgames.com.au): solo 0 pinturas reconocidas
+- AK Interactive — AK Interactive Quick Gen: Zombies Acrylic Paint Set (4 Colours) (www.gapgames.com.au): solo 0 pinturas reconocidas
 - AK Interactive — AK Interactive Quick Marker Set: Dragons & Beasts - 5 Colour Set (www.gapgames.com.au): solo 0 pinturas reconocidas
 - AK Interactive — AK Interactive Quick Marker Set: Dwarfs - 5 Colour Set (www.gapgames.com.au): solo 0 pinturas reconocidas
 - AK Interactive — AK Interactive Quick Marker Set: Elves - 5 Colour Set (www.gapgames.com.au): solo 0 pinturas reconocidas
@@ -567,9 +589,9 @@ Sets publicados: 751 — ok 393, parcial 33, revisar 325. Descartados: 1352.
 - AK Interactive — AK Interactive White and Winter Colours Paint Set AK-3160 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - AK Interactive — AK Interactive Yellow Essential Colors 3Gen Set AK-11615 (scalemodelshop.co.uk): solo 2 pinturas reconocidas
 - AK Interactive — AK Interactive Yellow Uniform Colours Paint Set AK-3190 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
-- AK Interactive — AK Quick Gen Metallics Set (www.thecombatcompany.com): solo 1 pinturas reconocidas
-- AK Interactive — AK Quick Gen Paint Set 100 Colours (www.thecombatcompany.com): solo 1 pinturas reconocidas
-- AK Interactive — AK Quick Gen Paint Set 72 Colours (www.thecombatcompany.com): solo 1 pinturas reconocidas
+- AK Interactive — AK Quick Gen Metallics Set (www.thecombatcompany.com): solo 0 pinturas reconocidas
+- AK Interactive — AK Quick Gen Paint Set 100 Colours (www.thecombatcompany.com): solo 0 pinturas reconocidas
+- AK Interactive — AK Quick Gen Paint Set 72 Colours (www.thecombatcompany.com): solo 0 pinturas reconocidas
 - AK Interactive — AK-2200 WW2 USAAF Aircraft Colours Set #1 (discontinued) (www.thecombatcompany.com): solo 0 pinturas reconocidas
 - AK Interactive — AK-3150 Blue Uniform Colours Set (discontinued) (www.thecombatcompany.com): solo 0 pinturas reconocidas
 - AK Interactive — AK-3170 Red Uniform Colours Set (discontinued) (www.thecombatcompany.com): solo 0 pinturas reconocidas
@@ -640,7 +662,7 @@ Sets publicados: 751 — ok 393, parcial 33, revisar 325. Descartados: 1352.
 - AK Interactive — FINE DRILL SET (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — FULL METAL – PLAYMARKER SET (Tienda oficial): solo 2 pinturas reconocidas
 - AK Interactive — FULL RANGE DUAL EXO – 43 references (Tienda oficial): solo 2 pinturas reconocidas
-- AK Interactive — FULL RANGE QUICK GEN (79 COLORS +1 MEDIUM 18ML) (Tienda oficial): solo 1 pinturas reconocidas
+- AK Interactive — FULL RANGE QUICK GEN (79 COLORS +1 MEDIUM 18ML) (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — Fire! Modern Combat Starter Box – Spanish (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — GARBAGE BOX SET (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — GERMAN CAMOUFLAGE MASK / STENCIL SET 1:48 (Tienda oficial): solo 0 pinturas reconocidas
@@ -694,9 +716,9 @@ Sets publicados: 751 — ok 393, parcial 33, revisar 325. Descartados: 1352.
 - AK Interactive — Quick Markers: Skeletons Set (www.goblingaming.co.uk): solo 0 pinturas reconocidas
 - AK Interactive — Quick Markers: Special Box Full Range 34 Units (www.goblingaming.co.uk): solo 0 pinturas reconocidas
 - AK Interactive — Quick Markers: Star Plague Set (www.goblingaming.co.uk): solo 0 pinturas reconocidas
-- AK Interactive — Quick Paint Combo Set 100 - AK Quick Gen (www.goblingaming.co.uk): solo 1 pinturas reconocidas
-- AK Interactive — Quick Paint Set 36 - AK Quick Gen (www.goblingaming.co.uk): solo 1 pinturas reconocidas
-- AK Interactive — Quick Paint Set 72 - AK Quick Gen (www.goblingaming.co.uk): solo 1 pinturas reconocidas
+- AK Interactive — Quick Paint Combo Set 100 - AK Quick Gen (www.goblingaming.co.uk): solo 0 pinturas reconocidas
+- AK Interactive — Quick Paint Set 36 - AK Quick Gen (www.goblingaming.co.uk): solo 0 pinturas reconocidas
+- AK Interactive — Quick Paint Set 72 - AK Quick Gen (www.goblingaming.co.uk): solo 0 pinturas reconocidas
 - AK Interactive — RANGE AKAD 2 DELUXE EDITION BOXES (AKAD100 + AKAD110) >> FULL RANGE 36 COLORS << INCLUDE BOTH DELUXE EDITION BOXES (Tienda oficial): solo 0 pinturas reconocidas
 - AK Interactive — RED COLOR SET – ARTISTIC DENSE ACRYLIC COLOR (Tienda oficial): solo 2 pinturas reconocidas
 - AK Interactive — RIVET MARKING SET 1 (RECOMMENDED FOR 1:72 SCALE) (Tienda oficial): solo 0 pinturas reconocidas
@@ -758,7 +780,7 @@ Sets publicados: 751 — ok 393, parcial 33, revisar 325. Descartados: 1352.
 - AK Interactive — WWII US Navy ASW Aircraft Colors SET 3G (www.thecombatcompany.com): solo 0 pinturas reconocidas
 - AK Interactive — WWII USAAF Aircraft Colors Vol.1 SET 3G (www.thecombatcompany.com): solo 0 pinturas reconocidas
 - AK Interactive — WWII USAAF Aircraft Colors Vol.2 SET 3G (www.thecombatcompany.com): solo 0 pinturas reconocidas
-- AK Interactive — Winter Blue Soldiers Set - AK Quick Gen (www.goblingaming.co.uk): solo 1 pinturas reconocidas
+- AK Interactive — Winter Blue Soldiers Set - AK Quick Gen (www.goblingaming.co.uk): solo 0 pinturas reconocidas
 - AK Interactive — Wood Weathering Set (Tienda oficial): solo 0 pinturas reconocidas
 - Ammo by Mig — 1939-1944 German Standard Colours Set [15] Ammo A.MIG-7148 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - Ammo by Mig — 1944-1945 German Standard Colors Set [11] Ammo A.MIG-7141 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
@@ -1124,6 +1146,55 @@ Sets publicados: 751 — ok 393, parcial 33, revisar 325. Descartados: 1352.
 - Pro Acryl — PRO Synthetic Set (Tienda oficial): solo 0 pinturas reconocidas
 - Pro Acryl — Pro Acryl Alternate Lid Set - Dropper (Tienda oficial): solo 0 pinturas reconocidas
 - Pro Acryl — Pro Acryl Alternate Lid Set - Flip Top (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — Black And White Paint Set: ScaleColor 17mL acrylic (www.thecombatcompany.com): solo 0 pinturas reconocidas
+- Scale75 — Blood And Fire Red Paint Set: ScaleColor 17mL acrylic (www.thecombatcompany.com): solo 0 pinturas reconocidas
+- Scale75 — Flesh Paint Set: ScaleColor 17mL acrylic (www.thecombatcompany.com): solo 0 pinturas reconocidas
+- Scale75 — Fx Fluor Experience Paint Set: ScaleColor 17mL acrylic (www.thecombatcompany.com): solo 0 pinturas reconocidas
+- Scale75 — Inkside Out: ScaleColor Artist Paint Set (runout sale) (www.thecombatcompany.com): solo 0 pinturas reconocidas
+- Scale75 — Inktensity 2 Paint Set: ScaleColor 17mL acrylic (www.thecombatcompany.com): solo 0 pinturas reconocidas
+- Scale75 — Inktensity Paint Set: ScaleColor 17mL ink (www.thecombatcompany.com): solo 0 pinturas reconocidas
+- Scale75 — Metal'N Alchemy Copper Series Paint Set: ScaleColor 17mL acrylic (www.thecombatcompany.com): solo 0 pinturas reconocidas
+- Scale75 — Metal'N Alchemy Golden Paint Set: ScaleColor 17mL acrylic (www.thecombatcompany.com): solo 0 pinturas reconocidas
+- Scale75 — Metal'N Alchemy Steel Paint Set: ScaleColor 17mL acrylic (www.thecombatcompany.com): solo 0 pinturas reconocidas
+- Scale75 — NMM Paint Set (Gold And Copper): ScaleColor 17mL acrylic (www.thecombatcompany.com): solo 0 pinturas reconocidas
+- Scale75 — NMM Paint Set (Steel): ScaleColor 17mL acrylic (www.thecombatcompany.com): solo 0 pinturas reconocidas
+- Scale75 — Scale 75 - Fantasy Colours - Basic Colors 2 Paint Set (www.gapgames.com.au): solo 0 pinturas reconocidas
+- Scale75 — Scale 75 - Fantasy Colours - Basic Colors Paint Set (www.gapgames.com.au): solo 0 pinturas reconocidas
+- Scale75 — Scale 75 - Fantasy Colours - Elven Colours Paint Set (www.gapgames.com.au): solo 0 pinturas reconocidas
+- Scale75 — Scale 75 - Fantasy Colours - Fantasy & Games Collection Paint Set (www.gapgames.com.au): solo 0 pinturas reconocidas
+- Scale75 — Scale 75 - Fantasy Colours - Orcs And Goblins Paint Set (www.gapgames.com.au): solo 0 pinturas reconocidas
+- Scale75 — Scale 75 - Fantasy Colours - Shades Of Doom Paint Set (www.gapgames.com.au): solo 0 pinturas reconocidas
+- Scale75 — Scale 75 - Fantasy Colours - Steam And Punk Paint Set (www.gapgames.com.au): solo 0 pinturas reconocidas
+- Scale75 — Scale 75 - Fantasy Colours - Unnatural Flesh Paint Set (www.gapgames.com.au): solo 0 pinturas reconocidas
+- Scale75 — Scale 75 - Instant Colors - Alchemy Lab Paint Set (www.gapgames.com.au): solo 0 pinturas reconocidas
+- Scale75 — Scale 75 - Paint Trays - Small Tray 48 Box (www.gapgames.com.au): solo 0 pinturas reconocidas
+- Scale75 — Scale 75 - Prisma Colors - Solar Flares Paint Set (www.gapgames.com.au): solo 0 pinturas reconocidas
+- Scale75 — Scale 75 - Scalecolor Artist - Basics And Classics Paint Set (www.gapgames.com.au): solo 0 pinturas reconocidas
+- Scale75 — Scale 75 - Scalecolor Artist - Deep RedPaint Set (www.gapgames.com.au): solo 0 pinturas reconocidas
+- Scale75 — Scale 75 - Scalecolor Artist - Into The Woods Paint Set (www.gapgames.com.au): solo 0 pinturas reconocidas
+- Scale75 — Scale 75 - Scalecolor Artist - Monster´S Ink Paint Set (www.gapgames.com.au): solo 0 pinturas reconocidas
+- Scale75 — Scale 75 - Scalecolor Artist - Shed My Skin Paint Set (www.gapgames.com.au): solo 0 pinturas reconocidas
+- Scale75 — Scale 75 - Scalecolor Artist - The Sea Purpple Paint Set (www.gapgames.com.au): solo 0 pinturas reconocidas
+- Scale75 — Scale 75 - Scalecolor Artist - They Live In The Grey Paint Set (www.gapgames.com.au): solo 0 pinturas reconocidas
+- Scale75 — Scale 75 - Scalecolor Games - Diligence Paint Set (www.gapgames.com.au): solo 0 pinturas reconocidas
+- Scale75 — Scale 75 - Scalecolor Games - Envy Paint Set (www.gapgames.com.au): solo 0 pinturas reconocidas
+- Scale75 — Scale 75 - Scalecolor Games - Gluttony Paint Set (www.gapgames.com.au): solo 0 pinturas reconocidas
+- Scale75 — Scale 75 - Scalecolor Games - Greed Paint Set (www.gapgames.com.au): solo 0 pinturas reconocidas
+- Scale75 — Scale 75 - Scalecolor Games - Pride Paint Set (www.gapgames.com.au): solo 0 pinturas reconocidas
+- Scale75 — Scale 75 - Scalecolor Games - Sloth Paint Set (www.gapgames.com.au): solo 0 pinturas reconocidas
+- Scale75 — Scale 75 - Scalecolor Games - Temperance Paint Set (www.gapgames.com.au): solo 0 pinturas reconocidas
+- Scale75 — Scale 75 - Soilworks - Washes - Oilwash Collection (www.gapgames.com.au): solo 0 pinturas reconocidas
+- Scale75 — Scale 75 Instant Colors Mana Elixirs Paint Set (www.gapgames.com.au): solo 0 pinturas reconocidas
+- Scale75 — Scale 75 Instant Colors Summon Potions Paint Set (www.gapgames.com.au): solo 0 pinturas reconocidas
+- Scale75 — Scale 75 Instant Colors The Secrets of Alchemy (Wooden Box) (www.gapgames.com.au): solo 0 pinturas reconocidas
+- Scale75 — Scale 75 Scalecolor Artist Skin Tones Paint Set (www.gapgames.com.au): solo 1 pinturas reconocidas
+- Scale75 — Scale 75 Scalecolor Artist Sweet Dreams Paint Set (www.gapgames.com.au): solo 0 pinturas reconocidas
+- Scale75 — Scale 75 Scalecolor Artist Wuthering Heights Paint Set (www.gapgames.com.au): solo 0 pinturas reconocidas
+- Scale75 — Sky And Ice Blue Paint Set: ScaleColor 17mL acrylic (www.thecombatcompany.com): solo 0 pinturas reconocidas
+- Scale75 — Sweet Dreams: ScaleColor Artist Paint Set (runout sale) (www.thecombatcompany.com): solo 0 pinturas reconocidas
+- Scale75 — Velvet Skin Paint Set: ScaleColor 17mL acrylic (run out) (www.thecombatcompany.com): solo 0 pinturas reconocidas
+- Scale75 — Volcano: ScaleColor Artist Paint Set (runout sale) (www.thecombatcompany.com): solo 0 pinturas reconocidas
+- Scale75 — Wood And Leather Paint Set: ScaleColor 17mL acrylic (www.thecombatcompany.com): solo 0 pinturas reconocidas
 - Tamiya — Tamiya Metal Paint Stirrers Set 74017 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - Tamiya — Tamiya Spray Work Painting Stand Set 74522 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - The Army Painter — ARMY PAINTER WARPAINTS: AIR MOST WANTED PAINT SET (www.tistaminis.com): solo 0 pinturas reconocidas
