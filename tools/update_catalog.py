@@ -221,12 +221,14 @@ RETAIL_SHOPIFY = ["hobbyisthaven.com", "www.gapgames.com.au", "www.goblingaming.
                   "goodgames.com.au", "www.gameology.com.au", "www.tistaminis.com"]
 RETAIL_WC = ["https://www.scalemodelshop.co.uk", "https://www.redgrassgames.com"]
 RETAIL_SET = re.compile(r"\b(set|sets|bundle|collection|box|kit|case|pack|triad)\b", re.I)
-RETAIL_PAINT = re.compile(r"paint|colou?r|acrylic|wash|shade|speedpaint|contrast|xpress|ink|metallic|warpaint|game color|model color|primer", re.I)
+RETAIL_PAINT = re.compile(r"paint|colou?r|acrylic|wash|shade|speedpaint|contrast|xpress|ink|metallic|warpaint|game color|model color|primer|pigment", re.I)
+RETAIL_AK = re.compile(r"\bak\b|ak[- ]interactive", re.I)
 
 
 def fetch_retail_sets():
-    """Solo los productos que parecen sets de pintura, con su marca (vendor) y descripción."""
-    out = []
+    """Productos de minoristas: los que parecen sets de pintura (con marca y descripción) y, aparte, las pinturas
+    sueltas de AK, que la tienda oficial deja de listar aunque sigan a la venta. Devuelve (sets, sueltas_ak)."""
+    out, singles = [], []
     for host in RETAIL_SHOPIFY:
         n = 0
         for page in range(1, 120):
@@ -245,6 +247,10 @@ def fetch_retail_sets():
                     out.append({"title": t, "vendor": p.get("vendor") or "", "sku": ((p.get("variants") or [{}])[0].get("sku") or ""),
                                 "text": p.get("body_html") or "", "src": host})
                     n += 1
+                elif RETAIL_AK.search((p.get("vendor") or "") + " " + t):
+                    singles.append({"title": t, "vendor": p.get("vendor") or "",
+                                    "sku": ((p.get("variants") or [{}])[0].get("sku") or ""),
+                                    "img": [im.get("src") for im in (p.get("images") or [])[:3] if im.get("src")], "src": host})
             time.sleep(0.5)
         print(f"  {host}: {n} sets de pintura")
     for base in RETAIL_WC:
@@ -268,7 +274,25 @@ def fetch_retail_sets():
                     n += 1
             time.sleep(0.5)
         print(f"  {base}: {n} sets de pintura")
-    return out
+        for page in range(1, 60):
+            b = get(f"{base}/wp-json/wc/store/v1/products?per_page=100&page={page}&search=ak%20interactive")
+            if not b:
+                break
+            try:
+                prods = json.loads(b)
+            except Exception:
+                break
+            if not prods:
+                break
+            for p in prods:
+                t = html.unescape(p.get("name") or "")
+                brands = " ".join(x.get("name", "") for x in (p.get("brands") or []))
+                if RETAIL_AK.search(brands + " " + t) and not RETAIL_SET.search(t):
+                    singles.append({"title": t, "vendor": brands, "sku": p.get("sku") or "",
+                                    "img": [im.get("src") for im in (p.get("images") or [])[:3] if im.get("src")], "src": base})
+            time.sleep(0.5)
+    print(f"  minoristas: {len(singles)} productos sueltos de AK")
+    return out, singles
 
 
 def load_sources(args):
@@ -292,7 +316,7 @@ def load_sources(args):
         src["dspiae"] = ds
         src["gsw"] = fetch_gsw()
         src["turbodork"] = fetch_shopify("turbodork.com")
-        src["retail"] = fetch_retail_sets()
+        src["retail"], src["retail_ak"] = fetch_retail_sets()
         if args.save_raw:
             os.makedirs(args.save_raw, exist_ok=True)
             for k, v in src.items():
@@ -300,7 +324,7 @@ def load_sources(args):
                     json.dump(v, f)
         return src
     src = {}
-    for k in ["monument", "armypainter", "scale75", "gaahleri", "vallejo", "ak", "dspiae", "gsw", "turbodork", "retail"]:
+    for k in ["monument", "armypainter", "scale75", "gaahleri", "vallejo", "ak", "dspiae", "gsw", "turbodork", "retail", "retail_ak"]:
         fn = os.path.join(args.raw, k + ".json.gz")
         src[k] = json.load(gzip.open(fn, "rt", encoding="utf-8")) if os.path.exists(fn) else []
     return src
@@ -826,8 +850,21 @@ def build(args):
         seen.add(k)
         add(dict(r))
 
-    # 3) Colores faltantes: de las fotos del producto, eligiendo el que coincide con el nombre
+    # 2b) AK: pinturas que la tienda oficial ya no lista pero los minoristas siguen vendiendo
     sys.path.insert(0, HERE)
+    from extras import parse_retail_ak, load_extra, apply_paints, ckey
+    ak_codes = {ckey(r["code"]) for r in rows if r["brand"] == "AK Interactive" and r.get("code")}
+    ak_retail = 0
+    for r in parse_retail_ak(src.get("retail_ak") or []):
+        if ckey(r["code"]) in ak_codes:
+            continue
+        ak_codes.add(ckey(r["code"]))
+        r["hex"] = hex_by_code.get(key_code(r)) or ""
+        add(r)
+        ak_retail += 1
+    print(f"AK desde minoristas: {ak_retail} pinturas que la tienda oficial no lista")
+
+    # 3) Colores faltantes: de las fotos del producto, eligiendo el que coincide con el nombre
     from colornames import plausible, typical, expectations, hex_to_lab
     missing = [r for r in rows if not r.get("hex")]
     print(f"Pinturas sin color conocido: {len(missing)}")
@@ -918,6 +955,11 @@ def build(args):
             row.append(q)  # "f" = estimado de la foto, "n" = típico según el nombre
         final.append(row)
     final.sort(key=lambda x: (x[0].lower(), x[1].lower(), x[2].lower()))
+
+    # 5) Lista manual (tools/extra-paints.json): lo que ninguna fuente publica completo
+    extra = load_extra()
+    a, fx = apply_paints(final, extra["paints"])
+    print(f"Lista manual: {a} pinturas agregadas, {fx} colores corregidos")
 
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     with open(OUT, "w", encoding="utf-8") as f:
@@ -1220,6 +1262,8 @@ def build_sets(src, final):
             seen.add((brand, norm(title)))
             sets.append({"brand": brand, "name": title, "code": sku, "paints": paints, "expected": 0,
                          "status": "ok", "note": "Reúne los colores de otros sets de la marca", "source": origin})
+    from extras import load_extra, apply_sets
+    print(f"Sets de la lista manual: {apply_sets(sets, final, load_extra()['sets'])}")
     sets.sort(key=lambda x: (x["brand"], x["name"]))
     with open(SETS_OUT, "w", encoding="utf-8") as f:
         json.dump(sets, f, ensure_ascii=False, separators=(",", ":"))

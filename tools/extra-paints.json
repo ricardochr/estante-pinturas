@@ -1,0 +1,25 @@
+{
+  "_nota": "Pinturas y sets que las tiendas oficiales ya no publican pero siguen en venta en minoristas. Colores aproximados (calidad n) salvo que se indique otra. Fuentes: listas de contenido de los sets en minoristas (scalemodelshop.co.uk, hobbyco.com.au, gamekastle.com, waylandgames.co.uk) y tienda oficial AK (Urban Set).",
+  "paints": [
+    {"brand": "AK Interactive", "line": "Liquid Pigments", "name": "Standard Rust", "code": "AK14001", "type": "Otro", "hex": "#8A4B2A"},
+    {"brand": "AK Interactive", "line": "Liquid Pigments", "name": "Ochre Rust", "code": "AK14002", "type": "Otro", "hex": "#A9662B"},
+    {"brand": "AK Interactive", "line": "Liquid Pigments", "name": "Old Rust", "code": "AK14003", "type": "Otro", "hex": "#5C3324"},
+    {"brand": "AK Interactive", "line": "Liquid Pigments", "name": "Dark Earth", "code": "AK14004", "type": "Otro", "hex": "#4B3727"},
+    {"brand": "AK Interactive", "line": "Liquid Pigments", "name": "Rubble Dust", "code": "AK14005", "type": "Otro", "hex": "#9B8F7F"},
+    {"brand": "AK Interactive", "line": "Liquid Pigments", "name": "Concrete", "code": "AK14006", "type": "Otro", "hex": "#A8A49B"},
+    {"brand": "AK Interactive", "line": "Liquid Pigments", "name": "Vietnam Earth", "code": "AK14008", "type": "Otro", "hex": "#8E583A"},
+    {"brand": "AK Interactive", "line": "Liquid Pigments", "name": "Light European Earth", "code": "AK14009", "type": "Otro", "hex": "#8A7861"},
+    {"brand": "AK Interactive", "line": "Liquid Pigments", "name": "Ochre Earth", "code": "AK14010", "type": "Otro", "hex": "#B08648"},
+    {"brand": "AK Interactive", "line": "Liquid Pigments", "name": "Brick Dust", "code": "AK14011", "type": "Otro", "hex": "#9A5B45"},
+    {"brand": "AK Interactive", "line": "Liquid Pigments", "name": "Dry Mud", "code": "AK14012", "type": "Otro", "hex": "#7C6951"},
+    {"brand": "AK Interactive", "line": "Liquid Pigments", "name": "Dark Mud", "code": "AK14013", "type": "Otro", "hex": "#4A3A2B"},
+    {"brand": "AK Interactive", "line": "Liquid Pigments", "name": "Dust", "code": "AK14014", "type": "Otro", "hex": "#BEAD8E"}
+  ],
+  "sets": [
+    {"brand": "AK Interactive", "name": "Rust & Exhaust Set - Liquid Pigment", "code": "AK14031", "paints": ["AK14001", "AK14002", "AK14003"]},
+    {"brand": "AK Interactive", "name": "Urban Set - Liquid Pigment", "code": "AK14032", "paints": ["AK14005", "AK14006", "AK14011"]},
+    {"brand": "AK Interactive", "name": "Mud Set - Liquid Pigment", "code": "AK14033", "paints": ["AK14004", "AK14012", "AK14013"]},
+    {"brand": "AK Interactive", "name": "Sand & Dust Set - Liquid Pigment", "code": "AK14034", "paints": ["AK14007", "AK14010", "AK14014"]},
+    {"brand": "AK Interactive", "name": "Earth Set - Liquid Pigment", "code": "AK14035", "paints": ["AK14004", "AK14008", "AK14009"]}
+  ]
+}

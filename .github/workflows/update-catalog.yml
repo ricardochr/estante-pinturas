@@ -12,6 +12,8 @@ on:
       - tools/colornames.py
       - tools/color-overrides.json
       - tools/validate_colors.py
+      - tools/extras.py
+      - tools/extra-paints.json
 
 permissions:
   contents: write
