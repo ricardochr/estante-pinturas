@@ -29,6 +29,7 @@ import androidx.compose.material.icons.rounded.AddCircle
 import androidx.compose.material.icons.rounded.Air
 import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.GridView
+import androidx.compose.material.icons.rounded.Gradient
 import androidx.compose.material.icons.rounded.Backup
 import androidx.compose.material.icons.rounded.ColorLens
 import androidx.compose.material.icons.rounded.DeleteSweep
@@ -65,7 +66,7 @@ import com.ricardochr.estantepinturas.MainViewModel
 
 /** Acciones que abre el Taller; cada una la resuelve la pantalla principal. */
 enum class HubAction {
-    Compare, Light, Wheel, Schemes, Gaps, Guide, Gear,
+    Compare, Light, Wheel, Schemes, Gaps, Bsl, Guide, Gear,
     Shopping, Sets, Find, AddCustom,
     UpdateCatalog, Backup, ExportInventory, ImportInventory,
     ImportCatalog, ExportCatalog, ClearImported, About,
@@ -117,6 +118,7 @@ fun HubScreen(vm: MainViewModel, onAction0: (HubAction) -> Unit) {
         HubTile(HubAction.Wheel, Icons.Rounded.ColorLens, tr("Círculo cromático"), tr("Armonías con tus pinturas"), Pigment.Violet),
         HubTile(HubAction.Schemes, Icons.Rounded.AutoAwesome, tr("Esquemas de color"), tr("Arma una paleta sin foto"), Pigment.Cobalt),
         HubTile(HubAction.Gaps, Icons.Rounded.GridView, tr("Huecos de tu colección"), tr("Qué tonos te faltan"), Pigment.Emerald),
+        HubTile(HubAction.Bsl, Icons.Rounded.Gradient, tr("Sistema BSL"), tr("Tríadas de Vallejo Game Color"), Pigment.Crimson),
         HubTile(HubAction.Guide, Icons.AutoMirrored.Rounded.MenuBook, tr("Guía de técnicas"), tr("Capas, lavados, veladuras"), Pigment.Teal),
         HubTile(HubAction.Gear, Icons.Rounded.Air, tr("Mi equipo"), if (airbrushes == 0) tr("Registra tu aerógrafo") else tr("{} aerógrafo", airbrushes) + (if (airbrushes > 1) "s" else ""), Pigment.Slate),
     )

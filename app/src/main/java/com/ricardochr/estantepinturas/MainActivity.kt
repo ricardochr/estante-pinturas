@@ -228,6 +228,7 @@ private fun App(vm: MainViewModel = viewModel()) {
                         HubAction.Schemes -> nav.open(Screen.Schemes)
                         HubAction.Gaps -> nav.open(Screen.Gaps)
                         HubAction.Guide -> nav.open(Screen.Guide)
+                        HubAction.Bsl -> nav.open(Screen.Bsl)
                         HubAction.Gear -> nav.open(Screen.Gear)
                         HubAction.Shopping -> nav.open(Screen.Shopping)
                         HubAction.Sets -> nav.open(Screen.Sets)
@@ -377,6 +378,7 @@ private fun App(vm: MainViewModel = viewModel()) {
             locationName = vm.placesOf(p.id).joinToString(" + ") { it.text }.ifBlank { null },
             inventory = remember(vm.owned, vm.byId) { vm.owned.values.filter { it.qty > 0 }.mapNotNull { vm.byId[it.paintId] } },
             onOpenWheel = { editing = null; nav.open(Screen.Wheel(p.id)) },
+            bslIndex = remember(vm.catalog, vm.extra) { BslIndex(vm.extra + vm.catalog) },
             onFixColor = { hx ->
                 vm.fixColor(p.id, hx)
                 editing = vm.byId[p.id]
@@ -672,6 +674,7 @@ private fun OverlayScreen(
             say = say,
         )
         Screen.Gaps -> com.ricardochr.estantepinturas.ui.GapsScreen(vm, onClose = close, onOpenPaint = onOpenPaint, say = say)
+        Screen.Bsl -> com.ricardochr.estantepinturas.ui.BslScreen(vm, onClose = close, onOpenPaint = onOpenPaint, onOpenGuide = { nav.open(Screen.Guide) })
         Screen.Settings -> com.ricardochr.estantepinturas.ui.SettingsScreen(
             vm,
             onClose = close,

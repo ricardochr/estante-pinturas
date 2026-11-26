@@ -506,7 +506,10 @@ private fun pickTone(base: Lab, candidates: List<Paint>, exclude: String?, darke
 /** Sombra y luz del inventario para una pintura base (opacas, mismo tono, más oscura y más clara). */
 fun tonesFor(base: Paint, inventory: List<Paint>): Pair<Paint?, Paint?> {
     val inv = inventory.filter { it.hasColor && typeGroup(it.type) == "opaca" && it.type != "Imprimación" }
-    return pickTone(base.lab, inv, base.id, darker = true) to pickTone(base.lab, inv, base.id, darker = false)
+    // Vallejo Game Color: primero la sombra y la luz de su tríada BSL, si las tienes
+    val bsl = bslTonesFor(base, inv)
+    return (bsl?.first ?: pickTone(base.lab, inv, base.id, darker = true)) to
+        (bsl?.second ?: pickTone(base.lab, inv, base.id, darker = false))
 }
 
 /**
@@ -537,8 +540,9 @@ fun matchPalette(palette: ImagePalette, inventory: List<Paint>, catalog: List<Pa
         val best = ranked.firstOrNull()?.let { SimilarPaint(it.first, it.second, typeGroup(it.first.type) == "opaca") }
         val alts = ranked.drop(1).take(2).map { SimilarPaint(it.first, it.second, typeGroup(it.first.type) == "opaca") }
         val baseLab = best?.paint?.lab ?: lab
-        val shadow = pickTone(baseLab, inv, best?.paint?.id, darker = true)
-        val highlight = pickTone(baseLab, inv, best?.paint?.id, darker = false)
+        val bsl = best?.paint?.let { bslTonesFor(it, inv) }
+        val shadow = bsl?.first ?: pickTone(baseLab, inv, best?.paint?.id, darker = true)
+        val highlight = bsl?.second ?: pickTone(baseLab, inv, best?.paint?.id, darker = false)
         var toBuy: Paint? = null
         var toBuyD = Double.MAX_VALUE
         if (best == null || best.distance > 10) {

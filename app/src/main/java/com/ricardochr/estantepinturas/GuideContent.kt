@@ -296,6 +296,78 @@ val GUIDE: List<GuideSection> = listOf(
             ),
         ),
     ),
+    GuideSection(
+        "Sistema BSL (Vallejo Game Color)",
+        listOf(
+            GuideArticle(
+                "Qué es BSL",
+                "Base, Shadow, Light: Vallejo agrupa sus Game Color en tríadas de base, sombra y luz que combinan entre sí.",
+                listOf(
+                    "Base: muy opaca y saturada; cubre en pocas capas y es la que más vas a usar.",
+                    "Sombra: el tono oscuro de la familia; sirve para sombrear y, diluida, para veladuras que oscurecen sin ensuciar.",
+                    "Luz: el tono más claro; aclara la base y funciona como veladura sobre blanco o tonos pálidos.",
+                    "Los sets de 4 traen un cuarto color para llevar las transiciones más lejos (una luz extra o una sombra más profunda).",
+                    "El set Color BSL System (72.183) trae 48 colores en 12 familias de 4. El rojo va dentro de la familia naranja.",
+                    "En Taller › Sistema BSL ves todas las tríadas y familias, cuáles tienes y qué te falta.",
+                ),
+                tip = "Al abrir una Game Color en tu inventario verás sus tríadas: con qué sombrearla y con qué iluminarla.",
+            ),
+            GuideArticle(
+                "Pintar una zona con una tríada",
+                "Cinco pasos de oscuro a claro con solo tres botes.",
+                listOf(
+                    "Base: dos capas finas de la base, diluida como leche.",
+                    "Media sombra: base y sombra 1:1, en los huecos y la parte de abajo de los volúmenes.",
+                    "Sombra profunda: la sombra pura, muy diluida, solo en los rincones más hondos.",
+                    "Media luz: base y luz 1:1, en la parte de arriba de los volúmenes (donde pegaría la luz de una lámpara).",
+                    "Luz: la luz pura en bordes y puntos más altos; con poca pintura en el pincel.",
+                    "Unifica: si se ven saltos, pasa una veladura de la base muy diluida (1:4 con medio de veladura) por encima.",
+                ),
+                tools = "Paleta húmeda, pincel talla 1 con buena punta, medio de veladura (opcional).",
+                tip = "Mezcla siempre en la paleta y pinta en capas finas: así las tres pinturas se funden sin marcas.",
+            ),
+            GuideArticle(
+                "Encadenar tríadas",
+                "Muchos colores son la luz de una tríada y la base de otra: así armas escalas de 4 o 5 tonos.",
+                listOf(
+                    "Ejemplo amarillo: Gold Yellow, Sun Yellow, Moon Yellow y Toxic Yellow, de oscuro a claro.",
+                    "Ejemplo violeta: Midnight Purple, Royal Purple, Alien Purple y Lustful Purple.",
+                    "Pinta la base con el tono del medio y usa los extremos solo para las sombras más hondas y las luces finales.",
+                    "La ficha de cada Game Color te muestra su escala completa.",
+                ),
+            ),
+            GuideArticle(
+                "Sombras sin lavado",
+                "El set BSL no trae lavados, pero no hacen falta.",
+                listOf(
+                    "Diluye la sombra de la familia 1:5 con agua y una gota de medio: sirve como lavado del mismo color.",
+                    "Para un lavado neutro, Charred Brown o Black muy diluidos marcan los huecos.",
+                    "Aplica el lavado en los huecos, no en toda la pieza, y limpia el exceso con el pincel casi seco.",
+                ),
+                tip = "Una sombra de una familia vecina más fría (azul, violeta) da sombras con más ambiente que el negro.",
+            ),
+            GuideArticle(
+                "Pieles con BSL",
+                "Las familias Piel y Piel cálida cubren la mayoría de los tonos de piel.",
+                listOf(
+                    "Piel pálida o rosada: Rosy Flesh de base, Athena Skin de sombra y Pale Flesh de luz.",
+                    "Piel media: Elf Skin Tone de base, Barbarian Skin de sombra y Skin Tone de luz.",
+                    "Para mejillas, nariz y nudillos, una veladura muy diluida de un rojo o magenta (Squid Pink, Warlord Purple).",
+                    "Las luces finales de la piel pueden subir con Off-White o Elfic Flesh, nunca con blanco puro.",
+                ),
+            ),
+            GuideArticle(
+                "Metales sin metálicos (NMM)",
+                "Con BSL también se imita el metal: lo que cambia es el contraste, mucho más fuerte.",
+                listOf(
+                    "Oro: Charred Brown en la sombra, Gold Yellow y Sun Yellow en los medios, Moon Yellow y Toxic Yellow en las luces.",
+                    "Plata o acero: Black o Charcoal en la sombra, Stonewall Grey en los medios y Dead White en los reflejos.",
+                    "Deja saltos bruscos de oscuro a claro: el metal pulido refleja, no degrada suave.",
+                    "Termina con un punto de blanco en el brillo más fuerte.",
+                ),
+            ),
+        ),
+    ),
 )
 
 /** Tabla de diluciones por marca y gama (pintura : diluyente). ★ = indicación del fabricante. */

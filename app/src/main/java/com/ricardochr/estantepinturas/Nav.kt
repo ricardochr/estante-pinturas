@@ -23,6 +23,7 @@ sealed class Screen(val key: String) {
     data object Settings : Screen("settings")
     data object Schemes : Screen("schemes")
     data object Gaps : Screen("gaps")
+    data object Bsl : Screen("bsl")
     // Los ids de pintura llevan "|", así que cada parte se codifica
     data class Wheel(val paintId: String?) : Screen("wheel|" + enc(paintId))
     data class Project(val id: String) : Screen("project|" + enc(id))
@@ -32,7 +33,7 @@ sealed class Screen(val key: String) {
 
     companion object {
         // Perezoso: si se armara al cargar la clase, las pantallas todavía no existirían (quedarían en null)
-        private val simple by lazy { listOf(Shopping, Backup, Gear, Compare, Light, Sets, Guide, Settings, Schemes, Gaps).associateBy { it.key } }
+        private val simple by lazy { listOf(Shopping, Backup, Gear, Compare, Light, Sets, Guide, Settings, Schemes, Gaps, Bsl).associateBy { it.key } }
 
         fun parse(k: String): Screen? {
             simple[k]?.let { return it }

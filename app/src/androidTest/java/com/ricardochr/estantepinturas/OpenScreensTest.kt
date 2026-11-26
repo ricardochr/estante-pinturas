@@ -88,4 +88,18 @@ class OpenScreensTest {
         tool("Encontrar pintura")
         rule.waitUntil(10_000) { rule.onAllNodesWithText("ENCONTRAR PINTURA").fetchSemanticsNodes().isNotEmpty() }
     }
+
+    @Test fun abreSistemaBsl() {
+        launch()
+        rule.onAllNodesWithText("Taller")[0].performClick()
+        rule.waitForIdle()
+        tool("Sistema BSL")
+        rule.waitUntil(10_000) { rule.onAllNodesWithText("Familias").fetchSemanticsNodes().isNotEmpty() }
+        rule.onNodeWithText("Tríadas").performClick()
+        rule.waitForIdle()
+        rule.onNodeWithText("Solo completas").performClick()
+        rule.waitForIdle()
+        rule.onNodeWithText("Cómo usarlo").performClick()
+        rule.waitUntil(10_000) { rule.onAllNodesWithText("Guía de técnicas").fetchSemanticsNodes().isNotEmpty() }
+    }
 }
