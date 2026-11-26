@@ -357,6 +357,26 @@ val GUIDE: List<GuideSection> = listOf(
                 ),
             ),
             GuideArticle(
+                "Tríadas flexibles de Army Painter",
+                "Warpaints Fanatic usa el mismo principio con familias de 6 colores en vez de 3.",
+                listOf(
+                    "Son 27 familias, cada una de 6 colores del mismo tono, de oscuro a claro.",
+                    "Para transiciones suaves, usa tres colores vecinos: el del medio de base, el más oscuro de sombra y el más claro de luz.",
+                    "Para más contraste, usa el más oscuro, uno del medio y el más claro de la familia.",
+                    "En Taller › Sistema BSL elige Army Painter para ver las familias y las tríadas de vecinos.",
+                ),
+            ),
+            GuideArticle(
+                "Marcas sin sistema oficial",
+                "Si tu marca no publica tríadas, la app las calcula por color.",
+                listOf(
+                    "Agrupa las pinturas opacas de la marca por tono y las ordena de clara a oscura.",
+                    "Para cada pintura tuya busca, en la misma marca, una más oscura y una más clara del mismo tono.",
+                    "Son una sugerencia: revisa la muestra antes de comprar y ajusta con mezclas si el salto es muy grande.",
+                    "En la pantalla aparecen marcadas con * para distinguirlas de las oficiales.",
+                ),
+            ),
+            GuideArticle(
                 "Metales sin metálicos (NMM)",
                 "Con BSL también se imita el metal: lo que cambia es el contraste, mucho más fuerte.",
                 listOf(

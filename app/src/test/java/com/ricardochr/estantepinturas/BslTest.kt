@@ -68,3 +68,64 @@ class BslTest {
         assertEquals(emptySet<String>(), needed - codes)
     }
 }
+
+class FanaticTriadsTest {
+    private fun wp(n: Int, name: String, line: String = "Warpaints Fanatic") =
+        Paint("The Army Painter|$line|$name|WP3%03d".format(n), "The Army Painter", line, name, "WP3%03d".format(n), "#336633", "Opaca")
+
+    @Test fun sonVeintisieteFamiliasDeSeis() {
+        assertEquals(27, FANATIC_FAMILIES.size)
+        assertTrue(FANATIC_FAMILIES.all { it.codes.size == 6 })
+        assertEquals(162, FANATIC_FAMILIES.flatMap { it.codes }.distinct().size)
+        // Deep Greens: WP3049–WP3054, guardada de clara a oscura
+        assertEquals(listOf("WP3054", "WP3053", "WP3052", "WP3051", "WP3050", "WP3049"), FANATIC_FAMILIES[8].codes)
+        assertEquals(108, FANATIC_TRIADS.size)
+    }
+
+    @Test fun sombraYLuzSonLosVecinos() {
+        val greenskin = wp(51, "Greenskin")
+        val (sh, li) = bslTonesFor(greenskin, listOf(greenskin, wp(50, "Guardian Green"), wp(52, "Eternal Hunt")))!!
+        assertEquals("Guardian Green", sh?.name)
+        assertEquals("Eternal Hunt", li?.name)
+        // Las metálicas o de otra línea no son parte de las familias
+        assertNull(bslTonesFor(wp(51, "Greenskin", "Warpaints Fanatic Metallic").copy(code = "WP3190"), listOf(greenskin)))
+    }
+
+    @Test fun todasEstanEnElCatalogo() {
+        val f = listOf(File("src/main/assets/catalog.json"), File("app/src/main/assets/catalog.json")).first { it.exists() }
+        val arr = JSONArray(f.readText())
+        val codes = HashSet<String>()
+        for (i in 0 until arr.length()) {
+            val r = arr.getJSONArray(i)
+            if (r.getString(0) == "The Army Painter" && r.getString(1).startsWith("Warpaints Fanatic")) codes += r.getString(3)
+        }
+        assertEquals(emptySet<String>(), FANATIC_FAMILIES.flatMap { it.codes }.toSet() - codes)
+    }
+}
+
+class CalculatedTriadsTest {
+    private fun pa(name: String, hex: String) = Paint("Pro Acryl|Pro Acryl|$name|", "Pro Acryl", "Pro Acryl", name, "", hex, "Opaca")
+
+    @Test fun calculaSombraYLuzDeLaMismaMarca() {
+        val red = pa("Bold Pyrrole Red", "#C8252B")
+        val dark = pa("Dark Red", "#7A1A1E")
+        val light = pa("Coral", "#E86A5A")
+        val blue = pa("Blue", "#2B4BA8")
+        val s = calculatedSystem("Pro Acryl", listOf(red, dark, light, blue), listOf(red))!!
+        assertTrue(!s.official)
+        val t = s.triads.single()
+        assertEquals(red.id, t.base)
+        assertEquals(dark.id, t.shadow)
+        assertEquals(light.id, t.light)
+        // Las familias van de clara a oscura
+        val reds = s.families.first { red.id in it.codes }.codes
+        assertEquals(listOf(light.id, red.id, dark.id), reds)
+    }
+
+    @Test fun losSistemasSonDeLasMarcasQueTienes() {
+        val gc = Paint("Vallejo|Game Color|Moon Yellow|72.005", "Vallejo", "Game Color", "Moon Yellow", "72.005", "#F9E04A", "Opaca")
+        val red = pa("Bold Pyrrole Red", "#C8252B")
+        val ids = triadSystemsFor(listOf(gc, red, red.copy(id = "x", name = "Otra")), listOf(gc, red)).map { it.id }
+        assertEquals(listOf("calc-" + brandKey("Pro Acryl"), "vallejo-bsl"), ids)
+    }
+}

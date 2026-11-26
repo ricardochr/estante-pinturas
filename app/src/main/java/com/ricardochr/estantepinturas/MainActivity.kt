@@ -378,7 +378,7 @@ private fun App(vm: MainViewModel = viewModel()) {
             locationName = vm.placesOf(p.id).joinToString(" + ") { it.text }.ifBlank { null },
             inventory = remember(vm.owned, vm.byId) { vm.owned.values.filter { it.qty > 0 }.mapNotNull { vm.byId[it.paintId] } },
             onOpenWheel = { editing = null; nav.open(Screen.Wheel(p.id)) },
-            bslIndex = remember(vm.catalog, vm.extra) { BslIndex(vm.extra + vm.catalog) },
+            bslCatalog = remember(vm.catalog, vm.extra) { vm.extra + vm.catalog },
             onFixColor = { hx ->
                 vm.fixColor(p.id, hx)
                 editing = vm.byId[p.id]

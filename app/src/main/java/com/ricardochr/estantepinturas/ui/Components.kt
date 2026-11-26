@@ -370,7 +370,7 @@ fun EntrySheet(
     onAddToProject: (String) -> Unit = {},
     equivalents: List<com.ricardochr.estantepinturas.MainViewModel.Equivalent>? = null,
     onSaveThin: (String) -> Unit = {},
-    bslIndex: BslIndex? = null,
+    bslCatalog: List<Paint>? = null,
 ) {
     var projectMenu by remember { mutableStateOf(false) }
     var thin by remember { mutableStateOf(entry?.thin ?: "") }
@@ -531,7 +531,7 @@ fun EntrySheet(
                     MixSection(paint.argb.toInt(), mixes, onOpenSimilar)
                 }
             }
-            if (bslIndex != null) BslSection(paint, bslIndex, inventory, onOpenSimilar)
+            if (bslCatalog != null) BslSection(paint, bslCatalog, inventory, onOpenSimilar)
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("Botes", Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
                 QtyStepper(qty, onMinus = { if (qty > 0) qty-- }, onPlus = { qty++ })
