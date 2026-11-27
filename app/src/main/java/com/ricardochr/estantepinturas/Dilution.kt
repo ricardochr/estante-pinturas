@@ -59,7 +59,8 @@ fun chemistryOf(p: Paint): Chemistry {
         line.contains("enamel") || name.contains("enamel") || line.contains("esmalte") -> Chemistry.ENAMEL
         // AK Real Colors: acrílico con base de laca; True Metal: pasta de cera que se diluye con white spirit
         brand.contains("ak") && line.contains("real colors") -> Chemistry.LACQUER
-        line.contains("true metal") || line.contains("(wax)") -> Chemistry.ENAMEL
+        // Ojo: Vallejo "True Metallic Metal" es acrílico al agua; solo el True Metal de AK es cera
+        (line.contains("true metal") && !line.contains("metallic")) || line.contains("(wax)") || line.contains("wax") -> Chemistry.ENAMEL
         brand.contains("tamiya") && (line.contains("lacquer") || line.contains("spray")) -> Chemistry.LACQUER
         brand.contains("tamiya") -> Chemistry.ALCOHOL_ACRYLIC
         brand.contains("mr. hobby") || brand.contains("mr hobby") -> when {

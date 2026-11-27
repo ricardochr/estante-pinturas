@@ -183,6 +183,11 @@ class MixedTriadsTest {
         assertTrue(listOf(fluor, speed, wash).none { s.matches(it) })
     }
 
+    @Test fun trueMetallicMetalEsAcrilicoAlAguaYTrueMetalDeAkEsCera() {
+        assertEquals(Chemistry.WATER_ACRYLIC, chemistryOf(p("Vallejo", "True Metallic Metal", "Imperial Gold (Base)", "#C8813E", "Metálica")))
+        assertEquals(Chemistry.ENAMEL, chemistryOf(p("AK Interactive", "True Metal (Wax)", "Gold", "#C8A040", "Metálica")))
+    }
+
     @Test fun lasMetalicasVanAparte() {
         val gold = p("Vallejo", "True Metallic Metal", "Imperial Gold (Base)", "#C8813E", "Metálica")
         val dark = p("Kaleido Colorworks", "Metal Colors", "Dark Gold", "#7A5020", "Metálica")
