@@ -1,6 +1,6 @@
 # Validación de sets
 
-Sets publicados: 786 — ok 402, parcial 36, revisar 348. Descartados: 1401.
+Sets publicados: 785 — ok 402, parcial 34, revisar 349. Descartados: 1454.
 
 ## Por revisar o parciales
 
@@ -349,9 +349,8 @@ Sets publicados: 786 — ok 402, parcial 36, revisar 348. Descartados: 1401.
 - **Vallejo — Squidmar The Essentials Paint Set** (27/30, www.goblingaming.co.uk): Trae 30 pinturas; se reconocieron 27 (faltan 3 en el catálogo)
 - **Vallejo — Star Fighters Colours Paint Set 8x - Model Air** (7/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — Titanic Colours Paint Set 8x - Model Air** (4/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
-- **Vallejo — True Metallic METAL DUSKEN GREEN PAINT SET** (3/4, www.tistaminis.com): Trae 4 pinturas; se reconocieron 3 (faltan 1 en el catálogo)
-- **Vallejo — True Metallic METAL RUBY RED PAINT SET** (3/4, www.tistaminis.com): Trae 4 pinturas; se reconocieron 3 (faltan 1 en el catálogo)
 - **Vallejo — True Metallic METAL SAPPHIRE BLUE PAINT SET** (3/4, www.tistaminis.com): Trae 4 pinturas; se reconocieron 3 (faltan 1 en el catálogo)
+- **Vallejo — True Metallic Metal Ancient Copper - 4 Colour Paint Set** (7/4, www.gapgames.com.au): Anuncia 4 pinturas y se reconocieron 7: puede incluir alguna que no viene
 - **Vallejo — US Air Corps ETO WWII Paint Set 8x - Model Air** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — US Air Corps MTO WWII Paint Set 8x - Model Air** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
 - **Vallejo — US Air Corps Pacific WWII Paint Set 8x - Model Air** (8/?, www.goblingaming.co.uk): Solo aparece en tiendas minoristas y no dice cuántas pinturas trae
@@ -969,6 +968,7 @@ Sets publicados: 786 — ok 402, parcial 36, revisar 348. Descartados: 1401.
 - Green Stuff World — Chameleon Acrylic Paint Set 2 (Tienda oficial): solo 0 pinturas reconocidas
 - Green Stuff World — Chameleon Acrylic Paint Set 3 (Tienda oficial): solo 0 pinturas reconocidas
 - Green Stuff World — GREEN STUFF WORLD Basic Mega Paint Set - Vol. 1.0 (www.gapgames.com.au): solo 0 pinturas reconocidas
+- Green Stuff World — GREEN STUFF WORLD Liquid Pigments Paint Set - Dust (Box x6) (www.gapgames.com.au): solo 0 pinturas reconocidas
 - Green Stuff World — GREEN STUFF WORLD Paint Set Metal Filters - Interference Colours (www.gapgames.com.au): solo 0 pinturas reconocidas
 - Green Stuff World — Green Stuff World	Refillable paint pen 0.5 (pack x6) (www.tistaminis.com): solo 0 pinturas reconocidas
 - Green Stuff World — Green Stuff World	Refillable paint pen 0.7 (pack x6) (www.tistaminis.com): solo 0 pinturas reconocidas
@@ -1150,18 +1150,67 @@ Sets publicados: 786 — ok 402, parcial 36, revisar 348. Descartados: 1401.
 - Pro Acryl — PRO Synthetic Set (Tienda oficial): solo 0 pinturas reconocidas
 - Pro Acryl — Pro Acryl Alternate Lid Set - Dropper (Tienda oficial): solo 0 pinturas reconocidas
 - Pro Acryl — Pro Acryl Alternate Lid Set - Flip Top (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — ANCIENT PACK (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — BIG STIX MULTI SET (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — BLACK and WHITE Paint set (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — BLOOD and FIRE Red Paint Set (Tienda oficial): solo 0 pinturas reconocidas
 - Scale75 — Black And White Paint Set: ScaleColor 17mL acrylic (www.thecombatcompany.com): solo 0 pinturas reconocidas
 - Scale75 — Blood And Fire Red Paint Set: ScaleColor 17mL acrylic (www.thecombatcompany.com): solo 0 pinturas reconocidas
+- Scale75 — COLLECTION 1 (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — COLLECTION 2 (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — COLORS of NATURE Green Paint Set (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — DR FLOWS PAINT CASE (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — ESSENTIALS 2 BASIC COLORS SET (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — ESSENTIALS BASIC COLORS SET (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — FANTASY and GAMES COLLECTION (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — FLESH Paint Set (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — FULL RANGE PROMO (Tienda oficial): solo 0 pinturas reconocidas
 - Scale75 — Flesh Paint Set: ScaleColor 17mL acrylic (www.thecombatcompany.com): solo 0 pinturas reconocidas
 - Scale75 — Fx Fluor Experience Paint Set: ScaleColor 17mL acrylic (www.thecombatcompany.com): solo 0 pinturas reconocidas
+- Scale75 — HIGHLAND TARTANS paint set (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — HIGHLANDS PACK 2 (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — HISTORIX PAINT SET (Tienda oficial): solo 0 pinturas reconocidas
 - Scale75 — Inkside Out: ScaleColor Artist Paint Set (runout sale) (www.thecombatcompany.com): solo 0 pinturas reconocidas
 - Scale75 — Inktensity 2 Paint Set: ScaleColor 17mL acrylic (www.thecombatcompany.com): solo 0 pinturas reconocidas
 - Scale75 — Inktensity Paint Set: ScaleColor 17mL ink (www.thecombatcompany.com): solo 0 pinturas reconocidas
+- Scale75 — KNIGHT TEMPLAR + SARACEN WARRIOR PACK (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — METAL N ALCHEMY COLLECTION (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — METAL and ALCHEMY GOLDEN paint set (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — METAL and ALCHEMY STEEL paint set (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — MIDDLE AGE PACK (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — MINI STIX APPLICATORS MULTI SET (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — MODERN ERA PACK (Tienda oficial): solo 0 pinturas reconocidas
 - Scale75 — Metal'N Alchemy Copper Series Paint Set: ScaleColor 17mL acrylic (www.thecombatcompany.com): solo 0 pinturas reconocidas
 - Scale75 — Metal'N Alchemy Golden Paint Set: ScaleColor 17mL acrylic (www.thecombatcompany.com): solo 0 pinturas reconocidas
 - Scale75 — Metal'N Alchemy Steel Paint Set: ScaleColor 17mL acrylic (www.thecombatcompany.com): solo 0 pinturas reconocidas
 - Scale75 — NMM Paint Set (Gold And Copper): ScaleColor 17mL acrylic (www.thecombatcompany.com): solo 0 pinturas reconocidas
 - Scale75 — NMM Paint Set (Steel): ScaleColor 17mL acrylic (www.thecombatcompany.com): solo 0 pinturas reconocidas
+- Scale75 — NMM Paint Set GOLD AND COPPER (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — NMM Paint Set STEEL (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — PACK BASIC COLORS + BROIN BEARSONN (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — PACK BASIC COLORS II + WITCH TALES (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — PACK ELVEN COLORUS + LISBETH (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — PACK EMPIRE OF THE SUN + KEERA (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — PACK ERICH "BUBI" HARTMANN + LUFTWAFFE CREW (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — PACK FRONTKOVIK + SOVIET ARMY (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — PACK GEFREITER + DAK PAINT SET 1 (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — PACK GREEN MILE + JYNZ THE SCOUNDREL (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — PACK OBERSHUTZE + DAK PAINT SET 2 (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — PACK ORCS AND GOBLINS + SHARGH ORC FURY (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — PACK ROTTENFUHRER + FELDGRAU PAINT SET (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — PACK STEAMPUNK + JESSICA THUNDERHAWK (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — PACK THIN RED LINE + COLDSTREAM GUARD (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — PACK TOTENKOPF TANKER + PANZER TRUPPEN PAINT SET (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — PACK US CORPORAL + US ARMY 1942-1944 (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — PACK US LIEUTENANT + US ARMY 1944-45 PAINT SET (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — PEPE PACK INGLES (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — PIGMENTS COLLECTION (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — PIRATES PACK (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — SCALECOLOR COLLECTION (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — SET CABEZAS ALEMANAS WWII (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — SKY and ICE Blue Paint Set (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — SMALL LUXURY WOODEN BOX (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — SOVIET ARMY SET (Tienda oficial): solo 2 pinturas reconocidas
 - Scale75 — Scale 75 - Fantasy Colours - Basic Colors 2 Paint Set (www.gapgames.com.au): solo 0 pinturas reconocidas
 - Scale75 — Scale 75 - Fantasy Colours - Basic Colors Paint Set (www.gapgames.com.au): solo 0 pinturas reconocidas
 - Scale75 — Scale 75 - Fantasy Colours - Elven Colours Paint Set (www.gapgames.com.au): solo 0 pinturas reconocidas
@@ -1198,6 +1247,9 @@ Sets publicados: 786 — ok 402, parcial 36, revisar 348. Descartados: 1401.
 - Scale75 — Sweet Dreams: ScaleColor Artist Paint Set (runout sale) (www.thecombatcompany.com): solo 0 pinturas reconocidas
 - Scale75 — Velvet Skin Paint Set: ScaleColor 17mL acrylic (run out) (www.thecombatcompany.com): solo 0 pinturas reconocidas
 - Scale75 — Volcano: ScaleColor Artist Paint Set (runout sale) (www.thecombatcompany.com): solo 0 pinturas reconocidas
+- Scale75 — WILD WEST PACK (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — WOOD and LEATHER Paint set (Tienda oficial): solo 0 pinturas reconocidas
+- Scale75 — WarFront Collection (Tienda oficial): solo 0 pinturas reconocidas
 - Scale75 — Wood And Leather Paint Set: ScaleColor 17mL acrylic (www.thecombatcompany.com): solo 0 pinturas reconocidas
 - Tamiya — Tamiya Metal Paint Stirrers Set 74017 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
 - Tamiya — Tamiya Spray Work Painting Stand Set 74522 (scalemodelshop.co.uk): solo 0 pinturas reconocidas
@@ -1241,13 +1293,11 @@ Sets publicados: 786 — ok 402, parcial 36, revisar 348. Descartados: 1401.
 - The Army Painter — Fowl Moon Stalker Bundle (Tienda oficial): solo 0 pinturas reconocidas
 - The Army Painter — GameMaster: Adventure Starter Role-playing Paint Set (Tienda oficial): solo 1 pinturas reconocidas
 - The Army Painter — GameMaster: Dungeons & Cavern Core Set (Tienda oficial): solo 0 pinturas reconocidas
-- The Army Painter — GameMaster: Wandering Monsters Paint Set Combo (Tienda oficial): solo 0 pinturas reconocidas
 - The Army Painter — GameMaster: Wandering Monsters Role-playing Paint Set (Tienda oficial): solo 1 pinturas reconocidas
 - The Army Painter — GameMaster: Wilderness Adventure Role-playing Paint Set Combo (Tienda oficial): solo 1 pinturas reconocidas
 - The Army Painter — GameMaster: Wilderness Adventures Paint Set (Tienda oficial): solo 0 pinturas reconocidas
 - The Army Painter — GameMaster: Wilderness Adventures Paint Set Combo (Tienda oficial): solo 0 pinturas reconocidas
 - The Army Painter — GameMaster: Wilderness Adventures Role-playing Paint Set (Tienda oficial): solo 1 pinturas reconocidas
-- The Army Painter — Gamemaster: Wandering Monsters Paint Set (Tienda oficial): solo 0 pinturas reconocidas
 - The Army Painter — Get Better Building Bundle (Tienda oficial): solo 0 pinturas reconocidas
 - The Army Painter — Get Started Building Bundle (Tienda oficial): solo 0 pinturas reconocidas
 - The Army Painter — Grey Knights Bundle (Tienda oficial): solo 0 pinturas reconocidas
@@ -1269,7 +1319,7 @@ Sets publicados: 786 — ok 402, parcial 36, revisar 348. Descartados: 1401.
 - The Army Painter — MASTERCLASS JOHN BLANCHE PAINT SET VOLUME 3 (www.tistaminis.com): solo 0 pinturas reconocidas
 - The Army Painter — MASTERCLASS JOHN BLANCHE PAINT SET VOLUME 4 (www.tistaminis.com): solo 0 pinturas reconocidas
 - The Army Painter — Masterclass Bundle (Tienda oficial): solo 0 pinturas reconocidas
-- The Army Painter — Masterclass Bundle. (Tienda oficial): solo 0 pinturas reconocidas
+- The Army Painter — Masterclass Bundle (Tienda oficial): solo 0 pinturas reconocidas
 - The Army Painter — Ork Bundle (Tienda oficial): solo 0 pinturas reconocidas
 - The Army Painter — Poxwalker Bundle (Tienda oficial): solo 0 pinturas reconocidas
 - The Army Painter — Reichbusters Projekt Vrill Army Painter Box (www.gapgames.com.au): solo 0 pinturas reconocidas
@@ -1761,11 +1811,13 @@ Sets publicados: 786 — ok 402, parcial 36, revisar 348. Descartados: 1401.
 - Vallejo — Vallejo Rust Stains and Streaking Paint Set 70.183 (scalemodelshop.co.uk): solo 1 pinturas reconocidas
 - Vallejo — Vallejo Rust and Steel Effects Paint Set 70.150 (scalemodelshop.co.uk): solo 2 pinturas reconocidas
 - Vallejo — Vallejo Special FX Paint Set by Squidmar Miniatures - 12 Acrylic Paints (www.gapgames.com.au): solo 0 pinturas reconocidas
-- Vallejo — Vallejo True Metallic METAL AGED METAL PAINT SET (www.tistaminis.com): solo 2 pinturas reconocidas
-- Vallejo — Vallejo True Metallic METAL AMETHYST PURPLE PAINT SET (www.tistaminis.com): solo 2 pinturas reconocidas
-- Vallejo — Vallejo True Metallic METAL ANCIENT COPPER PAINT SET (www.tistaminis.com): solo 2 pinturas reconocidas
-- Vallejo — Vallejo True Metallic METAL IMPERIAL GOLD PAINT SET (www.tistaminis.com): solo 2 pinturas reconocidas
-- Vallejo — Vallejo True Metallic METAL STERLING SILVER PAINT SET (www.tistaminis.com): solo 2 pinturas reconocidas
+- Vallejo — Vallejo True Metallic METAL AGED METAL PAINT SET (www.tistaminis.com): solo 1 pinturas reconocidas
+- Vallejo — Vallejo True Metallic METAL AMETHYST PURPLE PAINT SET (www.tistaminis.com): solo 1 pinturas reconocidas
+- Vallejo — Vallejo True Metallic METAL ANCIENT COPPER PAINT SET (www.tistaminis.com): solo 1 pinturas reconocidas
+- Vallejo — Vallejo True Metallic METAL DUSKEN GREEN PAINT SET (www.tistaminis.com): solo 2 pinturas reconocidas
+- Vallejo — Vallejo True Metallic METAL IMPERIAL GOLD PAINT SET (www.tistaminis.com): solo 1 pinturas reconocidas
+- Vallejo — Vallejo True Metallic METAL RUBY RED PAINT SET (www.tistaminis.com): solo 2 pinturas reconocidas
+- Vallejo — Vallejo True Metallic METAL STERLING SILVER PAINT SET (www.tistaminis.com): solo 1 pinturas reconocidas
 - Vallejo — Vallejo True Metallic Metal Aged Metal - 4 Colour Paint Set (www.thecombatcompany.com): solo 0 pinturas reconocidas
 - Vallejo — Vallejo True Metallic Metal Amethyst Purple - 4 Colour Paint Set (www.thecombatcompany.com): solo 0 pinturas reconocidas
 - Vallejo — Vallejo True Metallic Metal Ancient Copper - 4 Colour Paint Set (www.thecombatcompany.com): solo 0 pinturas reconocidas

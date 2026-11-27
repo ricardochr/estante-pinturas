@@ -1,11 +1,11 @@
 # Catálogo de pinturas
 
-Total: **8964** pinturas · generado 2026-11-25
+Total: **8965** pinturas · generado 2026-11-27
 
 | Marca | Pinturas | Fuente |
 |---|---:|---|
 | AK Interactive | 1653 | tienda oficial + datos abiertos |
-| Vallejo | 1495 | tienda oficial + datos abiertos |
+| Vallejo | 1496 | tienda oficial + datos abiertos |
 | The Army Painter | 784 | tienda oficial + datos abiertos |
 | Mr. Hobby | 668 | datos abiertos |
 | Citadel | 608 | datos abiertos |
@@ -144,6 +144,7 @@ Total: **8964** pinturas · generado 2026-11-25
 - Óleos: 24
 - Soil Works: 8
 - FX Fluor: 6
+- Pinturas con color estimado de la foto: 221
 
 ## The Army Painter
 
@@ -179,7 +180,7 @@ Total: **8964** pinturas · generado 2026-11-25
 - Model Air: 267
 - Model Color: 222
 - Game Color: 156
-- Arte Deco: 98
+- Arte Deco: 99
 - True Metallic Metal: 80
 - Mecha Color: 76
 - Squidmar Color: 72
@@ -202,10 +203,10 @@ Total: **8964** pinturas · generado 2026-11-25
 - Surface Primer: 3
 - Game Color Wash: 2
 - Xpress Color Intense: 1
-- Pinturas con color estimado de la foto: 334
+- Pinturas con color estimado de la foto: 338
 
 ## Calidad del color
 
-- Medido (datos abiertos o muestra oficial): 7139
-- Estimado de la foto del producto: 1645
-- Típico según el nombre (aproximado): 180
+- Medido (datos abiertos o muestra oficial): 7138
+- Estimado de la foto del producto: 1649
+- Típico según el nombre (aproximado): 178

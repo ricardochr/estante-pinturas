@@ -1,19 +1,19 @@
 # Validación de colores
 
-Pinturas: 8964. Comparadas con paintdex y miniature-paints (ΔE2000).
+Pinturas: 8965. Comparadas con paintdex y miniature-paints (ΔE2000).
 
 | Estado | Pinturas |
 |---|---:|
 | Coincide con otra fuente (<10) | 1 |
 | Diferencia moderada (10–20) | 6 |
 | Se contradice (>20) | 8 |
-| Sin segunda fuente | 8936 |
+| Sin segunda fuente | 8937 |
 | Sin color | 13 |
 
 Color que contradice el nombre: 939
 No se parece a ninguna fuente: 0
 Marcadas como dudosas en la app: 0
-Estimaciones reemplazadas por una medición de los datos abiertos: 6
+Estimaciones reemplazadas por una medición de los datos abiertos: 4
 Conservadas porque encajan con su nombre y la única fuente en contra no: 0
 Corregidas con la fuente porque el catálogo no encaja con el nombre y la fuente sí: 0
 
@@ -48,7 +48,7 @@ Corregidas con la fuente porque el catálogo no encaja con el nombre y la fuente
 | Tamiya | 0 | 0 | 0 | 329 | 0 |
 | The Army Painter | 0 | 0 | 0 | 784 | 0 |
 | Turbo Dork | 0 | 0 | 0 | 40 | 0 |
-| Vallejo | 1 | 1 | 0 | 1481 | 12 |
+| Vallejo | 1 | 1 | 0 | 1482 | 12 |
 | Warcolours | 0 | 0 | 0 | 178 | 0 |
 
 ## Se contradicen (las 200 peores)
