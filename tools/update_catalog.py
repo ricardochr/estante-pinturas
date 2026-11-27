@@ -448,6 +448,18 @@ VALLEJO_LINES = ["Model Color", "Model Air", "Game Color", "Game Air", "Xpress C
                  "Primers", "Hobby Paint", "Pigment FX", "Diorama FX", "Auxiliary Products", "Eccentric Colors – The Shifters"]
 
 
+def tmm_role(name, code, t):
+    """True Metallic Metal: cada familia tiene Light (77.101–120), Base (121–140), Shade (141–160) y Airbrush (161–180)
+    con el mismo nombre; se agrega el tipo al nombre. Shade es un lavado satinado no metálico."""
+    m = re.match(r"^77\.(\d{3})$", code)
+    n = int(m.group(1)) if m else 0
+    role = "Light" if 101 <= n <= 120 else "Base" if n <= 140 else "Shade" if n <= 160 else "Airbrush" if n <= 180 else ""
+    if not role or n < 101:
+        return name, t
+    name = re.sub(r"\s*[-–(]?\s*(light|base|shade|airbrush)\)?\s*$", "", name, flags=re.I).strip()
+    return f"{name} ({role})", ("Wash" if role == "Shade" else t)
+
+
 def parse_vallejo(prods):
     out = []
     for p in prods:
@@ -465,6 +477,8 @@ def parse_vallejo(prods):
         if line in ("Model Air", "Game Air") and t == "Opaca": t = "Aerógrafo"
         if line in ("True Metallic Metal", "Metal Color", "Liquid Metal"): t = "Metálica"
         if line == "Xpress Color": t = "Contraste"
+        if line == "True Metallic Metal":
+            name, t = tmm_role(name, sku, t)
         if line == "Primers": t = "Imprimación"
         if line == "Wash FX": t = "Wash"
         if line in ("Weathering FX", "Pigment FX", "Diorama FX"): t = "Otro"

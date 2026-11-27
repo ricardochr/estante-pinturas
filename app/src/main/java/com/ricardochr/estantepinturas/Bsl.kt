@@ -23,7 +23,14 @@ data class BslTriad(val light: String, val base: String, val shadow: String) {
     val codes get() = listOf(light, base, shadow)
 }
 
-data class BslFamily(val name: String, val codes: List<String>, val note: String = "", val inBigSet: Boolean = true)
+data class BslFamily(
+    val name: String,
+    val codes: List<String>,
+    val note: String = "",
+    val inBigSet: Boolean = true,
+    /** Papel de cada color de la familia, en el mismo orden que [codes] (null: solo de clara a oscura). */
+    val labels: List<String>? = null,
+)
 
 enum class BslRole(val label: String) { LIGHT("Luz"), BASE("Base"), SHADOW("Sombra") }
 
@@ -229,7 +236,51 @@ val FANATIC_FLEXIBLE = TriadSystem(
     matches = ::isFanaticTriadPaint,
 )
 
-val OFFICIAL_SYSTEMS: List<TriadSystem> = listOf(VALLEJO_BSL, FANATIC_FLEXIBLE)
+// ---------------------------------------------------------------- Vallejo True Metallic Metal
+
+private val TMM_CODE = Regex("""^77\.(\d{3})$""")
+
+fun isTrueMetallic(p: Paint): Boolean {
+    val n = TMM_CODE.matchEntire(p.code.trim())?.groupValues?.get(1)?.toIntOrNull() ?: return false
+    return brandKey(p.brand) == brandKey("Vallejo") && n in 101..180 && p.line.startsWith("True Metallic Metal", ignoreCase = true)
+}
+
+// i18n:off — nombres de las familias de Vallejo (no se traducen)
+/** Las 20 familias en el orden de sus códigos: Light 77.101–120, Base 121–140, Shade 141–160, Airbrush 161–180. */
+private val TMM_FAMILY_NAMES = listOf(
+    "Sterling Silver", "Radiant Yellow", "Imperial Gold", "Ancient Copper", "Forged Red", "Ruby Red", "Crimson Magenta",
+    "Amethyst Purple", "Celestial Violet", "Ultramarine Blue", "Sapphire Blue", "Hydra Turquoise", "Beetle Green",
+    "Dusken Green", "Amber Green", "Greenish Gold", "Arcane Gold", "Rusty Metal", "Aged Metal", "Obsidian Black",
+)
+// i18n:on
+
+private fun tmmCode(n: Int) = "77.$n"
+
+val TMM_FAMILIES: List<BslFamily> = TMM_FAMILY_NAMES.mapIndexed { i, name ->
+    val k = i + 1
+    BslFamily(
+        name, listOf(tmmCode(100 + k), tmmCode(120 + k), tmmCode(140 + k), tmmCode(160 + k)),
+        labels = listOf("Luz", "Base", "Sombra", "Aerógrafo"),
+    )
+}
+
+val TMM_TRIADS: List<BslTriad> = (1..20).map { k -> BslTriad(tmmCode(100 + k), tmmCode(120 + k), tmmCode(140 + k)) }
+
+val VALLEJO_TMM = TriadSystem(
+    id = "vallejo-tmm",
+    // i18n:off — nombres de marca y línea, no se traducen
+    brand = "Vallejo TMM",
+    title = "Vallejo True Metallic Metal · BSL",
+    // i18n:on
+    about = "BSL aplicado al metal: 20 familias, cada una con Light (metálica clara), Base (metálica), Shade (lavado satinado no metálico que no apaga el brillo) y Airbrush (la misma Base lista para aerógrafo).",
+    official = true,
+    triads = TMM_TRIADS,
+    families = TMM_FAMILIES,
+    fullSet = "estuche True Metallic Metal Full Collection (77.250)",
+    matches = ::isTrueMetallic,
+)
+
+val OFFICIAL_SYSTEMS: List<TriadSystem> = listOf(VALLEJO_BSL, VALLEJO_TMM, FANATIC_FLEXIBLE)
 
 // ---------------------------------------------------------------- funciones de siempre (Vallejo)
 

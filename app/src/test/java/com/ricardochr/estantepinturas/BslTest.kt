@@ -129,3 +129,36 @@ class CalculatedTriadsTest {
         assertEquals(listOf("calc-" + brandKey("Pro Acryl"), "vallejo-bsl"), ids)
     }
 }
+
+class TrueMetallicTest {
+    private fun tmm(code: String, name: String, type: String = "Metálica") =
+        Paint("Vallejo|True Metallic Metal|$name|$code", "Vallejo", "True Metallic Metal", name, code, "#C8813E", type)
+
+    @Test fun veinteFamiliasDeCuatro() {
+        assertEquals(20, TMM_FAMILIES.size)
+        assertEquals(80, TMM_FAMILIES.flatMap { it.codes }.distinct().size)
+        // Imperial Gold: Light 77.103, Base 77.123, Shade 77.143, Airbrush 77.163
+        assertEquals(listOf("77.103", "77.123", "77.143", "77.163"), TMM_FAMILIES[2].codes)
+    }
+
+    @Test fun sombraYLuzDeLaFamilia() {
+        val base = tmm("77.123", "Imperial Gold (Base)")
+        val (sh, li) = bslTonesFor(base, listOf(base, tmm("77.143", "Imperial Gold (Shade)", "Wash"), tmm("77.103", "Imperial Gold (Light)")))!!
+        assertEquals("Imperial Gold (Shade)", sh?.name)
+        assertEquals("Imperial Gold (Light)", li?.name)
+        // Metal Color (77.7xx) no es parte del sistema
+        assertNull(bslTonesFor(Paint("v", "Vallejo", "Metal Color", "Gold", "77.725", "#C8A040", "Metálica"), listOf(base)))
+    }
+
+    @Test fun estanEnElCatalogoConSuTipo() {
+        val f = listOf(File("src/main/assets/catalog.json"), File("app/src/main/assets/catalog.json")).first { it.exists() }
+        val arr = JSONArray(f.readText())
+        val byCode = HashMap<String, String>()
+        for (i in 0 until arr.length()) {
+            val r = arr.getJSONArray(i)
+            if (r.getString(0) == "Vallejo" && r.getString(1) == "True Metallic Metal") byCode[r.getString(3)] = r.getString(2)
+        }
+        assertEquals(emptySet<String>(), TMM_FAMILIES.flatMap { it.codes }.toSet() - byCode.keys)
+        assertEquals("Sterling Silver (Shade)", byCode["77.141"])
+    }
+}

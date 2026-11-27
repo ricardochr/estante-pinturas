@@ -178,10 +178,12 @@ private fun FamilyCard(f: BslFamily, all: BslIndex, mine: BslIndex, onOpenPaint:
             if (f.note.isNotBlank()) {
                 Text(trData(f.note), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            Text(tr("De la más clara a la más oscura"), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (f.labels == null) {
+                Text(tr("De la más clara a la más oscura"), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
             if (f.codes.size <= 6) {
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    f.codes.forEach { c -> BslChip(c, null, all, mine, highlight = false, onOpenPaint, Modifier.weight(1f)) }
+                    f.codes.forEachIndexed { i, c -> BslChip(c, null, all, mine, highlight = false, onOpenPaint, Modifier.weight(1f), label = f.labels?.getOrNull(i)) }
                 }
             } else {
                 // Familias calculadas: pueden ser muchas pinturas, se desplazan de lado
@@ -223,6 +225,7 @@ fun BslChip(
     highlight: Boolean,
     onOpenPaint: (Paint) -> Unit,
     modifier: Modifier = Modifier,
+    label: String? = null,
 ) {
     val p = mine[code] ?: all[code]
     val owned = mine[code] != null
@@ -235,8 +238,9 @@ fun BslChip(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
-        if (role != null) {
-            Text(trData(role.label), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+        val top = role?.label ?: label
+        if (top != null) {
+            Text(trData(top), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
         }
         Box(contentAlignment = Alignment.BottomEnd) {
             Swatch(p?.hex ?: UNKNOWN_HEX, size = 30.dp)
@@ -284,7 +288,13 @@ fun BslSection(paint: Paint, catalog: List<Paint>, inventory: List<Paint>, onOpe
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        uses.forEach { (t, role) ->
+        // Familias con papel por color (True Metallic Metal): se muestra la familia completa
+        families.filter { it.labels != null }.forEach { f ->
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                f.codes.forEachIndexed { i, c -> BslChip(c, null, all, mine, highlight = c == code, onOpen, Modifier.weight(1f), label = f.labels?.getOrNull(i)) }
+            }
+        }
+        if (families.none { it.labels != null }) uses.forEach { (t, role) ->
             Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = RoundedCornerShape(12.dp)) {
                 Column(Modifier.fillMaxWidth().padding(8.dp)) {
                     Text(

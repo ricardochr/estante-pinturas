@@ -388,6 +388,73 @@ val GUIDE: List<GuideSection> = listOf(
             ),
         ),
     ),
+    GuideSection(
+        "True Metallic Metal (Vallejo)",
+        listOf(
+            GuideArticle(
+                "Qué es True Metallic Metal",
+                "El sistema BSL aplicado a pinturas con pigmento metálico real, en vez de imitar el metal con colores mate (NMM).",
+                listOf(
+                    "Son 20 familias de color, cada una con 4 pinturas.",
+                    "Light: metálica clara para las luces.",
+                    "Base: la metálica de la familia, la primera capa.",
+                    "Shade: un lavado satinado y no metálico, más oscuro que la Base, que sombrea sin apagar el brillo.",
+                    "Airbrush: el mismo color de la Base formulado para aerógrafo; no hace falta diluirlo.",
+                    "Las familias están hechas para combinarse y mezclarse entre sí.",
+                    "En Taller › Sistema BSL elige Vallejo TMM para ver tus 20 familias y lo que te falta.",
+                ),
+                tip = "Para profundizar: libro True Metallic Metal – BSL System, de Ángel Giráldez y Pedro González (Vallejo 75092 en español, 75093 en inglés).",
+            ),
+            GuideArticle(
+                "Pintar metal con una familia TMM",
+                "Base, sombra, recuperar y luz: el mismo orden de siempre, cuidando de no ensuciar el brillo.",
+                listOf(
+                    "Imprima en negro: el metal brilla más sobre un fondo oscuro.",
+                    "Base: dos capas finas de la Base (o la Airbrush con aerógrafo) en toda la pieza.",
+                    "Shade diluida: en la mitad de abajo de cada volumen, para sombrear los tonos medios.",
+                    "Shade pura: solo en los huecos y uniones, para perfilar.",
+                    "Recupera: vuelve a pasar Base en la parte de arriba para limpiar la transición.",
+                    "Light: en las zonas altas y los bordes; termina con puntos pequeños de Light donde pegaría la luz.",
+                    "Si quieres teñir o unificar, una veladura muy diluida de la Shade sobre toda la pieza.",
+                ),
+                tools = "Pincel de detalle con buena punta y un pincel viejo solo para metálicas (el pigmento desgasta la punta).",
+                tip = "Limpia muy bien el pincel entre metálica y no metálica: las partículas de metal se quedan y aparecen después como brillos sueltos.",
+            ),
+            GuideArticle(
+                "Combinar familias TMM",
+                "Mezclar familias da metales que no vienen en ningún bote.",
+                listOf(
+                    "Acero frío: Base de Sterling Silver sombreada con la Shade de Sapphire Blue.",
+                    "Oro viejo: Base de Imperial Gold sombreada con la Shade de Rusty Metal o Aged Metal.",
+                    "Oro más brillante: luces de Radiant Yellow (Light) sobre Imperial Gold o Arcane Gold.",
+                    "Metales de color (Ruby Red, Sapphire Blue…): puntos finales con Sterling Silver (Light) para un brillo más blanco.",
+                    "Prueba la combinación en una pieza de descarte antes de pintar la figura.",
+                ),
+                tip = "Estas combinaciones son sugerencias de partida, no recetas oficiales de Vallejo.",
+            ),
+            GuideArticle(
+                "Metal gastado y óxido",
+                "Las familias Aged Metal y Rusty Metal están pensadas para metal viejo, maquinaria y armaduras castigadas.",
+                listOf(
+                    "Pinta la Base de Aged Metal o del metal que quieras envejecer.",
+                    "Usa las Shade como lavado en toda la pieza; deja que se acumulen en los huecos.",
+                    "Con pincel seco, pasa la Light en bordes y relieves para marcar el desgaste.",
+                    "Para óxido, puntea la Base y la Shade de Rusty Metal en uniones, remaches y zonas bajas.",
+                    "Deja algunos bordes limpios con Light: el contraste entre metal pulido y óxido es lo que lo hace creíble.",
+                ),
+                tools = "Pincel seco (el del estuche sirve), esponja o pincel viejo para puntear.",
+            ),
+            GuideArticle(
+                "Barniz sobre metálicas",
+                "Un barniz mate encima apaga el brillo del metal.",
+                listOf(
+                    "Barniza en mate la figura antes de pintar las partes metálicas, si puedes.",
+                    "Si barnizas al final, usa satinado o brillante sobre el metal, o vuelve a dar las luces metálicas después del mate.",
+                    "Las Shade ya son satinadas: no necesitan barniz para conservar el brillo de la Base.",
+                ),
+            ),
+        ),
+    ),
 )
 
 /** Tabla de diluciones por marca y gama (pintura : diluyente). ★ = indicación del fabricante. */
