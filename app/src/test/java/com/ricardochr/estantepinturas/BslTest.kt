@@ -126,7 +126,8 @@ class CalculatedTriadsTest {
         val gc = Paint("Vallejo|Game Color|Moon Yellow|72.005", "Vallejo", "Game Color", "Moon Yellow", "72.005", "#F9E04A", "Opaca")
         val red = pa("Bold Pyrrole Red", "#C8252B")
         val ids = triadSystemsFor(listOf(gc, red, red.copy(id = "x", name = "Otra")), listOf(gc, red)).map { it.id }
-        assertEquals(listOf("calc-" + brandKey("Pro Acryl"), "vallejo-bsl"), ids)
+        // Los oficiales siempre están; primero los que tienen más pinturas tuyas
+        assertEquals(listOf("calc-" + brandKey("Pro Acryl"), "vallejo-bsl", "vallejo-tmm", "fanatic"), ids)
     }
 }
 

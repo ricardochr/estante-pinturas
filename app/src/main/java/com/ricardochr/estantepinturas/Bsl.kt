@@ -381,14 +381,12 @@ fun calculatedSystem(brand: String, catalog: Collection<Paint>, owned: Collectio
 }
 
 /**
- * Sistemas para las marcas que tienes: los oficiales con al menos una pintura tuya y uno calculado por cada
- * otra marca con pinturas opacas. Los que más pinturas tuyas tienen van primero. Si no tienes ninguna, se
- * muestran los oficiales.
+ * Sistemas para elegir: los oficiales siempre (aunque todavía no tengas ninguna pintura de ellos, para ver qué
+ * trae cada uno) y uno calculado por cada otra marca tuya con pinturas opacas. Los que más pinturas tuyas
+ * tienen van primero.
  */
 fun triadSystemsFor(owned: Collection<Paint>, catalog: Collection<Paint>): List<TriadSystem> {
-    val official = OFFICIAL_SYSTEMS.filter { s -> owned.any { s.matches(it) } }
     val brands = owned.filter { p -> p.type == "Opaca" && OFFICIAL_SYSTEMS.none { it.matches(p) } }.map { it.brand }.distinct()
     val calculated = brands.mapNotNull { calculatedSystem(it, catalog, owned) }
-    val all = (official + calculated).sortedByDescending { s -> owned.count { s.matches(it) } }
-    return all.ifEmpty { OFFICIAL_SYSTEMS }
+    return (OFFICIAL_SYSTEMS + calculated).sortedByDescending { s -> owned.count { s.matches(it) } }
 }
