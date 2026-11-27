@@ -330,17 +330,69 @@ private val HUE_FAMILY_ORDER = listOf(
     "Cafés y tierras", "Neutros",
 )
 
-/** La sombra (o la luz) de [base] entre [pool]: más oscura (o clara), del mismo tono, la más cercana al tono ideal. */
+/**
+ * La sombra (o la luz) de [base] entre [pool]: más oscura (o clara), del mismo tono, la más cercana al tono ideal.
+ * Solo pinturas con acabado compatible (no brillante con mate); a igual parecido gana la misma marca.
+ */
 private fun calcTone(base: Paint, pool: List<Paint>, darker: Boolean): Paint? {
     val b = base.lab
     val target = if (darker) Lab(b.l - 20, b.a * 0.95, b.b * 0.95 - 3) else Lab(b.l + 18, b.a * 0.85, b.b * 0.85 + 3)
     return pool.asSequence()
-        .filter { it.id != base.id }
+        .filter { it.id != base.id && finishesCompatible(base, it) }
         .filter { if (darker) it.lab.l in (b.l - 32)..(b.l - 7) else it.lab.l in (b.l + 7)..(b.l + 32) }
         .map { it to deltaE2000(target, it.lab) }
         .filter { it.second < 16 }
-        .minByOrNull { it.second }
+        .minByOrNull { it.second + if (brandKey(it.first.brand) == brandKey(base.brand)) 0.0 else 1.5 }
         ?.first
+}
+
+/** Tipo de pintura con que se arma un sistema combinando marcas: solo se juntan pinturas que se comportan igual. */
+enum class MixKind { OPACA, METALICA }
+
+/**
+ * ¿Entra en un sistema combinado de este tipo? Opacas: acrílico al agua común (sin fluorescentes, perladas,
+ * transparentes, de efecto, contrastes, lavados, tintas, imprimaciones ni de aerógrafo). Metálicas: metálicas
+ * de acrílico al agua (sin las de cera o esmalte, ni los lavados de metal).
+ */
+fun fitsMix(p: Paint, kind: MixKind): Boolean = p.hasColor && p.quality != "n" && when (kind) {
+    MixKind.OPACA -> mixable(p)
+    MixKind.METALICA -> p.type == "Metálica" && chemistryOf(p) == Chemistry.WATER_ACRYLIC &&
+        !Regex("""\b(fluor|fluo|fluorescent|neon|glow|iridescent|chameleon|candy)\b""").containsMatchIn(norm(p.line + " " + p.name))
+}
+
+/** Familias por tono de [pool], de clara a oscura (solo las que tienen al menos dos pinturas). */
+private fun hueFamilies(pool: List<Paint>): List<BslFamily> = pool.groupBy { hueFamily(it) }
+    .filter { it.value.size >= 2 }
+    .toList()
+    .sortedBy { HUE_FAMILY_ORDER.indexOf(it.first) }
+    .map { (name, ps) -> BslFamily(name, ps.sortedByDescending { it.lab.l }.map { it.id }) }
+
+/**
+ * Sistema combinando todas tus marcas: solo tus pinturas de un mismo tipo ([kind]) y con acabado compatible.
+ * Para cada una busca la sombra y la luz entre las demás, de cualquier marca.
+ */
+fun mixedSystem(owned: Collection<Paint>, kind: MixKind): TriadSystem? {
+    val pool = owned.filter { fitsMix(it, kind) }.distinctBy { it.id }
+    if (pool.size < 3 || pool.map { brandKey(it.brand) }.distinct().size < 2) return null
+    val triads = pool.mapNotNull { base ->
+        val sh = calcTone(base, pool, darker = true) ?: return@mapNotNull null
+        val li = calcTone(base, pool, darker = false) ?: return@mapNotNull null
+        BslTriad(li.id, base.id, sh.id)
+    }.distinct()
+    val ids = pool.map { it.id }.toHashSet()
+    val opaque = kind == MixKind.OPACA
+    return TriadSystem(
+        id = if (opaque) "mix-opaca" else "mix-metalica",
+        brand = if (opaque) tr("Todas mis opacas") else tr("Todas mis metálicas"),
+        title = if (opaque) tr("Todas tus marcas · opacas") else tr("Todas tus marcas · metálicas"),
+        about = if (opaque) tr("Combina tus pinturas opacas de todas las marcas. Solo entran acrílicos al agua comunes: quedan fuera fluorescentes, perladas, transparentes, contrastes, lavados, tintas e imprimaciones, y no se junta brillante con mate.")
+        else tr("Combina tus metálicas de acrílico al agua de todas las marcas. Quedan fuera las de cera o esmalte y los lavados de metal."),
+        official = false,
+        triads = triads,
+        families = hueFamilies(pool),
+        matches = { it.id in ids },
+        keyOf = { it.id },
+    )
 }
 
 /**
@@ -350,17 +402,13 @@ private fun calcTone(base: Paint, pool: List<Paint>, darker: Boolean): Paint? {
  */
 fun calculatedSystem(brand: String, catalog: Collection<Paint>, owned: Collection<Paint>): TriadSystem? {
     val key = brandKey(brand)
-    fun usable(p: Paint) = brandKey(p.brand) == key && p.type == "Opaca" && p.hasColor && p.quality != "n" &&
+    fun usable(p: Paint) = brandKey(p.brand) == key && p.type == "Opaca" && fitsMix(p, MixKind.OPACA) &&
         !p.line.contains("descontinuada", true) && OFFICIAL_SYSTEMS.none { it.matches(p) }
     val mine = owned.filter { usable(it) }
     if (mine.isEmpty()) return null
     val lines = mine.map { it.line }.toSet()
     val pool = (catalog.filter { usable(it) && it.line in lines } + mine).distinctBy { it.id }
-    val families = pool.groupBy { hueFamily(it) }
-        .filter { it.value.size >= 2 }
-        .toList()
-        .sortedBy { HUE_FAMILY_ORDER.indexOf(it.first) }
-        .map { (name, ps) -> BslFamily(name, ps.sortedByDescending { it.lab.l }.map { it.id }) }
+    val families = hueFamilies(pool)
     val triads = mine.mapNotNull { base ->
         val sh = calcTone(base, pool, darker = true) ?: return@mapNotNull null
         val li = calcTone(base, pool, darker = false) ?: return@mapNotNull null
@@ -388,5 +436,7 @@ fun calculatedSystem(brand: String, catalog: Collection<Paint>, owned: Collectio
 fun triadSystemsFor(owned: Collection<Paint>, catalog: Collection<Paint>): List<TriadSystem> {
     val brands = owned.filter { p -> p.type == "Opaca" && OFFICIAL_SYSTEMS.none { it.matches(p) } }.map { it.brand }.distinct()
     val calculated = brands.mapNotNull { calculatedSystem(it, catalog, owned) }
-    return (OFFICIAL_SYSTEMS + calculated).sortedByDescending { s -> owned.count { s.matches(it) } }
+    val mixed = listOfNotNull(mixedSystem(owned, MixKind.OPACA), mixedSystem(owned, MixKind.METALICA))
+    // Los combinados van primero: son los que usan todo lo que tienes
+    return mixed + (OFFICIAL_SYSTEMS + calculated).sortedByDescending { s -> owned.count { s.matches(it) } }
 }

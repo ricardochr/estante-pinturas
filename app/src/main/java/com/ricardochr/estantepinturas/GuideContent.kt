@@ -374,6 +374,7 @@ val GUIDE: List<GuideSection> = listOf(
                     "Para cada pintura tuya busca, en la misma marca, una más oscura y una más clara del mismo tono.",
                     "Son una sugerencia: revisa la muestra antes de comprar y ajusta con mezclas si el salto es muy grande.",
                     "En la pantalla aparecen marcadas con * para distinguirlas de las oficiales.",
+                    "Todas mis opacas y Todas mis metálicas combinan tus marcas: solo juntan pinturas del mismo tipo y acabado compatible, nunca mate con fluorescente, contraste o lavado.",
                 ),
             ),
             GuideArticle(

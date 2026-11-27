@@ -110,12 +110,12 @@ fun BslScreen(vm: MainViewModel, onClose: () -> Unit, onOpenPaint: (Paint) -> Un
                                         FilterChip(
                                             s.id == system.id,
                                             { systemId = s.id; onlyComplete = false },
-                                            label = { Text(s.brand + if (s.official) "" else " *") },
+                                            label = { Text(trData(s.brand) + if (s.official) "" else " *") },
                                         )
                                     }
                                 }
                             }
-                            Text(system.title, style = MaterialTheme.typography.titleLarge)
+                            Text(trData(system.title), style = MaterialTheme.typography.titleLarge)
                             Text(
                                 if (system.official) tr("Sistema oficial de la marca") else tr("* Calculado por color, no es oficial"),
                                 style = MaterialTheme.typography.labelMedium,

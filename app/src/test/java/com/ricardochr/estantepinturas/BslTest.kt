@@ -127,7 +127,7 @@ class CalculatedTriadsTest {
         val red = pa("Bold Pyrrole Red", "#C8252B")
         val ids = triadSystemsFor(listOf(gc, red, red.copy(id = "x", name = "Otra")), listOf(gc, red)).map { it.id }
         // Los oficiales siempre están; primero los que tienen más pinturas tuyas
-        assertEquals(listOf("calc-" + brandKey("Pro Acryl"), "vallejo-bsl", "vallejo-tmm", "fanatic"), ids)
+        assertEquals(listOf("mix-opaca", "calc-" + brandKey("Pro Acryl"), "vallejo-bsl", "vallejo-tmm", "fanatic"), ids)
     }
 }
 
@@ -161,5 +161,39 @@ class TrueMetallicTest {
         }
         assertEquals(emptySet<String>(), TMM_FAMILIES.flatMap { it.codes }.toSet() - byCode.keys)
         assertEquals("Sterling Silver (Shade)", byCode["77.141"])
+    }
+}
+
+class MixedTriadsTest {
+    private fun p(brand: String, line: String, name: String, hex: String, type: String = "Opaca") =
+        Paint("$brand|$line|$name|", brand, line, name, "", hex, type)
+
+    @Test fun combinaMarcasSoloConPinturasCompatibles() {
+        val base = p("Pro Acryl", "Pro Acryl", "Bold Pyrrole Red", "#C8252B")
+        val shadow = p("Vallejo", "Game Color", "Gory Red", "#7A1A1E")
+        val light = p("Scale75", "Scalecolor", "Coral", "#E86A5A")
+        // Parecidas en color pero de otro tipo: no deben usarse
+        val fluor = p("Pro Acryl", "Fluorescent", "Fluorescent Red", "#E86A5A")
+        val speed = p("The Army Painter", "Speedpaint 2.0", "Blood Red", "#7A1A1E", "Contraste")
+        val wash = p("Vallejo", "Wash FX", "Red Wash", "#7A1A1E", "Wash")
+        val s = mixedSystem(listOf(base, shadow, light, fluor, speed, wash), MixKind.OPACA)!!
+        val t = s.triads.first { it.base == base.id }
+        assertEquals(shadow.id, t.shadow)
+        assertEquals(light.id, t.light)
+        assertTrue(listOf(fluor, speed, wash).none { s.matches(it) })
+    }
+
+    @Test fun lasMetalicasVanAparte() {
+        val gold = p("Vallejo", "True Metallic Metal", "Imperial Gold (Base)", "#C8813E", "Metálica")
+        val dark = p("Kaleido Colorworks", "Metal Colors", "Dark Gold", "#7A5020", "Metálica")
+        val light = p("Pro Acryl", "Pro Acryl", "Bright Gold", "#F0C070", "Metálica")
+        val opaque = p("Pro Acryl", "Pro Acryl", "Golden Brown", "#7A5020")
+        val s = mixedSystem(listOf(gold, dark, light, opaque), MixKind.METALICA)!!
+        val t = s.triads.first { it.base == gold.id }
+        assertEquals(dark.id, t.shadow)
+        assertEquals(light.id, t.light)
+        assertTrue(!s.matches(opaque))
+        // Con una sola marca no hay nada que combinar
+        assertNull(mixedSystem(listOf(gold, gold.copy(id = "b"), gold.copy(id = "c")), MixKind.METALICA))
     }
 }
